@@ -26,12 +26,15 @@ static int screenWidth = 800;
 static int screenHeight = 800;
 static int inspectorWidth = 300;
 static int hierachyWidth = 200;
+static int projectWindowHeight = 200;
 
 GLFWwindow* window;
 
 static float transform[3] = { 0.f, 0.f, 0.f };
 static float rotation[3] = { 0.f, 0.f, 0.f };
 static float scale[3] = { 0.f, 0.f, 0.f };
+
+
 
 static void glfw_error_callback(int error, const char* description)
 {
@@ -43,8 +46,8 @@ static void ShowInspectorOverlay(bool* p_open)
 {
     ImGui::SetNextWindowPos(ImVec2(windowWidth - inspectorWidth, 22));
     ImGui::SetNextWindowBgAlpha(0.5f);
-    ImGui::SetNextWindowSize(ImVec2(inspectorWidth, windowHeight));
-    if (!ImGui::Begin("Inspector", NULL, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoCollapse))
+    ImGui::SetNextWindowSize(ImVec2(inspectorWidth, windowHeight-projectWindowHeight-((ImGui::GetStyle().FramePadding.y*2)+18)));
+    if (!ImGui::Begin("Inspector", NULL, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings))
     {
         ImGui::End();
         return;
@@ -64,6 +67,20 @@ static void ShowInspectorOverlay(bool* p_open)
     ImGui::End();
 }
 
+static void ShowProjectOverlay(bool* p_opent) 
+{
+    ImGui::SetNextWindowPos(ImVec2(0, windowHeight- projectWindowHeight));
+    ImGui::SetNextWindowBgAlpha(0.5f);
+    ImGui::SetNextWindowSize(ImVec2(windowWidth, projectWindowHeight));
+    if (!ImGui::Begin("Project", NULL, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoCollapse))
+    {
+        ImGui::End();
+        return;
+    }
+
+    ImGui::End();
+}
+
 /// <summary>
 /// 하이어라키 화면
 /// </summary>
@@ -72,7 +89,7 @@ static void ShowHierachyOverlay(bool* p_open)
 {
     ImGui::SetNextWindowPos(ImVec2(0, 22));
     ImGui::SetNextWindowBgAlpha(0.5f);
-    ImGui::SetNextWindowSize(ImVec2(200, windowHeight));
+    ImGui::SetNextWindowSize(ImVec2(hierachyWidth, windowHeight - projectWindowHeight -((ImGui::GetStyle().FramePadding.y * 2) + 18)));
 
     if (!ImGui::Begin("Hierachy", NULL, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoCollapse))
     {
@@ -159,6 +176,7 @@ int main(int, char**)
     bool show_another_window = false;
     bool show_hierachy_window = true;
     bool show_inspector_window = true;
+    bool show_project_window = true;
     ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
 
     // Main loop
@@ -184,6 +202,10 @@ int main(int, char**)
             if (ImGui::BeginMenu("File"))
             {
                 //ShowExampleMenuFile();
+                if (ImGui::MenuItem("Save", "CTRL+S")) {}
+                if (ImGui::MenuItem("Save As", "CTRL+SHIFT+S")) {}
+                ImGui::Separator();
+                if (ImGui::MenuItem("Exit")) { return 0; }
                 ImGui::EndMenu();
             }
             if (ImGui::BeginMenu("Edit"))
@@ -194,6 +216,26 @@ int main(int, char**)
                 if (ImGui::MenuItem("Cut", "CTRL+X")) {}
                 if (ImGui::MenuItem("Copy", "CTRL+C")) {}
                 if (ImGui::MenuItem("Paste", "CTRL+V")) {}
+                ImGui::EndMenu();
+            }
+            if (ImGui::BeginMenu("Object")) {
+                if (ImGui::MenuItem("Create Empty")) {}
+                ImGui::Separator();
+                if (ImGui::BeginMenu("3D Object")) {
+                    if (ImGui::MenuItem("Cube")) {}
+                    if (ImGui::MenuItem("Sphere")) {}
+                    if (ImGui::MenuItem("Cylinder")) {}
+                    ImGui::EndMenu();
+                }
+                ImGui::EndMenu();
+            }
+            if (ImGui::BeginMenu("Window")) {
+                if(ImGui::BeginMenu("Layout")) {
+                    if (ImGui::MenuItem("2 by 3")) {}
+                    if (ImGui::MenuItem("4 split")) {}
+                    if (ImGui::MenuItem("Default")) {}
+                    ImGui::EndMenu();
+                }
                 ImGui::EndMenu();
             }
             if (ImGui::BeginMenu("Extra")) {
@@ -210,6 +252,9 @@ int main(int, char**)
         }
         if (show_inspector_window) {
             ShowInspectorOverlay(&show_inspector_window);
+        }
+        if (show_project_window) {
+            ShowProjectOverlay(&show_project_window);
         }
 
         if (show_another_window)
