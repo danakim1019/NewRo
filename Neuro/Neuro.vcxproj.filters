@@ -42,6 +42,9 @@
     <ClCompile Include="ImGUI\imgui_impl_opengl3.cpp">
       <Filter>소스 파일\ImGUI</Filter>
     </ClCompile>
+    <ClCompile Include="BackstageWindow.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ImGUI\imconfig.h">
@@ -70,6 +73,9 @@
     </ClInclude>
     <ClInclude Include="ImGUI\imgui_impl_opengl3_loader.h">
       <Filter>소스 파일\ImGUI</Filter>
+    </ClInclude>
+    <ClInclude Include="BackstageWindow.h">
+      <Filter>헤더 파일</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

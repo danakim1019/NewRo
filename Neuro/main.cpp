@@ -13,6 +13,8 @@
 //#include<gl/GL.h>
 #include <GLFW/glfw3.h> // Will drag system OpenGL headers
 
+#include"BackstageWindow.h"
+
 // [Win32] Our example includes a copy of glfw3.lib pre-compiled with VS2010 to maximize ease of testing and compatibility with old VS compilers.
 // To link with VS2010-era libraries, VS2015+ requires linking with legacy_stdio_definitions.lib, which we do using this pragma.
 // Your own project should not be affected, as you are likely to link with a newer binary of GLFW that is adequate for your version of Visual Studio.
@@ -23,17 +25,19 @@
 static int windowWidth = 1500;
 static int windowHeight = 800;
 static int screenWidth = 800;
-static int screenHeight = 800;
+static int screenHeight = 600;
 static int inspectorWidth = 300;
 static int hierachyWidth = 200;
 static int projectWindowHeight = 200;
 
 GLFWwindow* window;
 
+BackstageWindow* win;
+
+
 static float transform[3] = { 0.f, 0.f, 0.f };
 static float rotation[3] = { 0.f, 0.f, 0.f };
 static float scale[3] = { 0.f, 0.f, 0.f };
-
 
 
 static void glfw_error_callback(int error, const char* description)
@@ -41,6 +45,63 @@ static void glfw_error_callback(int error, const char* description)
     fprintf(stderr, "Glfw Error %d: %s\n", error, description);
 }
 
+//ImDrawCallback
+static void backstage_draw_callback(const ImDrawList* parent_list, const ImDrawCmd* cmd) {
+    win->DrawBackstageWindow(window,screenWidth, screenHeight);
+}
+
+static void ShowMenuBarOverlay(bool* p_open) 
+{
+    if (ImGui::BeginMainMenuBar())
+    {
+        if (ImGui::BeginMenu("File"))
+        {
+            //ShowExampleMenuFile();
+            if (ImGui::MenuItem("Save", "CTRL+S")) {}
+            if (ImGui::MenuItem("Save As", "CTRL+SHIFT+S")) {}
+            ImGui::Separator();
+            if (ImGui::MenuItem("Exit")) {}
+            ImGui::EndMenu();
+        }
+        if (ImGui::BeginMenu("Edit"))
+        {
+            if (ImGui::MenuItem("Undo", "CTRL+Z")) {}
+            if (ImGui::MenuItem("Redo", "CTRL+Y", false, false)) {}  // Disabled item
+            ImGui::Separator();
+            if (ImGui::MenuItem("Cut", "CTRL+X")) {}
+            if (ImGui::MenuItem("Copy", "CTRL+C")) {}
+            if (ImGui::MenuItem("Paste", "CTRL+V")) {}
+            ImGui::EndMenu();
+        }
+        if (ImGui::BeginMenu("Object")) {
+            if (ImGui::MenuItem("Create Empty")) {}
+            ImGui::Separator();
+            if (ImGui::BeginMenu("3D Object")) {
+                if (ImGui::MenuItem("Cube")) {}
+                if (ImGui::MenuItem("Sphere")) {}
+                if (ImGui::MenuItem("Cylinder")) {}
+                ImGui::EndMenu();
+            }
+            ImGui::EndMenu();
+        }
+        if (ImGui::BeginMenu("Window")) {
+            if (ImGui::BeginMenu("Layout")) {
+                if (ImGui::MenuItem("2 by 3")) {}
+                if (ImGui::MenuItem("4 split")) {}
+                if (ImGui::MenuItem("Default")) {}
+                ImGui::EndMenu();
+            }
+            ImGui::EndMenu();
+        }
+        if (ImGui::BeginMenu("Extra")) {
+            if (ImGui::MenuItem("Profile")) {
+
+            }
+            ImGui::EndMenu();
+        }
+        ImGui::EndMainMenuBar();
+    }
+}
 
 static void ShowInspectorOverlay(bool* p_open)
 {
@@ -100,13 +161,38 @@ static void ShowHierachyOverlay(bool* p_open)
     ImGui::End();
 }
 
+static void ShowBackstageOverlay(bool* p_open) 
+{
+    ImVec2 backstageSize = ImVec2(windowWidth - hierachyWidth - inspectorWidth, screenHeight - ((ImGui::GetStyle().FramePadding.y * 2) + 18));
+    ImGui::SetNextWindowPos(ImVec2(hierachyWidth, 22));
+    ImGui::SetNextWindowBgAlpha(0.0f);
+    ImGui::SetNextWindowSize(backstageSize);
+
+    if (!ImGui::Begin("Backstage", NULL, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoCollapse))
+    {
+
+        ImGui::End();
+        return;
+    }
+    /*ImDrawList* draw_list;
+    draw_list = ImGui::GetWindowDrawList();
+    draw_list->AddCallback(backstage_draw_callback, NULL);*/
+    win->DrawBackstageWindow(window, screenWidth, screenHeight);
+
+
+    ImGui::End();
+}
+
 void window_size_callback(GLFWwindow* window, int width, int height)
 {
     windowWidth = width;
     windowHeight = height;
-    //win->setSize(windowWidth - inspectorWidth - hierachyWidth, windowHeight);
-    //win->setAspect((windowWidth - inspectorWidth - hierachyWidth) / (float)windowHeight);
+    hierachyWidth = windowHeight * 0.3f;
+    screenWidth = windowWidth - inspectorWidth - hierachyWidth;
+    screenHeight = windowHeight - projectWindowHeight;
+    win->SetWindowSize(screenWidth, screenHeight - ((ImGui::GetStyle().FramePadding.y * 2) + 18), hierachyWidth, projectWindowHeight,width,height);
 }
+
 
 // glfw: whenever the window size changed (by OS or user resize) this callback function executes
 // ---------------------------------------------------------------------------------------------
@@ -114,11 +200,15 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 {
     // make sure the viewport matches the new window dimensions; note that width and 
     // height will be significantly larger than specified on retina displays.
-    glViewport(0, 0, width, height);
+    win->SetViewport(width, height);
 }
 
 int main(int, char**)
 {
+
+    win = new BackstageWindow(screenWidth, screenHeight);
+
+
     // Setup window
     glfwSetErrorCallback(glfw_error_callback);
     if (!glfwInit())
@@ -137,6 +227,7 @@ int main(int, char**)
     glfwMakeContextCurrent(window);
     glfwSwapInterval(1); // Enable vsync
 
+
     // Setup Dear ImGui context
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
@@ -154,6 +245,7 @@ int main(int, char**)
 
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
     glfwSetWindowSizeCallback(window, window_size_callback);
+
 
     // Load Fonts
     // - If no fonts are loaded, dear imgui will use the default font. You can also load multiple fonts and use ImGui::PushFont()/PopFont() to select them.
@@ -174,10 +266,16 @@ int main(int, char**)
     // Our state
     bool show_demo_window = true;
     bool show_another_window = false;
+    bool show_menubar_window = true;
     bool show_hierachy_window = true;
     bool show_inspector_window = true;
     bool show_project_window = true;
+    bool show_backstage_window = true;
     ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
+
+
+    ImVec2 backstageSize = ImVec2(windowWidth - hierachyWidth - inspectorWidth, screenHeight - ((ImGui::GetStyle().FramePadding.y * 2) + 18));
+    win->SetWindowSize(backstageSize.x, backstageSize.y, hierachyWidth, projectWindowHeight,windowWidth,windowHeight);
 
     // Main loop
     while (!glfwWindowShouldClose(window))
@@ -194,58 +292,10 @@ int main(int, char**)
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
         
-        //if (show_demo_window)
-        //    ImGui::ShowDemoWindow(&show_demo_window);
+       // if (show_demo_window)
+       //     ImGui::ShowDemoWindow(&show_demo_window);
 
-        if (ImGui::BeginMainMenuBar())
-        {
-            if (ImGui::BeginMenu("File"))
-            {
-                //ShowExampleMenuFile();
-                if (ImGui::MenuItem("Save", "CTRL+S")) {}
-                if (ImGui::MenuItem("Save As", "CTRL+SHIFT+S")) {}
-                ImGui::Separator();
-                if (ImGui::MenuItem("Exit")) { return 0; }
-                ImGui::EndMenu();
-            }
-            if (ImGui::BeginMenu("Edit"))
-            {
-                if (ImGui::MenuItem("Undo", "CTRL+Z")) {}
-                if (ImGui::MenuItem("Redo", "CTRL+Y", false, false)) {}  // Disabled item
-                ImGui::Separator();
-                if (ImGui::MenuItem("Cut", "CTRL+X")) {}
-                if (ImGui::MenuItem("Copy", "CTRL+C")) {}
-                if (ImGui::MenuItem("Paste", "CTRL+V")) {}
-                ImGui::EndMenu();
-            }
-            if (ImGui::BeginMenu("Object")) {
-                if (ImGui::MenuItem("Create Empty")) {}
-                ImGui::Separator();
-                if (ImGui::BeginMenu("3D Object")) {
-                    if (ImGui::MenuItem("Cube")) {}
-                    if (ImGui::MenuItem("Sphere")) {}
-                    if (ImGui::MenuItem("Cylinder")) {}
-                    ImGui::EndMenu();
-                }
-                ImGui::EndMenu();
-            }
-            if (ImGui::BeginMenu("Window")) {
-                if(ImGui::BeginMenu("Layout")) {
-                    if (ImGui::MenuItem("2 by 3")) {}
-                    if (ImGui::MenuItem("4 split")) {}
-                    if (ImGui::MenuItem("Default")) {}
-                    ImGui::EndMenu();
-                }
-                ImGui::EndMenu();
-            }
-            if (ImGui::BeginMenu("Extra")) {
-                if (ImGui::MenuItem("Profile")) {
-
-                }
-                ImGui::EndMenu();
-            }
-            ImGui::EndMainMenuBar();
-        }
+        ShowMenuBarOverlay(&show_menubar_window);
 
         if (show_hierachy_window) {
             ShowHierachyOverlay(&show_hierachy_window);
@@ -256,27 +306,15 @@ int main(int, char**)
         if (show_project_window) {
             ShowProjectOverlay(&show_project_window);
         }
-
-        if (show_another_window)
-        {
-            ImGui::Begin("Another Window", &show_another_window);   // Pass a pointer to our bool variable (the window will have a closing button that will clear the bool when clicked)
-            ImGui::Text("Hello from another window!");
-            if (ImGui::Button("Close Me"))
-                show_another_window = false;
-            ImGui::End();
+     
+        if (show_backstage_window) {
+            ShowBackstageOverlay(&show_backstage_window);
         }
 
         // Rendering
         ImGui::Render();
         int display_w, display_h;
         glfwGetFramebufferSize(window, &display_w, &display_h);
-
-
-        //함수 재정의 문제로 에러
-        glViewport(0, 0, display_w, display_h);
-        glClearColor(clear_color.x * clear_color.w, clear_color.y * clear_color.w, clear_color.z * clear_color.w, clear_color.w);
-        glClear(GL_COLOR_BUFFER_BIT);
-
 
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
