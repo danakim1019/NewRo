@@ -16,6 +16,12 @@
     <Filter Include="소스 파일\ImGUI">
       <UniqueIdentifier>{a28e8fb8-94b7-48b5-8125-74cbf9012d36}</UniqueIdentifier>
     </Filter>
+    <Filter Include="소스 파일\3DObjects">
+      <UniqueIdentifier>{2b9e23cc-e0fb-4132-832f-931c31f696a6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="헤더 파일\3DObjects">
+      <UniqueIdentifier>{3627eb0e-1247-4083-a214-14801a46f3ee}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -43,6 +49,15 @@
       <Filter>소스 파일\ImGUI</Filter>
     </ClCompile>
     <ClCompile Include="BackstageWindow.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="BuiltInCubeObj.cpp">
+      <Filter>소스 파일\3DObjects</Filter>
+    </ClCompile>
+    <ClCompile Include="Grid.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="Camera.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
   </ItemGroup>
@@ -75,6 +90,21 @@
       <Filter>소스 파일\ImGUI</Filter>
     </ClInclude>
     <ClInclude Include="BackstageWindow.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="BuiltInCubeObj.h">
+      <Filter>헤더 파일\3DObjects</Filter>
+    </ClInclude>
+    <ClInclude Include="Grid.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="BasicComponent.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="Loader.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="Camera.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
   </ItemGroup>

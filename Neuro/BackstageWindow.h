@@ -3,12 +3,11 @@
 
 #include<iostream>
 
+#include"Grid.h"
+#pragma once
 #include <GLFW/glfw3.h> // Will drag system OpenGL headers
 
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
-#include "glm/gtc/matrix_inverse.hpp"
+#include"Camera.h"
 
 class BackstageWindow {
 public:
@@ -24,6 +23,9 @@ private:
 	int backstageWidth, backstageHeight;
 	int backstageXPos, backstageYPos;
 	int windowWidth, windowHeight;
+
+
+	Grid* grid;
 };
 
 #endif

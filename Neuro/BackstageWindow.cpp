@@ -21,6 +21,8 @@ void BackstageWindow::DrawBackstageWindow(GLFWwindow* window,int m_width, int m_
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glDisable(GL_SCISSOR_TEST);
 	
+
+
 }
 
 void BackstageWindow::SetWindowSize(int m_width, int m_height, int xPos, int yPos,int m_windowWidth,int m_windowHeight) {
@@ -37,5 +39,5 @@ void BackstageWindow::SetViewport(int m_width, int m_height) {
 }
 
 void BackstageWindow::setupBuffer() {
-
+	grid = new Grid();
 }
