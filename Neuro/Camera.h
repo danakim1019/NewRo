@@ -1,12 +1,7 @@
 #ifndef CAMERA_H
 #define CAMERA_H
 
-#include <GLFW/glfw3.h>
-
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
-#include "glm/gtc/matrix_inverse.hpp"
+#include"BasicComponent.h"
 
 // Defines several possible options for camera movement. Used as abstraction to stay away from window-system specific input methods
 enum Camera_Movement {

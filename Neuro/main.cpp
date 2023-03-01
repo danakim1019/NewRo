@@ -3,7 +3,8 @@
 // If you are new to Dear ImGui, read documentation from the docs/ folder + read the top of imgui.cpp.
 // Read online: https://github.com/ocornut/imgui/tree/master/docs
 
-
+#include<GL/gl3w.h>
+#include <GLFW/glfw3.h> // Will drag system OpenGL headers
 
 #include "ImGUI/imgui.h"
 #include "ImGUI/imgui_impl_glfw.h"
@@ -11,8 +12,6 @@
 #include <stdio.h>
 
 //#include<gl/GL.h>
-#pragma once
-#include <GLFW/glfw3.h> // Will drag system OpenGL headers
 
 #include"BackstageWindow.h"
 

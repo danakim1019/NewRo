@@ -9,19 +9,19 @@
 #include<math.h>
 #include"Loader.h"
 
-#include<glm\glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/matrix_inverse.hpp>
-#include <glm/gtc/type_ptr.hpp>
-#include <glm/mat4x4.hpp>
-
 #include <string>
 
-class Transform {
+class OBJTransform {
 public:
-	float Position[3];
-	float Rotation[3];
-	float Scale[3];
+	OBJTransform() {
+		Position = new float[3]{ 0,0,0 };
+		Rotation = new float[3] { 0, 0, 0 };
+		Scale = new float[3] { 0, 0, 0 };
+	}
+
+	float* Position;
+	float* Rotation;
+	float* Scale;
 };
 
 #endif

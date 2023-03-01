@@ -1,7 +1,7 @@
 #include"Grid.h"
 
-Grid::Grid() {
-	myTrns = { {0,0,0},{0,0,0},{0,0,0} };
+
+Grid::Grid():OBJTransform(){
 	gridSize = 10.0f;
 	gridNum = 10;
 	gridWidth = gridSize * gridNum;

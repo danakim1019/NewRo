@@ -4,10 +4,10 @@
 #include<iostream>
 
 #include"Grid.h"
-#pragma once
+#include"Camera.h"
+
 #include <GLFW/glfw3.h> // Will drag system OpenGL headers
 
-#include"Camera.h"
 
 class BackstageWindow {
 public:

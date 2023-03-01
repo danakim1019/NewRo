@@ -3,9 +3,9 @@
 
 #include"BasicComponent.h"
 
-class Grid {
+class Grid : OBJTransform {
 public:
-	Transform myTrns;
+	//OBJTransform myTrns;
 	int gridSize, gridNum, gridWidth;
 	std::string tag;
 	Grid();
@@ -13,6 +13,7 @@ public:
 	void update();
 	void draw(glm::mat4& model, glm::mat4& view, glm::mat4& projection);
 private:
+
 	ShaderProgram* m_shaderProgram;
 	std::vector<glm::vec4> vertexPositions;
 	GLuint vaoHandle;
