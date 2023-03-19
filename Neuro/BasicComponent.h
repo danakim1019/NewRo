@@ -7,9 +7,15 @@
 
 #include<vector>
 #include<math.h>
-#include"Loader.h"
+//#include"Loader.h"
 
 #include <string>
+
+#include<glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/matrix_inverse.hpp>
+#include <glm/gtc/type_ptr.hpp>
+#include <glm/mat4x4.hpp>
 
 class OBJTransform {
 public:

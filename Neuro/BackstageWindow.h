@@ -3,11 +3,11 @@
 
 #include<iostream>
 
-#include"Grid.h"
-#include"Camera.h"
-
+//#include<GL/gl3w.h>
+#include"ImGUI/imgui_impl_opengl3_loader.h"
 #include <GLFW/glfw3.h> // Will drag system OpenGL headers
 
+#include"Grid.h"
 
 class BackstageWindow {
 public:

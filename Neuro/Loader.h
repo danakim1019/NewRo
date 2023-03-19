@@ -19,7 +19,10 @@ version : 0.3 - 15 / 01 / 2014
 #include <sstream>
 #include <map>
 
-#include<GL/gl3w.h>
+
+//#include<GL/gl3w.h>
+#include"ImGUI/imgui_impl_opengl3_loader.h"
+#define IMGUI_IMPL_OPENGL_LOADER_CUSTOM imgui_impl_opengl3_loader.h
 #include <GLFW/glfw3.h> // Will drag system OpenGL headers
 
 #include<glm/glm.hpp>

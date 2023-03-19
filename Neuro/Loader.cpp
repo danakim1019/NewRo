@@ -11,9 +11,9 @@ GLuint ShaderProgram::compileShader(std::string shaderSource, GLenum shaderType)
 	case GL_FRAGMENT_SHADER:
 		shaderTypeString = "GL_FRAGMENT_SHADER";
 		break;
-	case GL_GEOMETRY_SHADER:
+	/*case GL_GEOMETRY_SHADER:
 		throw std::runtime_error("Geometry shaders are unsupported at this time.");
-		break;
+		break;*/
 	default:
 		throw std::runtime_error("Bad shader type enum in compileShader.");
 		break;
