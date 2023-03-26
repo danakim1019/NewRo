@@ -11,13 +11,13 @@ public:
 	Grid();
 	void setup();
 	void update();
-	//void draw(glm::mat4& model, glm::mat4& view, glm::mat4& projection);
+	void draw(glm::mat4& model, glm::mat4& view, glm::mat4& projection);
 private:
 
-	//ShaderProgram* m_shaderProgram;
+	ShaderProgram* m_shaderProgram;
 	std::vector<glm::vec4> vertexPositions;
-	//GLuint vaoHandle;
-	//GLuint vbo_vertexPos, vbo_colors;
+	GLuint vaoHandle;
+	GLuint vbo_vertexPos, vbo_colors;
 
 };
 
