@@ -10,10 +10,7 @@
 #include "ImGUI/imgui_impl_glfw.h"
 #include "ImGUI/imgui_impl_opengl3.h"
 
-
 #include <stdio.h>
-
-//#include<gl/GL.h>
 
 
 #include"BackstageWindow.h"
@@ -27,18 +24,20 @@
 #pragma comment(lib, "legacy_stdio_definitions")
 #endif
 
-static int windowWidth = 1500;
-static int windowHeight = 800;
-static int screenWidth = 800;
-static int screenHeight = 600;
-static int inspectorWidth = 300;
-static int hierachyWidth = 200;
-static int projectWindowHeight = 200;
+static int windowWidth = 1500;              //전체 창
+static int windowHeight = 800;              //전체 창
+static int screenWidth = 800;               //백스테이지 윈도우
+static int screenHeight = 600;              //백스테이지 윈도우
+static int inspectorWidth = 300;                //하이어라키 윈도우
+static int hierachyWidth = 200;                 //하이어라키 윈도우
+static int projectWindowHeight = 200;       //프로젝트 윈도우
 
 GLFWwindow* window;
 
 BackstageWindow* win;
 
+double _frame_start_time;
+double _delta_time;
 
 static float transform[3] = { 0.f, 0.f, 0.f };
 static float rotation[3] = { 0.f, 0.f, 0.f };
@@ -48,6 +47,25 @@ static float scale[3] = { 0.f, 0.f, 0.f };
 static void glfw_error_callback(int error, const char* description)
 {
     fprintf(stderr, "Glfw Error %d: %s\n", error, description);
+}
+
+static void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
+{
+    if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
+        glfwSetWindowShouldClose(window, GLFW_TRUE);
+
+    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+        win->cam.ProcessKeyboard(FORWARD, _delta_time);
+    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+        win->cam.ProcessKeyboard(BACKWARD, _delta_time);
+    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+        win->cam.ProcessKeyboard(LEFT, _delta_time);
+    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+        win->cam.ProcessKeyboard(RIGHT, _delta_time);
+    if (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS)
+        win->cam.ProcessKeyboard(UPPER, _delta_time);
+    if (glfwGetKey(window, GLFW_KEY_F) == GLFW_PRESS)
+        win->cam.ProcessKeyboard(DOWN, _delta_time);
 }
 
 //ImDrawCallback
@@ -184,7 +202,6 @@ static void ShowBackstageOverlay(bool* p_open)
     draw_list->AddCallback(backstage_draw_callback, NULL);*/
     win->DrawBackstageWindow(window, screenWidth, screenHeight);
 
-
     ImGui::End();
 }
 
@@ -196,6 +213,7 @@ void window_size_callback(GLFWwindow* window, int width, int height)
     screenWidth = windowWidth - inspectorWidth - hierachyWidth;
     screenHeight = windowHeight - projectWindowHeight;
     win->SetWindowSize(screenWidth, screenHeight - ((ImGui::GetStyle().FramePadding.y * 2) + 18), hierachyWidth, projectWindowHeight,width,height);
+    std::cout << "window_size_callback" << std::endl;
 }
 
 
@@ -206,14 +224,11 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height)
     // make sure the viewport matches the new window dimensions; note that width and 
     // height will be significantly larger than specified on retina displays.
     win->SetViewport(width, height);
+   
 }
 
 int main(int, char**)
 {
-
-    win = new BackstageWindow(screenWidth, screenHeight);
-
-
     // Setup window
     glfwSetErrorCallback(glfw_error_callback);
     if (!glfwInit())
@@ -223,13 +238,16 @@ int main(int, char**)
     const char* glsl_version = "#version 130";
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
+    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);            // 3.0+ only
     
+    
+
     // Create window with graphics context
-    window = glfwCreateWindow(windowWidth, windowHeight, "Neuro Engine", NULL, NULL);
+    window = glfwCreateWindow(windowWidth, windowHeight, "NewRo Engine", NULL, NULL);
 
     if (window == NULL)
         return 1;
-    glfwMakeContextCurrent(window);
+    glfwMakeContextCurrent(window);  
     glfwSwapInterval(1); // Enable vsync
 
 
@@ -246,9 +264,16 @@ int main(int, char**)
 
     // Setup Platform/Renderer backends
     ImGui_ImplGlfw_InitForOpenGL(window, true);
-    ImGui_ImplOpenGL3_Init(glsl_version);
+    bool init = false;
 
-    glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
+    if (init = ImGui_ImplOpenGL3_Init(glsl_version) == false) {
+        printf("ImGui_ImplOpenGL3_Init return 0");
+        return -1;
+    }
+        
+
+    glfwSetKeyCallback(window, key_callback);
+    //glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
     glfwSetWindowSizeCallback(window, window_size_callback);
 
 
@@ -278,13 +303,19 @@ int main(int, char**)
     bool show_backstage_window = true;
     ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
 
-
     ImVec2 backstageSize = ImVec2(windowWidth - hierachyWidth - inspectorWidth, screenHeight - ((ImGui::GetStyle().FramePadding.y * 2) + 18));
-    win->SetWindowSize(backstageSize.x, backstageSize.y, hierachyWidth, projectWindowHeight,windowWidth,windowHeight);
+    win = new BackstageWindow(backstageSize.x, backstageSize.y, windowWidth,windowHeight);
+    screenWidth = windowWidth - inspectorWidth - hierachyWidth;
+    screenHeight = windowHeight - projectWindowHeight;
+    win->SetWindowSize(screenWidth, screenHeight - ((ImGui::GetStyle().FramePadding.y * 2) + 18), hierachyWidth, projectWindowHeight, windowWidth, windowHeight);
+ 
+
 
     // Main loop
     while (!glfwWindowShouldClose(window))
     {
+        _delta_time = glfwGetTime() - _frame_start_time;
+        _frame_start_time = glfwGetTime();
         // Poll and handle events (inputs, window resize, etc.)
         // You can read the io.WantCaptureMouse, io.WantCaptureKeyboard flags to tell if dear imgui wants to use your inputs.
         // - When io.WantCaptureMouse is true, do not dispatch mouse input data to your main application, or clear/overwrite your copy of the mouse data.

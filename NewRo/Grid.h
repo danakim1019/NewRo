@@ -2,6 +2,7 @@
 #define _GRID_H
 
 #include"BasicComponent.h"
+#include"Loader.h"
 
 class Grid : OBJTransform {
 public:

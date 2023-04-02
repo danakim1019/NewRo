@@ -7,7 +7,6 @@
 
 #include<vector>
 #include<math.h>
-#include"Loader.h"
 
 #include <string>
 
