@@ -6,6 +6,7 @@
 #include"Grid.h"
 #include"Camera.h"
 #include"ModelView.h"
+#include"3DObjects/BuiltInCylinderObj.h"
 
 #include"Loader.h"
 
@@ -32,6 +33,7 @@ private:
 	ModelView m_model;
 
 	Grid* grid;
+	cylinder* m_cylinder;
 };
 
 #endif

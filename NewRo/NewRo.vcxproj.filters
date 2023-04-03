@@ -19,9 +19,6 @@
     <Filter Include="소스 파일\3DObjects">
       <UniqueIdentifier>{2b9e23cc-e0fb-4132-832f-931c31f696a6}</UniqueIdentifier>
     </Filter>
-    <Filter Include="헤더 파일\3DObjects">
-      <UniqueIdentifier>{3627eb0e-1247-4083-a214-14801a46f3ee}</UniqueIdentifier>
-    </Filter>
     <Filter Include="소스 파일\Shader">
       <UniqueIdentifier>{0e04d47f-2c40-48a2-b26d-3541a12270d8}</UniqueIdentifier>
     </Filter>
@@ -54,14 +51,20 @@
     <ClCompile Include="BackstageWindow.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
-    <ClCompile Include="BuiltInCubeObj.cpp">
-      <Filter>소스 파일\3DObjects</Filter>
-    </ClCompile>
     <ClCompile Include="Grid.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
     <ClCompile Include="Camera.cpp">
       <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="3DObjects\BuiltInCylinderObj.cpp">
+      <Filter>소스 파일\3DObjects</Filter>
+    </ClCompile>
+    <ClCompile Include="3DObjects\BuiltInCubeObj.cpp">
+      <Filter>소스 파일\3DObjects</Filter>
+    </ClCompile>
+    <ClCompile Include="3DObjects\BuiltInSphereObj.cpp">
+      <Filter>소스 파일\3DObjects</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -95,9 +98,6 @@
     <ClInclude Include="BackstageWindow.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
-    <ClInclude Include="BuiltInCubeObj.h">
-      <Filter>헤더 파일\3DObjects</Filter>
-    </ClInclude>
     <ClInclude Include="Grid.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
@@ -113,12 +113,27 @@
     <ClInclude Include="Loader.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
+    <ClInclude Include="3DObjects\BuiltInCylinderObj.h">
+      <Filter>소스 파일\3DObjects</Filter>
+    </ClInclude>
+    <ClInclude Include="3DObjects\BuiltInCubeObj.h">
+      <Filter>소스 파일\3DObjects</Filter>
+    </ClInclude>
+    <ClInclude Include="3DObjects\BuiltInSphereObj.h">
+      <Filter>소스 파일\3DObjects</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="Shader\black.frag">
       <Filter>소스 파일\Shader</Filter>
     </None>
     <None Include="Shader\black.vert">
+      <Filter>소스 파일\Shader</Filter>
+    </None>
+    <None Include="Shader\Phong.frag">
+      <Filter>소스 파일\Shader</Filter>
+    </None>
+    <None Include="Shader\Phong.vert">
       <Filter>소스 파일\Shader</Filter>
     </None>
   </ItemGroup>

@@ -213,7 +213,6 @@ void window_size_callback(GLFWwindow* window, int width, int height)
     screenWidth = windowWidth - inspectorWidth - hierachyWidth;
     screenHeight = windowHeight - projectWindowHeight;
     win->SetWindowSize(screenWidth, screenHeight - ((ImGui::GetStyle().FramePadding.y * 2) + 18), hierachyWidth, projectWindowHeight,width,height);
-    std::cout << "window_size_callback" << std::endl;
 }
 
 

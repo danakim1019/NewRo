@@ -40,6 +40,9 @@ void BackstageWindow::DrawBackstageWindow(GLFWwindow* window,int m_width, int m_
 	//그리드 그리기
 	grid->draw(model,viewMat,projection);
 
+	glm::mat4 origin = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, 0.0f));
+	m_cylinder->draw(model, viewMat, projection,origin,0,0,0);
+
 	m_model.glPopMatrix();
 }
 
@@ -61,4 +64,5 @@ void BackstageWindow::SetViewport(int m_width, int m_height) {
 void BackstageWindow::setupBuffer() {
 	cam = camera(glm::vec3(0.0f, -100.0f, 100.0f));
 	grid = new Grid();
+	m_cylinder = new cylinder();
 }
