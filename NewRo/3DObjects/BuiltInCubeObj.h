@@ -11,21 +11,31 @@ class BuiltInCube : public OBJTransform
 public:
 	BuiltInCube(int type);
 	void setup();
-	void draw(glm::mat4& model, glm::mat4& view, glm::mat4& projection, static glm::vec4 RGB);
+	void draw(glm::mat4& model, glm::mat4& view, glm::mat4& projection, glm::mat4& location, glm::vec3 RGB);
 
 	int type;		//Shader ¹øÈ£
 
 	GLuint vaoHandle;
-	GLuint vbo_cube_vertices, vbo_cube_colors, vbo_cube_normals, ibo_cube_elements;
+	GLuint vbo_cube_vertices, vbo_cube_normals, ibo_cube_elements;
 	ShaderProgram* shaderProgram;
 
-	std::vector<glm::vec3> cube_normal;
-
 	void computeNormal(glm::vec3 p1, glm::vec3 p2, glm::vec3 p3);
+	void generateIndices();
 
+	std::vector<glm::vec3> vertexPositions;
+	std::vector<glm::vec3> vertexNormals;
+	std::vector<unsigned int> vertexIndices;
 
-	std::vector<glm::vec3> cube_vertices;
-	std::vector<glm::vec3> cube_colors;
+	glm::vec3 Ka;
+	glm::vec3 Kd;
+	glm::vec3 Ks;
+	GLfloat shiness;
+
+	glm::vec3 La;
+	glm::vec3 Ld;
+	glm::vec3 Ls;
+
+	glm::vec4 lightPos;
 
 };
 #endif
