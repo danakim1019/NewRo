@@ -43,6 +43,13 @@ static float transform[3] = { 0.f, 0.f, 0.f };
 static float rotation[3] = { 0.f, 0.f, 0.f };
 static float scale[3] = { 0.f, 0.f, 0.f };
 
+bool isRightMouseClicked = false;
+float lastX = 800.0f / 2.0;
+float lastY = 600.0 / 2.0;
+
+bool isMiddleMouseClicked = false;
+float lastPosX = 800.0f / 2.0;
+float lastPosY = 600.0 / 2.0;
 
 static void glfw_error_callback(int error, const char* description)
 {
@@ -67,6 +74,78 @@ static void key_callback(GLFWwindow* window, int key, int scancode, int action, 
     if (glfwGetKey(window, GLFW_KEY_F) == GLFW_PRESS)
         win->cam.ProcessKeyboard(DOWN, _delta_time);
 }
+
+// glfw: whenever the mouse scroll wheel scrolls, this callback is called
+// ----------------------------------------------------------------------
+void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
+{
+    win->cam.ProcessMouseScroll(yoffset,_delta_time);
+}
+
+// glfw: whenever the mouse moves, this callback is called
+// mouse right click : camera rotation
+// -------------------------------------------------------
+void mouse_callback(GLFWwindow* window, double xposIn, double yposIn)
+{
+    const bool is_hovered = ImGui::IsItemHovered(); // Hovered
+    const bool is_active = ImGui::IsItemActive();   // Held
+
+    ImGui::GetIO().MousePos.x = float(xposIn);
+    ImGui::GetIO().MousePos.y = float(yposIn);
+
+    float xpos = static_cast<float>(xposIn);
+    float ypos = static_cast<float>(yposIn);
+
+
+    //int state = glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT);
+    int state = glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT);
+    if (state == GLFW_PRESS) {
+        if (!isRightMouseClicked)
+        {
+            //lastX = xpos;
+            lastX = 0;
+            //lastY = ypos;
+            lastY = 0;
+            isRightMouseClicked = true;
+        }
+
+        float xoffset = xpos - lastX;
+        float yoffset = lastY - ypos; // reversed since y-coordinates go from bottom to top
+
+     
+
+        win->cam.ProcessMouseMovement(xoffset, yoffset,_delta_time);
+    }
+    else {
+        isRightMouseClicked = true;
+        lastX = xpos;
+        lastY = ypos;
+    }
+
+    //마우스 휠 버튼 클릭 감지
+    int button = glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_MIDDLE);
+    if (button == GLFW_PRESS) {
+        //캠 위치 이동
+        if (isMiddleMouseClicked)
+        {
+            lastPosX = xpos;
+            lastPosY = ypos;
+            isMiddleMouseClicked = false;
+        }
+
+        float xoffset = xpos - lastX;
+        float yoffset = lastY - ypos; // reversed since y-coordinates go from bottom to top
+
+        lastPosX = xpos;
+        lastPosY = ypos;
+
+        win->cam.cameraPositionMove(xoffset, yoffset, _delta_time);
+    }
+    else {
+        isMiddleMouseClicked = true;
+    }
+}
+
 
 //ImDrawCallback
 static void backstage_draw_callback(const ImDrawList* parent_list, const ImDrawCmd* cmd) {
@@ -274,7 +353,8 @@ int main(int, char**)
     glfwSetKeyCallback(window, key_callback);
     //glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
     glfwSetWindowSizeCallback(window, window_size_callback);
-
+    glfwSetScrollCallback(window, scroll_callback);
+    glfwSetCursorPosCallback(window, mouse_callback);
 
     // Load Fonts
     // - If no fonts are loaded, dear imgui will use the default font. You can also load multiple fonts and use ImGui::PushFont()/PopFont() to select them.

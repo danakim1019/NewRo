@@ -15,9 +15,9 @@ enum Camera_Movement {
 
 // Default camera values
 const float YAW = -90.0f;
-const float PITCH = 45.0f;
-const float SPEED = 100.0f;
-const float SENSITIVITY = 0.01f;
+const float PITCH = -45.0f;
+const float SPEED = 10.0f;
+const float SENSITIVITY = 0.001f;
 const float ZOOM = 45.0f;
 
 class camera {
@@ -31,6 +31,7 @@ public:
 	// euler Angles
 	float Yaw;
 	float Pitch;
+	float Roll;
 	// camera options
 	float MovementSpeed;
 	float MouseSensitivity;
@@ -77,16 +78,17 @@ public:
 			Position -= Up * velocity;
 		if (direction == UPPER)
 			Position += Up * velocity;
+
 	}
 
 	void cameraPositionMove(float xoffset, float yoffset, float deltaTime)
 	{
-		float velocity = 0.1f * deltaTime;
+		float velocity =MovementSpeed* deltaTime;
 		Position += glm::vec3(xoffset, yoffset, 0) * velocity;
 	}
 
 	// processes input received from a mouse input system. Expects the offset value in both the x and y direction.
-	void ProcessMouseMovement(float xoffset, float yoffset, GLboolean constrainPitch = true)
+	void ProcessMouseMovement(float xoffset, float yoffset,float _delta_time, GLboolean constrainPitch = true)
 	{
 		xoffset *= MouseSensitivity;
 		yoffset *= MouseSensitivity;
@@ -108,13 +110,22 @@ public:
 	}
 
 	// processes input received from a mouse scroll-wheel event. Only requires input on the vertical wheel-axis
-	void ProcessMouseScroll(float yoffset)
+	void ProcessMouseScroll(float yoffset, float deltaTime)
 	{
+		//std::cout << "scroll_callback" << std::endl;
 		zoom -= (float)yoffset;
 		if (zoom < 1.0f)
+		{
 			zoom = 1.0f;
-		if (zoom > 45.0f)
+		}
+		if (zoom > 45.0f) {
 			zoom = 45.0f;
+		}
+
+		float velocity = MovementSpeed * deltaTime*2;
+		Position += Front*yoffset* velocity;
+
+		updateCameraVectors();
 	}
 
 private:
