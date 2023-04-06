@@ -13,14 +13,14 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
-    <Filter Include="소스 파일\ImGUI">
-      <UniqueIdentifier>{a28e8fb8-94b7-48b5-8125-74cbf9012d36}</UniqueIdentifier>
-    </Filter>
     <Filter Include="소스 파일\3DObjects">
       <UniqueIdentifier>{2b9e23cc-e0fb-4132-832f-931c31f696a6}</UniqueIdentifier>
     </Filter>
     <Filter Include="소스 파일\Shader">
       <UniqueIdentifier>{0e04d47f-2c40-48a2-b26d-3541a12270d8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="헤더 파일\ImGUI">
+      <UniqueIdentifier>{a28e8fb8-94b7-48b5-8125-74cbf9012d36}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -28,25 +28,25 @@
       <Filter>소스 파일</Filter>
     </ClCompile>
     <ClCompile Include="ImGUI\imgui.cpp">
-      <Filter>소스 파일\ImGUI</Filter>
+      <Filter>헤더 파일\ImGUI</Filter>
     </ClCompile>
     <ClCompile Include="ImGUI\imgui_demo.cpp">
-      <Filter>소스 파일\ImGUI</Filter>
+      <Filter>헤더 파일\ImGUI</Filter>
     </ClCompile>
     <ClCompile Include="ImGUI\imgui_draw.cpp">
-      <Filter>소스 파일\ImGUI</Filter>
+      <Filter>헤더 파일\ImGUI</Filter>
     </ClCompile>
     <ClCompile Include="ImGUI\imgui_impl_glfw.cpp">
-      <Filter>소스 파일\ImGUI</Filter>
+      <Filter>헤더 파일\ImGUI</Filter>
     </ClCompile>
     <ClCompile Include="ImGUI\imgui_tables.cpp">
-      <Filter>소스 파일\ImGUI</Filter>
+      <Filter>헤더 파일\ImGUI</Filter>
     </ClCompile>
     <ClCompile Include="ImGUI\imgui_widgets.cpp">
-      <Filter>소스 파일\ImGUI</Filter>
+      <Filter>헤더 파일\ImGUI</Filter>
     </ClCompile>
     <ClCompile Include="ImGUI\imgui_impl_opengl3.cpp">
-      <Filter>소스 파일\ImGUI</Filter>
+      <Filter>헤더 파일\ImGUI</Filter>
     </ClCompile>
     <ClCompile Include="BackstageWindow.cpp">
       <Filter>소스 파일</Filter>
@@ -66,52 +66,37 @@
     <ClCompile Include="3DObjects\BuiltInSphereObj.cpp">
       <Filter>소스 파일\3DObjects</Filter>
     </ClCompile>
+    <ClCompile Include="Hierarchy.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ImGUI\imconfig.h">
-      <Filter>소스 파일\ImGUI</Filter>
+      <Filter>헤더 파일\ImGUI</Filter>
     </ClInclude>
     <ClInclude Include="ImGUI\imgui.h">
-      <Filter>소스 파일\ImGUI</Filter>
+      <Filter>헤더 파일\ImGUI</Filter>
     </ClInclude>
     <ClInclude Include="ImGUI\imgui_impl_glfw.h">
-      <Filter>소스 파일\ImGUI</Filter>
+      <Filter>헤더 파일\ImGUI</Filter>
     </ClInclude>
     <ClInclude Include="ImGUI\imgui_impl_opengl3.h">
-      <Filter>소스 파일\ImGUI</Filter>
+      <Filter>헤더 파일\ImGUI</Filter>
     </ClInclude>
     <ClInclude Include="ImGUI\imgui_internal.h">
-      <Filter>소스 파일\ImGUI</Filter>
+      <Filter>헤더 파일\ImGUI</Filter>
     </ClInclude>
     <ClInclude Include="ImGUI\imstb_rectpack.h">
-      <Filter>소스 파일\ImGUI</Filter>
+      <Filter>헤더 파일\ImGUI</Filter>
     </ClInclude>
     <ClInclude Include="ImGUI\imstb_textedit.h">
-      <Filter>소스 파일\ImGUI</Filter>
+      <Filter>헤더 파일\ImGUI</Filter>
     </ClInclude>
     <ClInclude Include="ImGUI\imstb_truetype.h">
-      <Filter>소스 파일\ImGUI</Filter>
+      <Filter>헤더 파일\ImGUI</Filter>
     </ClInclude>
     <ClInclude Include="ImGUI\imgui_impl_opengl3_loader.h">
-      <Filter>소스 파일\ImGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="BackstageWindow.h">
-      <Filter>헤더 파일</Filter>
-    </ClInclude>
-    <ClInclude Include="Grid.h">
-      <Filter>헤더 파일</Filter>
-    </ClInclude>
-    <ClInclude Include="BasicComponent.h">
-      <Filter>헤더 파일</Filter>
-    </ClInclude>
-    <ClInclude Include="Camera.h">
-      <Filter>헤더 파일</Filter>
-    </ClInclude>
-    <ClInclude Include="ModelView.h">
-      <Filter>헤더 파일</Filter>
-    </ClInclude>
-    <ClInclude Include="Loader.h">
-      <Filter>헤더 파일</Filter>
+      <Filter>헤더 파일\ImGUI</Filter>
     </ClInclude>
     <ClInclude Include="3DObjects\BuiltInCylinderObj.h">
       <Filter>소스 파일\3DObjects</Filter>
@@ -121,6 +106,27 @@
     </ClInclude>
     <ClInclude Include="3DObjects\BuiltInSphereObj.h">
       <Filter>소스 파일\3DObjects</Filter>
+    </ClInclude>
+    <ClInclude Include="BackstageWindow.h">
+      <Filter>소스 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="BasicComponent.h">
+      <Filter>소스 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="Camera.h">
+      <Filter>소스 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="Grid.h">
+      <Filter>소스 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="Loader.h">
+      <Filter>소스 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="ModelView.h">
+      <Filter>소스 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="Hierarchy.h">
+      <Filter>소스 파일</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

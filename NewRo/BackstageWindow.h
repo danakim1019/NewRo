@@ -6,12 +6,10 @@
 #include"Grid.h"
 #include"Camera.h"
 #include"ModelView.h"
-#include"3DObjects/BuiltInCylinderObj.h"
-#include"3DObjects/BuiltInSphereObj.h"
-#include"3DObjects/BuiltInCubeObj.h"
+
+#include"Hierarchy.h"
 
 #include"Loader.h"
-
 
 class BackstageWindow {
 public:
@@ -21,6 +19,17 @@ public:
 	void SetWindowSize(int m_width, int m_height, int xPos, int yPos, int m_windowWidth, int m_windowHeight);
 	void SetViewport(int m_width, int m_height);
 	void DrawBackstageWindow(GLFWwindow* window, int m_width, int m_height);
+
+	unsigned int getObjectNum() {
+		return Hierachy->objectNum;
+	}
+
+	std::string getObjectName(int id) {
+		return Hierachy->activeOBJList[id]->name;
+	}
+
+protected:
+	HierarchyWindow* Hierachy;
 private:
 	~BackstageWindow() {}
 
@@ -35,6 +44,8 @@ private:
 	ModelView m_model;
 
 	Grid* grid;
+	
+
 	BuiltInCylinder* m_cylinder;
 	BuiltInCube* m_cube;
 	BuiltInSphere* m_sphere;

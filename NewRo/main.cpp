@@ -43,6 +43,8 @@ static float transform[3] = { 0.f, 0.f, 0.f };
 static float rotation[3] = { 0.f, 0.f, 0.f };
 static float scale[3] = { 0.f, 0.f, 0.f };
 
+static const char* objName;
+
 bool isRightMouseClicked = false;
 float lastX = 800.0f / 2.0;
 float lastY = 600.0 / 2.0;
@@ -258,6 +260,12 @@ static void ShowHierachyOverlay(bool* p_open)
     {
         ImGui::End();
         return;
+    }
+
+    for (int i = 0; i < win->getObjectNum(); i++) {
+        std::string str = win->getObjectName(i);
+        objName = const_cast<char*>(str.c_str());
+        ImGui::Text("%s", objName);
     }
 
     ImGui::End();

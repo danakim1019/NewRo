@@ -43,11 +43,13 @@ void BackstageWindow::DrawBackstageWindow(GLFWwindow* window,int m_width, int m_
 
 	glm::mat4 origin = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, 0.0f));
 
-	m_cube->draw(model, viewMat, projection, origin,cam.Position);
+	Hierachy->drawList(model, viewMat, projection, origin, glm::vec3(0, 30, 0));
+
+	/*m_cube->draw(model, viewMat, projection, origin,cam.Position);
 	origin = glm::translate(glm::mat4(1.0f), glm::vec3(10.0f, 0.0f, 0.0f));
 	m_cylinder->draw(model, viewMat, projection,origin,0,0,0);
 	origin = glm::translate(glm::mat4(1.0f), glm::vec3(-10.0f, 0.0f, 0.0f));
-	m_sphere->draw(model, viewMat, projection, origin, glm::vec3(0, 30, 0));
+	m_sphere->draw(model, viewMat, projection, origin, glm::vec3(0, 30, 0));*/
 
 	m_model.glPopMatrix();
 }
@@ -69,8 +71,10 @@ void BackstageWindow::SetViewport(int m_width, int m_height) {
 
 void BackstageWindow::setupBuffer() {
 	cam = camera(glm::vec3(0.0f, 30.0f, 30.0f));
+	Hierachy = new HierarchyWindow();
 	grid = new Grid();
-	m_cylinder = new BuiltInCylinder();
+	Hierachy->createOBJ(0);
+	/*m_cylinder = new BuiltInCylinder();
 	m_cube = new BuiltInCube(0);
-	m_sphere = new BuiltInSphere();
+	m_sphere = new BuiltInSphere();*/
 }

@@ -18,6 +18,10 @@ BuiltInSphere::BuiltInSphere()
 	lightPos = glm::vec4(0, 0, 300, 1);
 
 	setup();
+	
+
+	name = "Sphere";
+
 }
 
 

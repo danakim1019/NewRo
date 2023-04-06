@@ -6,7 +6,7 @@
 #include<vector>
 //#include "stb_image.h"
 
-class BuiltInSphere :public OBJTransform{
+class BuiltInSphere :public OBJect {
 
 private:
 	float radius;

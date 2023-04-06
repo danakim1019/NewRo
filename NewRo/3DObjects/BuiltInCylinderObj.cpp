@@ -5,6 +5,8 @@ const float twoPi = 2.0 * pi;
 
 BuiltInCylinder::BuiltInCylinder() :m_radius(1.0f), m_length(2.0f), m_rings(10), m_slices(30) {
 	setup();
+
+	name = "Cylinder";
 }
 
 BuiltInCylinder::BuiltInCylinder(float radius, float length, int rings, int slices) :m_radius(radius), m_length(length), m_rings(rings), m_slices(slices)

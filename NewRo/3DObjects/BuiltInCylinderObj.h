@@ -4,7 +4,7 @@
 #include"../BasicComponent.h"
 #include"../Loader.h"
 
-class BuiltInCylinder : public OBJTransform {
+class BuiltInCylinder : public OBJect {
 public:
 	float x, y, angle;
 	std::string tag;

@@ -6,7 +6,7 @@
 #include"../BasicComponent.h"
 
 
-class BuiltInCube : public OBJTransform
+class BuiltInCube : public OBJect
 {
 public:
 	BuiltInCube(int type);

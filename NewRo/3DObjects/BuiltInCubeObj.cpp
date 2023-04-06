@@ -16,6 +16,8 @@ BuiltInCube::BuiltInCube(int type)
 
 	lightPos= glm::vec4(0, 0, 300, 1);
 
+	name = "Cube";
+
 }
 
 void BuiltInCube::setup()
@@ -103,7 +105,6 @@ void BuiltInCube::setup()
 
 void BuiltInCube::draw(glm::mat4& model, glm::mat4& view, glm::mat4& projection,glm::mat4& location, glm::vec3 lightPosition)
 {
-
 	glm::mat4 mview = view * model;
 	glm::mat4 mvp = projection * view * model;
 
