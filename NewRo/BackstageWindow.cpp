@@ -14,18 +14,19 @@ void BackstageWindow::DrawBackstageWindow(GLFWwindow* window,int m_width, int m_
     glClearColor(clear_color.x * clear_color.w, clear_color.y * clear_color.w, clear_color.z * clear_color.w, clear_color.w);
     glClear(GL_COLOR_BUFFER_BIT);*/
 	glClearColor(0.0f, 0.0f, 0.0f, 0);		//background color
+	glClear(GL_COLOR_BUFFER_BIT| GL_DEPTH_BUFFER_BIT);		//clear up color and depth buffer
+
+	glEnable(GL_SCISSOR_TEST);
+	glClearColor(0.5f, 0.5f, 0.5f, 0);		//background color
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);		//clear up color and depth buffer
+	glEnable(GL_CLIP_DISTANCE0);
+	glEnable(GL_DEPTH_TEST);			//test whether an object is in front of other object?
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
 
 	glViewport(backstageXPos, backstageYPos, m_width, m_height);
 	glScissor(backstageXPos, backstageYPos, backstageWidth, backstageHeight);
-	glEnable(GL_SCISSOR_TEST);
-	//glEnable(GL_DEPTH_TEST);			//test whether an object is in front of other object?
 
-	glClearColor(0.5f, 0.5f, 0.5f, 0);		//background color
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);		//clear up color and depth buffer
-	//glEnable(GL_CLIP_DISTANCE0);
-	//glEnable(GL_BLEND);
-	//glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glDisable(GL_SCISSOR_TEST);
 	
 
@@ -41,8 +42,12 @@ void BackstageWindow::DrawBackstageWindow(GLFWwindow* window,int m_width, int m_
 	grid->draw(model,viewMat,projection);
 
 	glm::mat4 origin = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, 0.0f));
-	//m_cylinder->draw(model, viewMat, projection,origin,0,0,0);
-	m_cube->draw(model, viewMat, projection, origin,glm::vec3(1.0f, 0.0f, 0.0f));
+
+	m_cube->draw(model, viewMat, projection, origin,cam.Position);
+	origin = glm::translate(glm::mat4(1.0f), glm::vec3(10.0f, 0.0f, 0.0f));
+	m_cylinder->draw(model, viewMat, projection,origin,0,0,0);
+	origin = glm::translate(glm::mat4(1.0f), glm::vec3(-10.0f, 0.0f, 0.0f));
+	m_sphere->draw(model, viewMat, projection, origin, glm::vec3(0, 30, 0));
 
 	m_model.glPopMatrix();
 }
@@ -63,8 +68,9 @@ void BackstageWindow::SetViewport(int m_width, int m_height) {
 }
 
 void BackstageWindow::setupBuffer() {
-	cam = camera(glm::vec3(0.0f, -30.0f, 30.0f));
+	cam = camera(glm::vec3(0.0f, 30.0f, 30.0f));
 	grid = new Grid();
 	m_cylinder = new BuiltInCylinder();
 	m_cube = new BuiltInCube(0);
+	m_sphere = new BuiltInSphere();
 }

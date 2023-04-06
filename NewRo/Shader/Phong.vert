@@ -30,7 +30,7 @@ uniform MaterialInfo Material;
 uniform mat4 ModelViewMatrix;
 uniform mat3 NormalMatrix;
 uniform mat4 model;
-uniform mat4 view;
+uniform mat4 view; 
 uniform mat4 projection;
 
 uniform uint numChar;

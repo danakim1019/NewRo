@@ -2,7 +2,22 @@
 
 BuiltInSphere::BuiltInSphere()
 {
+	radius = 1.0;
+	slices = 60;
+	stacks = 60;
 
+	Ka = glm::vec3(0.1, 0.1, 0.1);
+	Kd = glm::vec3(1, 0, 0);
+	Ks = glm::vec3(1, 1, 1);
+	shiness = 10;
+
+	La = glm::vec3(0.9, 0.9, 0.9);
+	Ld = glm::vec3(0.6, 0.6, 0.6);
+	Ls = glm::vec3(0.6, 0.6, 0.6);
+
+	lightPos = glm::vec4(0, 0, 300, 1);
+
+	setup();
 }
 
 
@@ -16,6 +31,10 @@ BuiltInSphere::BuiltInSphere(float rad, GLuint sl, GLuint st, int type) :
 	radius(rad), slices(sl), stacks(st)
 {
 	this->type = type;
+	setup();
+}
+
+void BuiltInSphere::setup() {
 	nVerts = (slices + 1) * (stacks + 1);  //the number of vertices
 	elements = (slices * 2 * (stacks - 1)) * 3;
 	// Vertices
@@ -33,9 +52,9 @@ BuiltInSphere::BuiltInSphere(float rad, GLuint sl, GLuint st, int type) :
 	shaderProgram = new ShaderProgram();
 
 	//create vao, vbo, ibo here...
-	if (type == 1)			//diffuse Light
+	//if (type == 1)			//diffuse Light
 	{
-		shaderProgram->initFromFiles("diffuse.vert", "diffuse.frag");
+		shaderProgram->initFromFiles("Shader/Diffuse.vert", "Shader/Diffuse.frag");
 
 		glGenVertexArrays(1, &VAO);
 		glBindVertexArray(VAO);
@@ -43,12 +62,22 @@ BuiltInSphere::BuiltInSphere(float rad, GLuint sl, GLuint st, int type) :
 		shaderProgram->addAttribute("coord3d");
 		shaderProgram->addAttribute("v_normal");
 
-		shaderProgram->addUniform("mvp");
+		shaderProgram->addUniform("Light.Position");
+		shaderProgram->addUniform("Light.La");
+		shaderProgram->addUniform("Light.Ld");
+		shaderProgram->addUniform("Light.Ls");
+		shaderProgram->addUniform("Material.Ka");
+		shaderProgram->addUniform("Material.Kd");
+		shaderProgram->addUniform("Material.Ks");
+		shaderProgram->addUniform("Material.Shiness");
+
 		shaderProgram->addUniform("ModelViewMatrix");
 		shaderProgram->addUniform("NormalMatrix");
-		shaderProgram->addUniform("LightLocation");
-		shaderProgram->addUniform("Kd");
-		shaderProgram->addUniform("Ld");
+		shaderProgram->addUniform("location");
+
+		shaderProgram->addUniform("model");
+		shaderProgram->addUniform("view");
+		shaderProgram->addUniform("projection");
 
 		//create vbo for vertices
 		glGenBuffers(1, &vbo_cube_vertices);
@@ -82,170 +111,12 @@ BuiltInSphere::BuiltInSphere(float rad, GLuint sl, GLuint st, int type) :
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo_cube_elements);
 		glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(unsigned int) * elements, el, GL_STATIC_DRAW);
 		glBindVertexArray(0);
-	}
-
-	else if (type == 2)
-	{
-
-		shaderProgram->initFromFiles("Phong.vert", "Phong.frag");
-
-		glGenVertexArrays(1, &VAO);
-		glBindVertexArray(VAO);
-
-		shaderProgram->addAttribute("coord3d");
-		shaderProgram->addAttribute("v_normal");
-
-		shaderProgram->addUniform("mvp");
-		shaderProgram->addUniform("ModelViewMatrix");
-		shaderProgram->addUniform("NormalMatrix");
-		shaderProgram->addUniform("myMatrix");
-
-		shaderProgram->addUniform("Light.Position");
-		shaderProgram->addUniform("Light.La");
-		shaderProgram->addUniform("Light.Ld");
-		shaderProgram->addUniform("Light.Ls");
-		shaderProgram->addUniform("Material.Ka");
-		shaderProgram->addUniform("Material.Kd");
-		shaderProgram->addUniform("Material.Ks");
-		shaderProgram->addUniform("Material.Shiness");
-
-
-		//create vbo for vertices
-		glGenBuffers(1, &vbo_cube_vertices);
-		glBindBuffer(GL_ARRAY_BUFFER, vbo_cube_vertices);
-		glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * 2 * 3 * nVerts, v, GL_STATIC_DRAW);
-		glVertexAttribPointer(
-			shaderProgram->attribute("coord3d"), // attribute
-			3,                 // number of elements per vertex, here (x,y,z,1)
-			GL_FLOAT,          // the type of each element
-			GL_FALSE,          // take our values as-is
-			0,                 // no extra data between each position
-			0                  // offset of first element
-		);
-		glEnableVertexAttribArray(shaderProgram->attribute("coord3d"));
-
-		//create vbo for colors
-		glGenBuffers(1, &vbo_cube_normals);						//Color VBO 생성
-		glBindBuffer(GL_ARRAY_BUFFER, vbo_cube_normals);			//버퍼를 activate("지금 이것을 다룬다")
-		glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * 2 * 3 * nVerts, n, GL_STATIC_DRAW);	//VBO에 데이터 저장
-		glVertexAttribPointer(
-			shaderProgram->attribute("v_normal"), // attribute
-			3,                 // number of elements per vertex, here (R,G,B)
-			GL_FLOAT,          // the type of each element
-			GL_FALSE,          // take our values as-is
-			0,                 // no extra data between each position
-			0                  // offset of first element
-		);
-		glEnableVertexAttribArray(shaderProgram->attribute("v_normal"));
-
-		glGenBuffers(1, &ibo_cube_elements);
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo_cube_elements);
-		glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(unsigned int) * elements, el, GL_STATIC_DRAW);
-
-
-
-		glBindVertexArray(0);
-
-
-	}
-
-	//texture
-	else if (type == 3)
-	{
-		shaderProgram->initFromFiles("Texture.vert", "Texture.frag");
-
-		int width, height, nrChannels;
-		//unsigned char* data = stbi_load("earth.jpg", &width, &height, &nrChannels, 0);
-
-		unsigned int texture;
-		glGenTextures(1, &texture);
-		glBindTexture(GL_TEXTURE_2D, texture);
-
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-		//glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
-		//glGenerateMipmap(GL_TEXTURE_2D);
-		//stbi_image_free(data);
-
-		glGenVertexArrays(1, &VAO);
-		glBindVertexArray(VAO);
-
-		shaderProgram->addAttribute("coord3d");
-		shaderProgram->addAttribute("v_normal");
-		shaderProgram->addAttribute("aTexCoord");
-		shaderProgram->addAttribute("instance");
-
-		shaderProgram->addUniform("mvp");
-		shaderProgram->addUniform("ModelViewMatrix");
-		shaderProgram->addUniform("NormalMatrix");
-
-		shaderProgram->addUniform("Light.Position");
-		shaderProgram->addUniform("Light.La");
-		shaderProgram->addUniform("Light.Ld");
-		shaderProgram->addUniform("Light.Ls");
-
-		shaderProgram->addUniform("Material.Ka");
-		shaderProgram->addUniform("Material.Kd");
-		shaderProgram->addUniform("Material.Ks");
-		shaderProgram->addUniform("Material.Shiness");
-
-		//create vbo for vertices
-		glGenBuffers(1, &vbo_cube_vertices);
-		glBindBuffer(GL_ARRAY_BUFFER, vbo_cube_vertices);
-		glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * 3 * nVerts, v, GL_STATIC_DRAW);
-		glVertexAttribPointer(
-			shaderProgram->attribute("coord3d"), // attribute
-			3,                 // number of elements per vertex, here (x,y,z,1)
-			GL_FLOAT,          // the type of each element
-			GL_FALSE,          // take our values as-is
-			0,                 // no extra data between each position
-			0                  // offset of first element
-		);
-		glEnableVertexAttribArray(shaderProgram->attribute("coord3d"));
-
-		//create vbo for colors
-		glGenBuffers(1, &vbo_cube_normals);						//Color VBO 생성
-		glBindBuffer(GL_ARRAY_BUFFER, vbo_cube_normals);			//버퍼를 activate("지금 이것을 다룬다")
-		glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * 3 * nVerts, n, GL_STATIC_DRAW);	//VBO에 데이터 저장
-		glVertexAttribPointer(
-			shaderProgram->attribute("v_normal"), // attribute
-			3,                 // number of elements per vertex, here (R,G,B)
-			GL_FLOAT,          // the type of each element
-			GL_FALSE,          // take our values as-is
-			0,                 // no extra data between each position
-			0                  // offset of first element
-		);
-		glEnableVertexAttribArray(shaderProgram->attribute("v_normal"));
-
-		glGenBuffers(1, &vbo_cube_texture);						//Color VBO 생성
-		glBindBuffer(GL_ARRAY_BUFFER, vbo_cube_texture);			//버퍼를 activate("지금 이것을 다룬다")
-		glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 2 * nVerts, tex, GL_STATIC_DRAW);	//VBO에 데이터 저장
-		glVertexAttribPointer(
-			shaderProgram->attribute("aTexCoord"), // attribute
-			2,                 // number of elements per vertex, here (R,G,B)
-			GL_FLOAT,          // the type of each element
-			GL_FALSE,          // take our values as-is
-			0,                 // no extra data between each position
-			0                  // offset of first element
-		);
-		glEnableVertexAttribArray(shaderProgram->attribute("aTexCoord"));
-
-		glGenBuffers(1, &ibo_cube_elements);
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo_cube_elements);
-		glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(unsigned int) * elements, el, GL_STATIC_DRAW);
-
-		glBindVertexArray(0);
-
-
 	}
 
 }
 
 
-void BuiltInSphere::draw(glm::mat4& model, glm::mat4& view, glm::mat4& projection, static glm::vec4 RGB, static glm::vec3 LightPos)
+void BuiltInSphere::draw(glm::mat4& model, glm::mat4& view, glm::mat4& projection, glm::mat4& location, glm::vec3 LightPos)
 {
 
 	glm::mat4 mview = view * model;
@@ -262,65 +133,8 @@ void BuiltInSphere::draw(glm::mat4& model, glm::mat4& view, glm::mat4& projectio
 
 	shaderProgram->use();
 
-	if (type == 1)
+	//if (type == 1)
 	{
-
-		glUniformMatrix4fv(shaderProgram->uniform("ModelViewMatrix"), 1, GL_FALSE, glm::value_ptr(mview));
-		glUniformMatrix3fv(shaderProgram->uniform("NormalMatrix"), 1, GL_FALSE, glm::value_ptr(nmat));
-		glUniformMatrix4fv(shaderProgram->uniform("mvp"), 1, GL_FALSE, glm::value_ptr(mvp));
-
-		glUniform4fv(shaderProgram->uniform("LightLocation"), 1, glm::value_ptr(lightPos));
-		glUniform3fv(shaderProgram->uniform("Kd"), 1, glm::value_ptr(kd));
-		glUniform3fv(shaderProgram->uniform("Ld"), 1, glm::value_ptr(ld));
-
-		glBindVertexArray(VAO);
-
-		glDrawElements(GL_TRIANGLES, elements, GL_UNSIGNED_INT, 0);
-
-		shaderProgram->disable();
-
-	}
-
-	else if (type == 2)
-	{
-
-		glm::mat4 myMatrix = glm::translate(glm::mat4(1.f), glm::vec3(1.f, 1.f, 1.f));
-
-		glm::mat4 scaleMatrix = glm::scale(glm::mat4(1.f),glm::vec3(1, 1, 1));
-
-
-		glm::vec3 skelMatrix[10] = {
-			{glm::vec3(0,0,0)},
-			{ glm::vec3(0,-2,0) },
-			{ glm::vec3(2,-2,-2) },
-			{ glm::vec3(-2,-2,2) },
-			{ glm::vec3(0,-4,0) },
-			{ glm::vec3(1,-6,-1) },
-			{ glm::vec3(-1,-6,1) },
-			{ glm::vec3(1,-8,-1) },
-			{ glm::vec3(-1,-8,1) },
-			{ glm::vec3(0,-4,0) },
-		};
-
-
-
-		glm::vec3 Ka(0.1, 0.1, 0.1);
-		glm::vec3 Kd(RGB.x, RGB.y, RGB.z);
-		//glm::vec3 Kd(1, 1, 0);
-		glm::vec3 Ks(1, 1, 0);
-		GLfloat shiness = 10;
-
-		glm::vec3 La(0.9, 0.9, 0.9);
-		glm::vec3 Ld(0.6, 0.6, 0.6);
-		glm::vec3 Ls(0.6, 0.6, 0.6);
-
-		//glm::vec3 index(1, 0, 0);
-
-		glUniformMatrix4fv(shaderProgram->uniform("ModelViewMatrix"), 1, GL_FALSE, glm::value_ptr(mview));
-		glUniformMatrix3fv(shaderProgram->uniform("NormalMatrix"), 1, GL_FALSE, glm::value_ptr(nmat));
-		glUniformMatrix4fv(shaderProgram->uniform("mvp"), 1, GL_FALSE, glm::value_ptr(mvp));
-		glUniformMatrix4fv(shaderProgram->uniform("myMatrix"), 1, GL_FALSE, glm::value_ptr(scaleMatrix));
-
 		glUniform4fv(shaderProgram->uniform("Light.Position"), 1, glm::value_ptr(lightPos));
 		glUniform3fv(shaderProgram->uniform("Light.La"), 1, glm::value_ptr(La));
 		glUniform3fv(shaderProgram->uniform("Light.Ld"), 1, glm::value_ptr(Ld));
@@ -331,55 +145,21 @@ void BuiltInSphere::draw(glm::mat4& model, glm::mat4& view, glm::mat4& projectio
 		glUniform3fv(shaderProgram->uniform("Material.Ks"), 1, glm::value_ptr(Ks));
 		glUniform1fv(shaderProgram->uniform("Material.Shiness"), 1, &shiness);
 
-
-
-		glBindVertexArray(VAO);
-
-		glm::vec3 index(0, 0, 0);
-		glUniform3fv(shaderProgram->uniform("index"), 1, glm::value_ptr(index));
-		//glDrawElementsInstanced(GL_TRIANGLES, elements, GL_UNSIGNED_INT, 0,10);
-
-		glDrawElements(GL_TRIANGLES, elements, GL_UNSIGNED_INT, 0);
-
-		shaderProgram->disable();
-
-	}
-
-	else if (type == 3)
-	{
-
-		glm::vec3 Ka(0.1, 0.1, 0.1);
-		glm::vec3 Kd(RGB.x, RGB.y, RGB.z);
-		//glm::vec3 Kd(1, 1, 0);
-		glm::vec3 Ks(1, 1, 1);
-		GLfloat shiness = 10;
-
-		glm::vec3 La(1, 1, 1);
-		glm::vec3 Ld(1, 1, 1);
-		glm::vec3 Ls(1, 1, 1);
-
 		glUniformMatrix4fv(shaderProgram->uniform("ModelViewMatrix"), 1, GL_FALSE, glm::value_ptr(mview));
 		glUniformMatrix3fv(shaderProgram->uniform("NormalMatrix"), 1, GL_FALSE, glm::value_ptr(nmat));
-		glUniformMatrix4fv(shaderProgram->uniform("mvp"), 1, GL_FALSE, glm::value_ptr(mvp));
+		glUniformMatrix4fv(shaderProgram->uniform("location"), 1, GL_FALSE, glm::value_ptr(location));
 
-		glUniform4fv(shaderProgram->uniform("Light.Position"), 1, glm::value_ptr(lightPos));
-		glUniform3fv(shaderProgram->uniform("Light.La"), 1, glm::value_ptr(La));
-		glUniform3fv(shaderProgram->uniform("Light.Ld"), 1, glm::value_ptr(Ld));
-		glUniform3fv(shaderProgram->uniform("Light.Ls"), 1, glm::value_ptr(Ls));
-
-		glUniform3fv(shaderProgram->uniform("Material.Ka"), 1, glm::value_ptr(Ka));
-		glUniform3fv(shaderProgram->uniform("Material.Kd"), 1, glm::value_ptr(Kd));
-		glUniform3fv(shaderProgram->uniform("Material.Ks"), 1, glm::value_ptr(Ks));
-		glUniform1fv(shaderProgram->uniform("Material.Shiness"), 1, &shiness);
+		glUniformMatrix4fv(shaderProgram->uniform("model"), 1, GL_FALSE, glm::value_ptr(model));
+		glUniformMatrix4fv(shaderProgram->uniform("view"), 1, GL_FALSE, glm::value_ptr(view));
+		glUniformMatrix4fv(shaderProgram->uniform("projection"), 1, GL_FALSE, glm::value_ptr(projection));
 
 		glBindVertexArray(VAO);
 
 		glDrawElements(GL_TRIANGLES, elements, GL_UNSIGNED_INT, 0);
 
-		shaderProgram->disable();
-
 	}
 
+	shaderProgram->disable();
 	//glDrawArraysInstanced(GL_TRIANGLES, 0, nVerts * 3, 10);
 }
 

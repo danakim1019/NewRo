@@ -5,98 +5,22 @@ BuiltInCube::BuiltInCube(int type)
 {
 	this->type = type;
 	setup();
-	Ka= glm::vec3(1.0, 1.0, 1.0);
-	Kd= glm::vec3(0.64, 0.64, 0.64);
-	Ks= glm::vec3(0.5, 0.5, 0.5);
+	Ka= glm::vec3(0.1, 0.1, 0.1);
+	Kd= glm::vec3(1, 0, 0);
+	Ks= glm::vec3(1, 1, 1);
 	shiness = 10;
 
 	La= glm::vec3(0.9, 0.9, 0.9);
-	Ld= glm::vec3(0.6, 0.6, 0.6);
+	Ld= glm::vec3(0.6,0.6,0.6);
 	Ls= glm::vec3(0.6, 0.6, 0.6);
 
-	lightPos= glm::vec4(0, 5, 0, 1);
+	lightPos= glm::vec4(0, 0, 300, 1);
 
 }
 
 void BuiltInCube::setup()
 {
-	glm::vec3 positions[8] = {
-		//front
-		glm::vec3(1.0f, 1.0f, 0.0f),  //top right
-		glm::vec3(1.0f, -1.0f, 0.0f), //bottom right
-		glm::vec3(-1.0f, -1.0f, 0.0f), //bottom left
-		glm::vec3(-1.0f, 1.0f, 0.0f), //top left
-		//back
-		glm::vec3(1.0f, 1.0f, -1.0f), //top right
-		glm::vec3(1.0f, -1.0f, -1.0f), //bottom right
-		glm::vec3(-1.0f, -1.0f, -1.0f), //bottom left
-		glm::vec3(-1.0f, 1.0f, -1.0f) //top left
-	};
-
-	vertexPositions.push_back(positions[0]);
-	vertexPositions.push_back(positions[1]);
-	vertexPositions.push_back(positions[2]);
-	vertexPositions.push_back(positions[3]);
-
-	vertexPositions.push_back(positions[4]);
-	vertexPositions.push_back(positions[5]);
-	vertexPositions.push_back(positions[6]);
-	vertexPositions.push_back(positions[7]);
-
-
-	computeNormal(positions[0], positions[1], positions[2]);
-	computeNormal(positions[0], positions[2], positions[3]);
-
-	computeNormal(positions[2], positions[3], positions[7]);
-	computeNormal(positions[2], positions[7], positions[6]);
-
-	computeNormal(positions[3], positions[0], positions[4]);
-	computeNormal(positions[3], positions[4], positions[7]);
-
-	computeNormal(positions[6], positions[5], positions[1]);
-	computeNormal(positions[6], positions[1], positions[2]);
-
-	computeNormal(positions[4], positions[5], positions[6]);
-	computeNormal(positions[4], positions[6], positions[7]);
-
-	computeNormal(positions[5], positions[4], positions[0]);
-	computeNormal(positions[5], positions[0], positions[1]);
-
-
-	GLfloat cube_colors[] = {
-		// front colors
-		1.0, 0.0, 0.0,
-		0.0, 1.0, 0.0,
-		0.0, 0.0, 1.0,
-		1.0, 1.0, 1.0,
-		// back colors
-		1.0, 0.0, 0.0,
-		0.0, 1.0, 0.0,
-		0.0, 0.0, 1.0,
-		1.0, 1.0, 1.0,
-	};
-
-	
-	GLushort cube_elements[] = {
-		// front
-		0, 1, 2,
-		2, 3, 0,
-		// top
-		1, 5, 6,
-		6, 2, 1,
-		// back
-		7, 6, 5,
-		5, 4, 7,
-		// bottom
-		4, 0, 3,
-		3, 7, 4,
-		// left
-		4, 5, 1,
-		1, 0, 4,
-		// right
-		3, 2, 6,
-		6, 7, 3,
-	};
+	generateVertices();
 
 	generateIndices();
 
@@ -177,7 +101,7 @@ void BuiltInCube::setup()
 
 }
 
-void BuiltInCube::draw(glm::mat4& model, glm::mat4& view, glm::mat4& projection,glm::mat4& location, glm::vec3 RGB)
+void BuiltInCube::draw(glm::mat4& model, glm::mat4& view, glm::mat4& projection,glm::mat4& location, glm::vec3 lightPosition)
 {
 
 	glm::mat4 mview = view * model;
@@ -186,8 +110,7 @@ void BuiltInCube::draw(glm::mat4& model, glm::mat4& view, glm::mat4& projection,
 	glm::mat4 imvp = glm::inverse(mview);
 	glm::mat3 nmat = glm::mat3(glm::transpose(imvp));
 
-
-	
+	glm::vec4 lightP = glm::vec4(lightPosition, 1.0f);
 
 	shaderProgram->use();
 
@@ -223,18 +146,95 @@ void BuiltInCube::draw(glm::mat4& model, glm::mat4& view, glm::mat4& projection,
 
 }
 
-void BuiltInCube::computeNormal(glm::vec3 p1, glm::vec3 p2, glm::vec3 p3)
+void BuiltInCube::computeNormal(glm::vec3 p1, glm::vec3 p2, glm::vec3 p3,bool reverse)
 {
-	//glm::vec3 v1 = glm::vec3(p2 - p1);
-	glm::vec3 v1 = glm::vec3(p1 - p2);
+	glm::vec3 v1;
+	glm::vec3 v2;
+	glm::vec3 norm;
+	v1 = glm::vec3(p1 - p2);
+	v2 = glm::vec3(p1 - p3);
 	v1 = glm::normalize(v1);
-	//glm::vec3 v2 = glm::vec3(p3 - p1);
-	glm::vec3 v2 = glm::vec3(p1 - p3);
 	v2 = glm::normalize(v2);
+	if (reverse) {
+		norm = glm::cross(v1, v2);
+	}
+	else {
+		norm = -glm::cross(v1, v2);
+	}
 
-	vertexNormals.push_back(glm::cross(v1, v2));
-	vertexNormals.push_back(glm::cross(v1, v2));
-	vertexNormals.push_back(glm::cross(v1, v2));
+	//vertexNormals.push_back(norm);
+	//vertexNormals.push_back(norm);
+	//vertexNormals.push_back(norm);
+
+	std::cout << norm.x<<", "<< norm.y<<", "<< norm.z << std::endl;
+}
+
+void BuiltInCube::generateVertices() {
+	glm::vec3 positions[8] = {
+		//front
+		glm::vec3(1.0f, 1.0f, 1.0f),  //top right
+		glm::vec3(1.0f, -1.0f, 1.0f), //bottom right
+		glm::vec3(-1.0f, -1.0f, 1.0f), //bottom left
+		glm::vec3(-1.0f, 1.0f, 1.0f), //top left
+		//back
+		glm::vec3(1.0f, 1.0f, -1.0f), //top right
+		glm::vec3(1.0f, -1.0f, -1.0f), //bottom right
+		glm::vec3(-1.0f, -1.0f, -1.0f), //bottom left
+		glm::vec3(-1.0f, 1.0f, -1.0f) //top left
+	};
+
+	vertexPositions.push_back(positions[0]);
+	vertexPositions.push_back(positions[1]);
+	vertexPositions.push_back(positions[2]);
+	vertexPositions.push_back(positions[3]);
+
+	vertexPositions.push_back(positions[4]);
+	vertexPositions.push_back(positions[5]);
+	vertexPositions.push_back(positions[6]);
+	vertexPositions.push_back(positions[7]);
+
+	generateNormals(positions);
+}
+
+void BuiltInCube::generateNormals(glm::vec3 positions[]) {
+	computeNormal(positions[0], positions[1], positions[3], false); //013 123   Top  back
+	computeNormal(positions[2], positions[3], positions[1], false);
+
+	for (int i = 0; i < 6; i++)
+		vertexNormals.push_back(glm::vec3(0, 1, 0));
+
+	computeNormal(positions[4], positions[5], positions[7], true); //457 567  Bottom front
+	computeNormal(positions[6], positions[7], positions[5], true);
+
+	for (int i = 0; i < 6; i++)
+		vertexNormals.push_back(glm::vec3(0, -1, 0));
+
+	
+
+	computeNormal(positions[0], positions[1], positions[4], false); //014 145  Right right
+	computeNormal(positions[5], positions[4], positions[1], false);
+
+	for (int i = 0; i < 6; i++)
+		vertexNormals.push_back(glm::vec3(0, 0, -1));
+
+	computeNormal(positions[3], positions[2], positions[7], true); //237 267  Left left
+	computeNormal(positions[6], positions[7], positions[2], true);
+
+	for (int i = 0; i < 6; i++)
+		vertexNormals.push_back(glm::vec3(0, 0, 1));
+
+	computeNormal(positions[0], positions[3], positions[4], false);//034 347  Front top
+	computeNormal(positions[7], positions[4], positions[3], false);
+
+	for (int i = 0; i < 6; i++)
+		vertexNormals.push_back(glm::vec3(1, 0, 0));
+
+	computeNormal(positions[1], positions[2], positions[5], true); //125 256  Back bottom
+	computeNormal(positions[6], positions[5], positions[2], true);
+
+	for (int i = 0; i < 6; i++)
+		vertexNormals.push_back(glm::vec3(-1, 0, 0));
+
 
 }
 
@@ -245,48 +245,48 @@ void BuiltInCube::generateIndices() {
 	vertexIndices.push_back(1);
 	vertexIndices.push_back(3);
 
-	vertexIndices.push_back(1);
 	vertexIndices.push_back(2);
 	vertexIndices.push_back(3);
+	vertexIndices.push_back(1);
 	// back 
 	vertexIndices.push_back(4);  //457 567
 	vertexIndices.push_back(5);
 	vertexIndices.push_back(7);
 
-	vertexIndices.push_back(5);
 	vertexIndices.push_back(6);
 	vertexIndices.push_back(7);
+	vertexIndices.push_back(5);
 	// right
 	vertexIndices.push_back(0);  //014 145
 	vertexIndices.push_back(1);
 	vertexIndices.push_back(4);
 
-	vertexIndices.push_back(1);
-	vertexIndices.push_back(4);
 	vertexIndices.push_back(5);
+	vertexIndices.push_back(4);
+	vertexIndices.push_back(1);
 	// left
-	vertexIndices.push_back(2);  //237 267
-	vertexIndices.push_back(3);
+	vertexIndices.push_back(3);  //237 267
+	vertexIndices.push_back(2);
 	vertexIndices.push_back(7);
 
-	vertexIndices.push_back(2);
 	vertexIndices.push_back(6);
+	vertexIndices.push_back(2);
 	vertexIndices.push_back(7);
 	// top
 	vertexIndices.push_back(0);  //034 347
 	vertexIndices.push_back(3);
 	vertexIndices.push_back(4);
 
-	vertexIndices.push_back(3);
-	vertexIndices.push_back(4);
 	vertexIndices.push_back(7);
+	vertexIndices.push_back(4);
+	vertexIndices.push_back(3);
 	// bottom
 	vertexIndices.push_back(1);  //125 256
 	vertexIndices.push_back(2);
 	vertexIndices.push_back(5);
 
-	vertexIndices.push_back(2);
-	vertexIndices.push_back(5);
 	vertexIndices.push_back(6);
+	vertexIndices.push_back(5);
+	vertexIndices.push_back(2);
 
 }

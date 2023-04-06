@@ -11,7 +11,7 @@ class BuiltInCube : public OBJTransform
 public:
 	BuiltInCube(int type);
 	void setup();
-	void draw(glm::mat4& model, glm::mat4& view, glm::mat4& projection, glm::mat4& location, glm::vec3 RGB);
+	void draw(glm::mat4& model, glm::mat4& view, glm::mat4& projection, glm::mat4& location,glm::vec3 lightPosition);
 
 	int type;		//Shader ¹øÈ£
 
@@ -19,7 +19,9 @@ public:
 	GLuint vbo_cube_vertices, vbo_cube_normals, ibo_cube_elements;
 	ShaderProgram* shaderProgram;
 
-	void computeNormal(glm::vec3 p1, glm::vec3 p2, glm::vec3 p3);
+	void computeNormal(glm::vec3 p1, glm::vec3 p2, glm::vec3 p3, bool reverse);
+	void generateVertices();
+	void generateNormals(glm::vec3 positions[]);
 	void generateIndices();
 
 	std::vector<glm::vec3> vertexPositions;

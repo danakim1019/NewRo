@@ -19,10 +19,10 @@ void Grid::setup() {
 	vertexPositions.clear();
 	for (int i = -gridWidth; i <= gridWidth; i += gridWidth / gridNum)
 	{
-		vertexPositions.push_back(glm::vec4(i, -gridWidth, 0.0f, 1.0f));
-		vertexPositions.push_back(glm::vec4(i, gridWidth, 0.0f, 1.0f));
-		vertexPositions.push_back(glm::vec4(-gridWidth, i, 0.0f, 1.0f));
-		vertexPositions.push_back(glm::vec4(gridWidth, i, 0.0f, 1.0f));
+		vertexPositions.push_back(glm::vec4(i, 0.0f, -gridWidth, 1.0f));
+		vertexPositions.push_back(glm::vec4(i, 0.0f, gridWidth, 1.0f));
+		vertexPositions.push_back(glm::vec4(-gridWidth, 0.0f, i, 1.0f));
+		vertexPositions.push_back(glm::vec4(gridWidth, 0.0f, i, 1.0f));
 	}
 
 	m_shaderProgram = new ShaderProgram();

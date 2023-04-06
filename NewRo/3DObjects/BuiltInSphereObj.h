@@ -21,7 +21,20 @@ private:
 
 	ShaderProgram* shaderProgram;
 
-	int type;			//Shader Á¾·ù
+	int type;			//Shader 
+
+	glm::vec3 Ka;
+	glm::vec3 Kd;
+	glm::vec3 Ks;
+	GLfloat shiness;
+
+	glm::vec3 La;
+	glm::vec3 Ld;
+	glm::vec3 Ls;
+
+	glm::vec4 lightPos;
+
+	void setup();
 
 public:
 
@@ -29,12 +42,13 @@ public:
 	int G;
 	int B;
 
+
 	int index;
 
 	BuiltInSphere();
 	~BuiltInSphere();
 	BuiltInSphere(float rad, GLuint sl, GLuint st, int type);
-	void draw(glm::mat4& model, glm::mat4& view, glm::mat4& projection, glm::vec4 RGB, static glm::vec3 LightPos);
+	void draw(glm::mat4& model, glm::mat4& view, glm::mat4& projection, glm::mat4& location, glm::vec3 LightPos);
 	void generateVerts(float* verts, float* norms, float* tex, unsigned int* el);
 
 	int getVertexArrayHandle();

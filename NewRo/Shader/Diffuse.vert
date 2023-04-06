@@ -45,6 +45,8 @@ void main()
 	vec3 spec = Light.Ls * Material.Ks * pow(max(dot(R,V), 0.0), Material.Shiness);
 
 	outColor = ambient+diffuse+spec;
+	//outColor = ambient+diffuse;
+	//outColor = ambient;
 
 	gl_Position = projection* view *location* model * vec4(coord3d,1.0);
 
