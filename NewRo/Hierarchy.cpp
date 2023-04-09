@@ -31,5 +31,13 @@ void HierarchyWindow::drawList(glm::mat4& model, glm::mat4& view, glm::mat4& pro
 			BuiltInCube* pCube = dynamic_cast<BuiltInCube*>(activeOBJList[i]);
 			pCube->draw(model, view, projection, location, lightPosition);
 		}
+		else if (activeOBJList[i]->name == "Sphere") {
+			BuiltInSphere* pCube = dynamic_cast<BuiltInSphere*>(activeOBJList[i]);
+			pCube->draw(model, view, projection, location, lightPosition);
+		}
+		else if (activeOBJList[i]->name == "Cylinder") {
+			BuiltInCylinder* pCube = dynamic_cast<BuiltInCylinder*>(activeOBJList[i]);
+			pCube->draw(model, view, projection, location,0,0,0);
+		}
 	}
 }

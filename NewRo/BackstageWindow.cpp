@@ -77,7 +77,7 @@ void BackstageWindow::setupBuffer() {
 	cam = camera(glm::vec3(0.0f, 30.0f, 30.0f));
 	Hierachy = new HierarchyWindow();
 	grid = new Grid();
-	Hierachy->createOBJ(0);
+	Hierachy->createOBJ(2);
 	/*m_cylinder = new BuiltInCylinder();
 	m_cube = new BuiltInCube(0);
 	m_sphere = new BuiltInSphere();*/

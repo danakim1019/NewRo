@@ -2,7 +2,7 @@
 
 BuiltInSphere::BuiltInSphere()
 {
-	radius = 1.0;
+	radius = 2.0;
 	slices = 60;
 	stacks = 60;
 
