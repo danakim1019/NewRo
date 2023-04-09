@@ -181,9 +181,9 @@ static void ShowMenuBarOverlay(bool* p_open)
             if (ImGui::MenuItem("Create Empty")) {}
             ImGui::Separator();
             if (ImGui::BeginMenu("3D Object")) {
-                if (ImGui::MenuItem("Cube")) {}
-                if (ImGui::MenuItem("Sphere")) {}
-                if (ImGui::MenuItem("Cylinder")) {}
+                if (ImGui::MenuItem("Cube")) { win->createBuiltInOBJ(0); }
+                if (ImGui::MenuItem("Sphere")) { win->createBuiltInOBJ(1); }
+                if (ImGui::MenuItem("Cylinder")) { win->createBuiltInOBJ(2); }
                 ImGui::EndMenu();
             }
             ImGui::EndMenu();
@@ -262,10 +262,17 @@ static void ShowHierachyOverlay(bool* p_open)
         return;
     }
 
-    for (int i = 0; i < win->getObjectNum(); i++) {
-        std::string str = win->getObjectName(i);
-        objName = const_cast<char*>(str.c_str());
-        ImGui::Text("%s", objName);
+    static int selected = 0;
+    {
+        char label[128];
+        for (int i = 0; i < win->getObjectNum(); i++) {
+            std::string str = win->getObjectName(i);
+            objName = const_cast<char*>(str.c_str());
+            sprintf_s(label, "%s", objName);
+            if (ImGui::Selectable(label, selected == i)) {
+                selected = win->getObjectID(i);
+            }
+        }
     }
 
     ImGui::End();
@@ -415,8 +422,7 @@ int main(int, char**)
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
         
-       // if (show_demo_window)
-       //     ImGui::ShowDemoWindow(&show_demo_window);
+      
 
         ShowMenuBarOverlay(&show_menubar_window);
 
@@ -433,6 +439,9 @@ int main(int, char**)
         if (show_backstage_window) {
             ShowBackstageOverlay(&show_backstage_window);
         }
+
+        if (show_demo_window)
+            ImGui::ShowDemoWindow(&show_demo_window);
 
         // Rendering
         ImGui::Render();

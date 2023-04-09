@@ -54,6 +54,10 @@ void BackstageWindow::DrawBackstageWindow(GLFWwindow* window,int m_width, int m_
 	m_model.glPopMatrix();
 }
 
+void BackstageWindow::createBuiltInOBJ(int BuiltInType) {
+	Hierachy->createOBJ(BuiltInType);
+}
+
 void BackstageWindow::SetWindowSize(int m_width, int m_height, int xPos, int yPos,int m_windowWidth,int m_windowHeight) {
 	backstageWidth = m_width-4;
 	backstageHeight = m_height-22;

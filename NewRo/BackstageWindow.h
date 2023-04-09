@@ -20,12 +20,19 @@ public:
 	void SetViewport(int m_width, int m_height);
 	void DrawBackstageWindow(GLFWwindow* window, int m_width, int m_height);
 
+	//create BuiltIn Object
+	void createBuiltInOBJ(int BuiltInType);
+
 	unsigned int getObjectNum() {
 		return Hierachy->objectNum;
 	}
 
 	std::string getObjectName(int id) {
 		return Hierachy->activeOBJList[id]->name;
+	}
+
+	int getObjectID(int id) {
+		return Hierachy->activeOBJList[id]->id;
 	}
 
 protected:

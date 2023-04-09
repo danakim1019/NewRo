@@ -6,7 +6,7 @@ HierarchyWindow::HierarchyWindow() {
 
 void HierarchyWindow::createOBJ(int type)
 {
-	OBJect* temp;
+	OBJect* temp = new OBJect();
 	if (type == 0) {
 		temp = new BuiltInCube(0);
 	}
@@ -16,10 +16,8 @@ void HierarchyWindow::createOBJ(int type)
 	else if (type == 2) {
 		temp = new BuiltInCylinder();
 	}
-	else if (type == 3) {
 
-	}
-
+	temp->id = objectNum;
 	activeOBJList.push_back(temp);
 
 	std::cout << "add:"<<temp->name << std::endl;
