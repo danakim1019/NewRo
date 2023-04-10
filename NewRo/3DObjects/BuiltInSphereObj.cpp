@@ -135,6 +135,9 @@ void BuiltInSphere::draw(glm::mat4& model, glm::mat4& view, glm::mat4& projectio
 	glm::vec3 kd(1, 1, 1);
 	glm::vec3 ld(1, 1, 1);
 
+	//2D 상의 좌표 저장
+	
+
 	shaderProgram->use();
 
 	//if (type == 1)
@@ -160,6 +163,8 @@ void BuiltInSphere::draw(glm::mat4& model, glm::mat4& view, glm::mat4& projectio
 		glBindVertexArray(VAO);
 
 		glDrawElements(GL_TRIANGLES, elements, GL_UNSIGNED_INT, 0);
+
+		
 
 	}
 

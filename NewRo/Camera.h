@@ -83,8 +83,8 @@ public:
 
 	void cameraPositionMove(float xoffset, float yoffset, float deltaTime)
 	{
-		float velocity =MovementSpeed* deltaTime;
-		Position += glm::vec3(xoffset, yoffset, 0) * velocity;
+		float velocity =MovementSpeed*MouseSensitivity* deltaTime;
+		Position += glm::vec3(xoffset, 0, yoffset) * velocity;
 	}
 
 	// processes input received from a mouse input system. Expects the offset value in both the x and y direction.

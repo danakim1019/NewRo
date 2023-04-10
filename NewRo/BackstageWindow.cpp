@@ -30,26 +30,26 @@ void BackstageWindow::DrawBackstageWindow(GLFWwindow* window,int m_width, int m_
 	glDisable(GL_SCISSOR_TEST);
 	
 
-	glm::mat4 viewMat = cam.GetViewMatrix();
+	viewMat = cam.GetViewMatrix();
 
-	glm::mat4 projection = glm::perspective(glm::radians(fovy), m_ratio, 0.1f, 1000.0f);
+	projectionMat = glm::perspective(glm::radians(fovy), m_ratio, 0.1f, 1000.0f);
 
-	glm::mat4 model;
+	
 	m_model.glPushMatrix();
-	model = m_model.getMatrix();
+	modelMat = m_model.getMatrix();
 
 	//그리드 그리기
-	grid->draw(model,viewMat,projection);
+	grid->draw(modelMat,viewMat, projectionMat);
 
 	glm::mat4 origin = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, 0.0f));
 
-	Hierachy->drawList(model, viewMat, projection, origin, glm::vec3(0, 30, 0));
+	Hierachy->drawList(modelMat, viewMat, projectionMat, origin, glm::vec3(0, 30, 0));
 
-	/*m_cube->draw(model, viewMat, projection, origin,cam.Position);
+	/*m_cube->draw(modelMat, viewMat, projection, origin,cam.Position);
 	origin = glm::translate(glm::mat4(1.0f), glm::vec3(10.0f, 0.0f, 0.0f));
-	m_cylinder->draw(model, viewMat, projection,origin,0,0,0);
+	m_cylinder->draw(modelMat, viewMat, projection,origin,0,0,0);
 	origin = glm::translate(glm::mat4(1.0f), glm::vec3(-10.0f, 0.0f, 0.0f));
-	m_sphere->draw(model, viewMat, projection, origin, glm::vec3(0, 30, 0));*/
+	m_sphere->draw(modelMat, viewMat, projection, origin, glm::vec3(0, 30, 0));*/
 
 	m_model.glPopMatrix();
 }

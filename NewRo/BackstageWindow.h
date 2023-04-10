@@ -35,6 +35,14 @@ public:
 		return Hierachy->activeOBJList[id]->id;
 	}
 
+	OBJect* getObject(int id) {
+		return Hierachy->activeOBJList[id];
+	}
+
+	void setObjectName(char* name,int id) {
+		Hierachy->activeOBJList[id]->name = name;
+	}
+
 protected:
 	HierarchyWindow* Hierachy;
 private:
@@ -49,6 +57,10 @@ private:
 	float m_ratio;
 	float fovy;
 	ModelView m_model;
+
+	glm::mat4 viewMat;
+	glm::mat4 projectionMat;
+	glm::mat4 modelMat;
 
 	Grid* grid;
 	

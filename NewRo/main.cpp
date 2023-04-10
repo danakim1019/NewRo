@@ -44,6 +44,8 @@ static float rotation[3] = { 0.f, 0.f, 0.f };
 static float scale[3] = { 0.f, 0.f, 0.f };
 
 static const char* objName;
+OBJect* selectedObj;
+static int selectedObjID = 0;
 
 bool isRightMouseClicked = false;
 float lastX = 800.0f / 2.0;
@@ -52,6 +54,8 @@ float lastY = 600.0 / 2.0;
 bool isMiddleMouseClicked = false;
 float lastPosX = 800.0f / 2.0;
 float lastPosY = 600.0 / 2.0;
+
+static void  Strtrim(char* s) { char* str_end = s + strlen(s); while (str_end > s && str_end[-1] == ' ') str_end--; *str_end = 0; }
 
 static void glfw_error_callback(int error, const char* description)
 {
@@ -128,23 +132,22 @@ void mouse_callback(GLFWwindow* window, double xposIn, double yposIn)
     int button = glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_MIDDLE);
     if (button == GLFW_PRESS) {
         //Ä· À§Ä¡ ÀÌµ¿
-        if (isMiddleMouseClicked)
+        if (!isMiddleMouseClicked)
         {
-            lastPosX = xpos;
-            lastPosY = ypos;
-            isMiddleMouseClicked = false;
+            lastPosX = 0;
+            lastPosY = 0;
+            isMiddleMouseClicked = true;
         }
 
-        float xoffset = xpos - lastX;
-        float yoffset = lastY - ypos; // reversed since y-coordinates go from bottom to top
-
-        lastPosX = xpos;
-        lastPosY = ypos;
+        float xoffset = xpos - lastPosX;
+        float yoffset = ypos-lastPosY; // reversed since y-coordinates go from bottom to top
 
         win->cam.cameraPositionMove(xoffset, yoffset, _delta_time);
     }
     else {
         isMiddleMouseClicked = true;
+        lastPosX = xpos;
+        lastPosY = ypos;
     }
 }
 
@@ -153,6 +156,7 @@ void mouse_callback(GLFWwindow* window, double xposIn, double yposIn)
 static void backstage_draw_callback(const ImDrawList* parent_list, const ImDrawCmd* cmd) {
     win->DrawBackstageWindow(window,screenWidth, screenHeight);
 }
+
 
 static void ShowMenuBarOverlay(bool* p_open) 
 {
@@ -218,6 +222,14 @@ static void ShowInspectorOverlay(bool* p_open)
         return;
     }
 
+    bool reclaim_focus = false;
+    ImGuiInputTextFlags input_text_flags = ImGuiInputTextFlags_EnterReturnsTrue  | ImGuiInputTextFlags_CallbackCompletion | ImGuiInputTextFlags_CallbackHistory;
+    char* name = (char*)objName;
+    if (ImGui::InputText("Name", name, IM_ARRAYSIZE(name))) {
+        char* s = name;
+        win->setObjectName(s, selectedObjID);
+    }
+
     //statUI(win);
     ImGui::Separator();
     ImGui::Text("Transform");
@@ -231,6 +243,8 @@ static void ShowInspectorOverlay(bool* p_open)
 
     ImGui::End();
 }
+
+
 
 static void ShowProjectOverlay(bool* p_opent) 
 {
@@ -262,15 +276,16 @@ static void ShowHierachyOverlay(bool* p_open)
         return;
     }
 
-    static int selected = 0;
+
     {
         char label[128];
         for (int i = 0; i < win->getObjectNum(); i++) {
             std::string str = win->getObjectName(i);
             objName = const_cast<char*>(str.c_str());
             sprintf_s(label, "%s", objName);
-            if (ImGui::Selectable(label, selected == i)) {
-                selected = win->getObjectID(i);
+            if (ImGui::Selectable(label, selectedObjID == i)) {
+                selectedObjID = win->getObjectID(i);
+                selectedObj = win->getObject(i);
             }
         }
     }
