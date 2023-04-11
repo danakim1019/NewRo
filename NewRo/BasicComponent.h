@@ -35,6 +35,7 @@ public:
 
 	std::string name;
 	int id = 0;
+	std::string objectType;
 };
 
 #endif

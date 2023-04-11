@@ -21,7 +21,7 @@ BuiltInSphere::BuiltInSphere()
 	
 
 	name = "Sphere";
-
+	objectType = "Sphere";
 }
 
 

@@ -43,9 +43,10 @@ static float transform[3] = { 0.f, 0.f, 0.f };
 static float rotation[3] = { 0.f, 0.f, 0.f };
 static float scale[3] = { 0.f, 0.f, 0.f };
 
-static const char* objName;
+const char* objName;
 OBJect* selectedObj;
 static int selectedObjID = 0;
+static char str0[32]{ " ", };
 
 bool isRightMouseClicked = false;
 float lastX = 800.0f / 2.0;
@@ -55,7 +56,11 @@ bool isMiddleMouseClicked = false;
 float lastPosX = 800.0f / 2.0;
 float lastPosY = 600.0 / 2.0;
 
+bool isEditingText = false;
+
 static void  Strtrim(char* s) { char* str_end = s + strlen(s); while (str_end > s && str_end[-1] == ' ') str_end--; *str_end = 0; }
+static int TextEditCallbackStub(ImGuiInputTextCallbackData* data);
+
 
 static void glfw_error_callback(int error, const char* description)
 {
@@ -64,21 +69,23 @@ static void glfw_error_callback(int error, const char* description)
 
 static void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
-    if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
-        glfwSetWindowShouldClose(window, GLFW_TRUE);
+    if (!isEditingText) {
+        if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
+            glfwSetWindowShouldClose(window, GLFW_TRUE);
 
-    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-        win->cam.ProcessKeyboard(FORWARD, _delta_time);
-    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-        win->cam.ProcessKeyboard(BACKWARD, _delta_time);
-    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-        win->cam.ProcessKeyboard(LEFT, _delta_time);
-    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-        win->cam.ProcessKeyboard(RIGHT, _delta_time);
-    if (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS)
-        win->cam.ProcessKeyboard(UPPER, _delta_time);
-    if (glfwGetKey(window, GLFW_KEY_F) == GLFW_PRESS)
-        win->cam.ProcessKeyboard(DOWN, _delta_time);
+        if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+            win->cam.ProcessKeyboard(FORWARD, _delta_time);
+        if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+            win->cam.ProcessKeyboard(BACKWARD, _delta_time);
+        if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+            win->cam.ProcessKeyboard(LEFT, _delta_time);
+        if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+            win->cam.ProcessKeyboard(RIGHT, _delta_time);
+        if (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS)
+            win->cam.ProcessKeyboard(UPPER, _delta_time);
+        if (glfwGetKey(window, GLFW_KEY_F) == GLFW_PRESS)
+            win->cam.ProcessKeyboard(DOWN, _delta_time);
+    }
 }
 
 // glfw: whenever the mouse scroll wheel scrolls, this callback is called
@@ -203,7 +210,7 @@ static void ShowMenuBarOverlay(bool* p_open)
         }
         if (ImGui::BeginMenu("Extra")) {
             if (ImGui::MenuItem("Profile")) {
-
+                //statUI(win);
             }
             ImGui::EndMenu();
         }
@@ -222,15 +229,16 @@ static void ShowInspectorOverlay(bool* p_open)
         return;
     }
 
-    bool reclaim_focus = false;
-    ImGuiInputTextFlags input_text_flags = ImGuiInputTextFlags_EnterReturnsTrue  | ImGuiInputTextFlags_CallbackCompletion | ImGuiInputTextFlags_CallbackHistory;
-    char* name = (char*)objName;
-    if (ImGui::InputText("Name", name, IM_ARRAYSIZE(name))) {
-        char* s = name;
-        win->setObjectName(s, selectedObjID);
+    if (selectedObj != NULL)
+    {
+        strcpy(str0, selectedObj->name.c_str());
+        if (ImGui::InputText("Object Name", str0, 64)) {
+            char* s = str0;
+            win->setObjectName(s, selectedObjID);
+        }
     }
 
-    //statUI(win);
+
     ImGui::Separator();
     ImGui::Text("Transform");
     ImGui::Separator();
@@ -243,8 +251,6 @@ static void ShowInspectorOverlay(bool* p_open)
 
     ImGui::End();
 }
-
-
 
 static void ShowProjectOverlay(bool* p_opent) 
 {
@@ -437,7 +443,6 @@ int main(int, char**)
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
         
-      
 
         ShowMenuBarOverlay(&show_menubar_window);
 

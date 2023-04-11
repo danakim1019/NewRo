@@ -7,12 +7,14 @@ BuiltInCylinder::BuiltInCylinder() :m_radius(1.0f), m_length(2.0f), m_rings(10),
 	setup();
 
 	name = "Cylinder";
+	objectType = "Cylinder";
 }
 
 BuiltInCylinder::BuiltInCylinder(float radius, float length, int rings, int slices) :m_radius(radius), m_length(length), m_rings(rings), m_slices(slices)
 {
 	setup();
 	name = "Cylinder";
+	objectType = "Cylinder";
 }
 
 void BuiltInCylinder::generateVertexData()

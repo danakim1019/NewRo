@@ -17,7 +17,7 @@ BuiltInCube::BuiltInCube(int type)
 	lightPos= glm::vec4(0, 0, 300, 1);
 
 	name = "Cube";
-
+	objectType = "Cube";
 }
 
 void BuiltInCube::setup()
