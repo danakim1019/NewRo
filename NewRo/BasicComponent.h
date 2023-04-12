@@ -64,7 +64,7 @@ public:
 	virtual void RenderPicking(){}
 
 	std::string name;
-	int id = 0;
+	unsigned int id = 0;
 	std::string objectType;
 };
 

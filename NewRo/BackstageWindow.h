@@ -48,20 +48,20 @@ public:
 		return Hierachy->objectNum;
 	}
 
-	std::string getObjectName(int id) {
-		return Hierachy->activeOBJList[id]->name;
+	std::string getObjectName(unsigned int id) {
+		return Hierachy->activeOBJList[id-1]->name;
 	}
 
-	int getObjectID(int id) {
-		return Hierachy->activeOBJList[id]->id;
+	unsigned int getObjectID(unsigned int id) {
+		return Hierachy->activeOBJList[id-1]->id;
 	}
 
-	OBJect* getObject(int id) {
-		return Hierachy->activeOBJList[id];
+	OBJect* getObject(unsigned int id) {
+		return Hierachy->activeOBJList[id-1];
 	}
 
-	void setObjectName(char* name,int id) {
-		Hierachy->activeOBJList[id]->name = name;
+	void setObjectName(char* name,unsigned int id) {
+		Hierachy->activeOBJList[id-1]->name = name;
 	}
 
 protected:

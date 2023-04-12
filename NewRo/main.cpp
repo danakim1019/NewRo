@@ -23,7 +23,7 @@
 
 
 
-int main(int, char**)
+int main(int, char**)          
 {
     // Setup window
     glfwSetErrorCallback(glfw_error_callback);

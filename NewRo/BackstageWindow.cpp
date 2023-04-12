@@ -93,11 +93,12 @@ void BackstageWindow::pickingPhase() {
 
 	pickingShaderProgram->use();
 		for (int i = 0; i < Hierachy->objectNum; i++) {
-			glm::vec3 position = getObject(i)->getPositon();
+			glm::vec3 position = getObject(i+1)->getPositon();
 			glm::mat4 location = glm::translate(glm::mat4(1.0f), position);
 			glm::mat4 mMVP = projectionMat * location * viewMat * modelMat;
 
-			glUniform1ui(pickingShaderProgram->uniform("gModelIndex"), getObjectID(i));
+			glUniform1ui(pickingShaderProgram->uniform("gModelIndex"), getObjectID(i+1));
+			//std::cout << "getObjectID(i):" << getObjectID(i) << std::endl;
 			glUniformMatrix4fv(pickingShaderProgram->uniform("MVP"),1,GL_FALSE,glm::value_ptr(mMVP));
 			Hierachy->activeOBJList[i]->RenderPicking();
 		}

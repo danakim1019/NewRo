@@ -23,7 +23,7 @@ static float scale[3] = { 0.f, 0.f, 0.f };
 
 const char* objName;
 OBJect* selectedObj;
-static int selectedObjID = 0;
+static unsigned int selectedObjID = 0;
 static char str0[32]{ " ", };
 
 bool isLeftMouseClicked = false;
@@ -105,18 +105,21 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
 {
     if (button == GLFW_MOUSE_BUTTON_LEFT) {
         if (action == GLFW_PRESS) {
-            if (!isLeftMouseClicked) {
-                int select = win->selectObject(xPos, yPos, selectedObjID);
-                if (select >= 0) {
-                    selectedObjID = select;
-                    selectedObj = win->getObject(selectedObjID);
+            if ((xPos > hierachyWidth && xPos < hierachyWidth + screenWidth)
+                && (yPos > 20 && yPos < screenHeight)) {
+                if (!isLeftMouseClicked) {
+                    unsigned int select = win->selectObject(xPos, yPos, selectedObjID);
+                    if (select > 0) {
+                        selectedObjID = select;
+                        selectedObj = win->getObject(selectedObjID);
+                    }
+                    else {
+                        selectedObjID = -1;
+                        selectedObj = NULL;
+                        printf("not picking");
+                    }
+                    isLeftMouseClicked = true;
                 }
-                else {
-                    selectedObjID = -1;
-                    selectedObj = NULL;
-                    printf("not picking");
-                }
-                isLeftMouseClicked = true;
             }
         }
         else {
@@ -152,9 +155,7 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
         else {
             isMiddleMouseClicked = false;
         }
-       
     }
-
 }
 
 
@@ -308,7 +309,7 @@ static void ShowHierachyOverlay(bool* p_open)
 
     {
         char label[128];
-        for (int i = 0; i < win->getObjectNum(); i++) {
+        for (int i = 1; i < win->getObjectNum()+1; i++) {
             std::string str = win->getObjectName(i);
             objName = const_cast<char*>(str.c_str());
             sprintf_s(label, "%s", objName);

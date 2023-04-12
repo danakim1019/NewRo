@@ -17,11 +17,13 @@ void HierarchyWindow::createOBJ(int type)
 		temp = new BuiltInCylinder();
 	}
 
-	temp->id = objectNum;
+
 	activeOBJList.push_back(temp);
+	objectNum = activeOBJList.size();
+	temp->id = objectNum;
 
 	std::cout << "add:"<<temp->name << std::endl;
-	objectNum = activeOBJList.size();
+	
 }
 
 
