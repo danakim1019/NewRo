@@ -19,19 +19,49 @@
 class OBJTransform {
 public:
 	OBJTransform() {
-		Position = new float[3]{ 0,0,0 };
-		Rotation = new float[3] { 0, 0, 0 };
-		Scale = new float[3] { 0, 0, 0 };
+		pos = { 0,0,0 };
+		rot = { 0, 0, 0 };
+		scale = { 0, 0, 0 };
 	}
 
-	float* Position;
-	float* Rotation;
-	float* Scale;
+	struct Position {
+		float x;
+		float y;
+		float z;
+	};
+	Position pos;
+
+	struct Rotation {
+		float x;
+		float y;
+		float z;
+	};
+	Rotation rot;
+
+	struct Scale {
+		float x;
+		float y;
+		float z;
+	};
+	Scale scale;
+
+	glm::vec3 getPositon() {
+		return glm::vec3(pos.x, pos.y, pos.z);
+	}
+
+	glm::vec3 getRotation() {
+		return glm::vec3(rot.x, rot.y, rot.z);
+	}
+
+	glm::vec3 getScale() {
+		return glm::vec3(scale.x, scale.y, scale.z);
+	}
 };
 
-class OBJect : public OBJTransform{
+class OBJect : public OBJTransform {
 public:
-	virtual void draw(glm::mat4& model, glm::mat4& view, glm::mat4& projection, glm::mat4& location, glm::vec3 lightPosition){}
+	virtual void draw(glm::mat4& model, glm::mat4& view, glm::mat4& projection, glm::mat4& location, glm::vec3 lightPosition) {}
+	virtual void RenderPicking(){}
 
 	std::string name;
 	int id = 0;

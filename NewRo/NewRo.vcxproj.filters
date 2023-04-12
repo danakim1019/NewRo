@@ -128,6 +128,9 @@
     <ClInclude Include="Hierarchy.h">
       <Filter>소스 파일</Filter>
     </ClInclude>
+    <ClInclude Include="GUIInterface.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="Shader\black.frag">
@@ -146,6 +149,12 @@
       <Filter>소스 파일\Shader</Filter>
     </None>
     <None Include="Shader\Diffuse.vert">
+      <Filter>소스 파일\Shader</Filter>
+    </None>
+    <None Include="Shader\picking.frag">
+      <Filter>소스 파일\Shader</Filter>
+    </None>
+    <None Include="Shader\picking.vert">
       <Filter>소스 파일\Shader</Filter>
     </None>
   </ItemGroup>

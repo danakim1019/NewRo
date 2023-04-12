@@ -4,17 +4,63 @@ BackstageWindow::BackstageWindow(int m_width, int m_height,int w_Width,int w_Hei
 { 
 	fovy = 45.0f; 
 	m_ratio = backstageWidth / static_cast<float>(backstageHeight);
+	setupPickingShader();
 	setupBuffer();
 }
 
-void BackstageWindow::DrawBackstageWindow(GLFWwindow* window,int m_width, int m_height) {
+void BackstageWindow::setupPickingShader() {
+	pickingShaderProgram = new ShaderProgram();
+	pickingShaderProgram->initFromFiles("Shader/picking.vert", "Shader/picking.frag");
 
-    //glViewport(0, 0, display_w, display_h);
-   /* glViewport(0, 0, 200, 200);
-    glClearColor(clear_color.x * clear_color.w, clear_color.y * clear_color.w, clear_color.z * clear_color.w, clear_color.w);
-    glClear(GL_COLOR_BUFFER_BIT);*/
+	pickingShaderProgram->addAttribute("coord3d");
+
+	pickingShaderProgram->addUniform("MVP");
+	pickingShaderProgram->addUniform("gModelIndex");
+	pickingShaderProgram->addUniform("gDrawIndex");
+
+}
+
+BackstageWindow::PixelInfo BackstageWindow::ReadPixel(unsigned int x, unsigned int y) {
+	//프레임 버퍼에서 데이터 획득
+	glBindFramebuffer(GL_READ_FRAMEBUFFER, m_fbo);
+	glReadBuffer(GL_COLOR_ATTACHMENT0);		//제일 먼저 저장해놓은 오브젝트 인덱스(아이디) 가져옴
+
+	//픽셀 데이터 읽기
+	PixelInfo Pixel;
+	glReadPixels(x, y, 1, 1, GL_RGB, GL_FLOAT, &Pixel);
+
+	//버퍼를 해제
+	glReadBuffer(GL_NONE);
+	glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
+
+	return Pixel;
+}
+
+int BackstageWindow::selectObject(int cx, int cy,int selectedObjIndex) {
+	//PixelInfo Pixel = ReadPixel(cx, backstageHeight - cy - 1);
+	PixelInfo Pixel = ReadPixel(cx, windowHeight - cy - 1);
+	//PixelInfo Pixel = ReadPixel(cx, cy);
+	//std::cout << cx << "," << cy <<  std::endl;
+	printf("%.1f, %.1f, %.1f\n", Pixel.drawID, Pixel.objectID, Pixel.primID);
+
+	//if (Pixel.objectID != 0 && Pixel.objectID != 0.2f&&selectedObjIndex==-1) {
+	if (Pixel.objectID != 0 && Pixel.objectID != 0.2f) {
+		return Pixel.objectID;
+	}
+	else {
+		return -1;
+	}
+}
+
+void BackstageWindow::DrawBackstageWindow(int m_width, int m_height) {
+	//glViewport(0, 0, display_w, display_h);
+  /* glViewport(0, 0, 200, 200);
+   glClearColor(clear_color.x * clear_color.w, clear_color.y * clear_color.w, clear_color.z * clear_color.w, clear_color.w);
+   glClear(GL_COLOR_BUFFER_BIT);*/
+	
+
 	glClearColor(0.0f, 0.0f, 0.0f, 0);		//background color
-	glClear(GL_COLOR_BUFFER_BIT| GL_DEPTH_BUFFER_BIT);		//clear up color and depth buffer
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);		//clear up color and depth buffer
 
 	glEnable(GL_SCISSOR_TEST);
 	glClearColor(0.5f, 0.5f, 0.5f, 0);		//background color
@@ -28,18 +74,44 @@ void BackstageWindow::DrawBackstageWindow(GLFWwindow* window,int m_width, int m_
 	glScissor(backstageXPos, backstageYPos, backstageWidth, backstageHeight);
 
 	glDisable(GL_SCISSOR_TEST);
-	
-
+   
 	viewMat = cam.GetViewMatrix();
-
 	projectionMat = glm::perspective(glm::radians(fovy), m_ratio, 0.1f, 1000.0f);
-
-	
 	m_model.glPushMatrix();
 	modelMat = m_model.getMatrix();
 
+	pickingPhase();
+	renderPhase();
+	
+}
+
+void BackstageWindow::pickingPhase() {
+	//FBO를 바인딩
+	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, m_fbo);
+
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+	pickingShaderProgram->use();
+		for (int i = 0; i < Hierachy->objectNum; i++) {
+			glm::vec3 position = getObject(i)->getPositon();
+			glm::mat4 location = glm::translate(glm::mat4(1.0f), position);
+			glm::mat4 mMVP = projectionMat * location * viewMat * modelMat;
+
+			glUniform1ui(pickingShaderProgram->uniform("gModelIndex"), getObjectID(i));
+			glUniformMatrix4fv(pickingShaderProgram->uniform("MVP"),1,GL_FALSE,glm::value_ptr(mMVP));
+			Hierachy->activeOBJList[i]->RenderPicking();
+		}
+	pickingShaderProgram->disable();
+
+
+	//FBO를 해제
+	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+}
+
+void BackstageWindow::renderPhase() {
+
 	//그리드 그리기
-	grid->draw(modelMat,viewMat, projectionMat);
+	grid->draw(modelMat, viewMat, projectionMat);
 
 	glm::mat4 origin = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, 0.0f));
 
@@ -50,7 +122,6 @@ void BackstageWindow::DrawBackstageWindow(GLFWwindow* window,int m_width, int m_
 	m_cylinder->draw(modelMat, viewMat, projection,origin,0,0,0);
 	origin = glm::translate(glm::mat4(1.0f), glm::vec3(-10.0f, 0.0f, 0.0f));
 	m_sphere->draw(modelMat, viewMat, projection, origin, glm::vec3(0, 30, 0));*/
-
 	m_model.glPopMatrix();
 }
 
@@ -66,6 +137,8 @@ void BackstageWindow::SetWindowSize(int m_width, int m_height, int xPos, int yPo
 	windowWidth = m_windowWidth;
 	windowHeight = m_windowHeight;
 	glViewport(backstageXPos, backstageYPos, m_width, m_height);
+
+	FBOInit();
 }
 
 void BackstageWindow::SetViewport(int m_width, int m_height) {
@@ -77,8 +150,49 @@ void BackstageWindow::setupBuffer() {
 	cam = camera(glm::vec3(0.0f, 30.0f, 30.0f));
 	Hierachy = new HierarchyWindow();
 	grid = new Grid();
-	Hierachy->createOBJ(2);
+	Hierachy->createOBJ(1);
 	/*m_cylinder = new BuiltInCylinder();
 	m_cube = new BuiltInCube(0);
 	m_sphere = new BuiltInSphere();*/
+
+	FBOInit();
+}
+
+bool BackstageWindow::FBOInit() {
+	//Create the FBO
+	glGenFramebuffers(1, &m_fbo);
+	glBindFramebuffer(GL_FRAMEBUFFER, m_fbo);
+
+	//Create the texture object for the primitive information buffer
+	glGenTextures(1, &m_pickingTexture);
+	glBindTexture(GL_TEXTURE_2D, m_pickingTexture);
+	//glTexImage2D(GL_TEXTURE_2D, 0,GL_RGB32F, backstageWidth, backstageHeight, 0, GL_RGB, GL_FLOAT, NULL);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F, windowWidth, windowHeight, 0, GL_RGB, GL_FLOAT, NULL);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_pickingTexture, 0);
+	
+	//Create the texture object for the depth buffer
+	glGenTextures(1, &m_depthTexture);
+	glBindTexture(GL_TEXTURE_2D, m_depthTexture);
+	//glTexImage2D(GL_TEXTURE_2D,0,GL_DEPTH_COMPONENT, backstageWidth, backstageHeight, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, windowWidth, windowHeight, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, m_depthTexture, 0);
+
+	//Disable reading to avoid porblems with older GPUs
+	glReadBuffer(GL_NONE);
+	glDrawBuffer(GL_COLOR_ATTACHMENT0);
+
+	//Verify that the FBO is correct
+	GLenum Status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+
+	if (Status != GL_FRAMEBUFFER_COMPLETE) {
+		printf("FB error, status: 0x%x\n", Status);
+		return -1;
+	}
+
+	//Restore the default framebuffer
+	glBindTexture(GL_TEXTURE_2D, 0);
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+	return glGetError() == GL_NO_ERROR;
+
 }

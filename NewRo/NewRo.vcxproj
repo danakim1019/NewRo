@@ -164,6 +164,7 @@
     <ClInclude Include="BasicComponent.h" />
     <ClInclude Include="Camera.h" />
     <ClInclude Include="Grid.h" />
+    <ClInclude Include="GUIInterface.h" />
     <ClInclude Include="Hierarchy.h" />
     <ClInclude Include="ImGUI\imconfig.h" />
     <ClInclude Include="ImGUI\imgui.h" />
@@ -186,6 +187,8 @@
     <None Include="Shader\Diffuse.vert" />
     <None Include="Shader\Phong.frag" />
     <None Include="Shader\Phong.vert" />
+    <None Include="Shader\picking.frag" />
+    <None Include="Shader\picking.vert" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

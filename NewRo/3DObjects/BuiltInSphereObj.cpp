@@ -119,6 +119,11 @@ void BuiltInSphere::setup() {
 
 }
 
+void BuiltInSphere::RenderPicking() {
+	glBindVertexArray(VAO);
+	glDrawElements(GL_TRIANGLES, elements, GL_UNSIGNED_INT, 0);
+	glBindVertexArray(0);
+}
 
 void BuiltInSphere::draw(glm::mat4& model, glm::mat4& view, glm::mat4& projection, glm::mat4& location, glm::vec3 LightPos)
 {
@@ -170,6 +175,8 @@ void BuiltInSphere::draw(glm::mat4& model, glm::mat4& view, glm::mat4& projectio
 
 	shaderProgram->disable();
 	//glDrawArraysInstanced(GL_TRIANGLES, 0, nVerts * 3, 10);
+
+	glBindVertexArray(0);
 }
 
 
