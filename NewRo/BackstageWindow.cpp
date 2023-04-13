@@ -77,12 +77,11 @@ void BackstageWindow::DrawBackstageWindow(int m_width, int m_height) {
    
 	viewMat = cam.GetViewMatrix();
 	projectionMat = glm::perspective(glm::radians(fovy), m_ratio, 0.1f, 1000.0f);
-	m_model.glPushMatrix();
 	modelMat = m_model.getMatrix();
 
 	pickingPhase();
 	renderPhase();
-	
+
 }
 
 void BackstageWindow::pickingPhase() {
@@ -92,15 +91,33 @@ void BackstageWindow::pickingPhase() {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	pickingShaderProgram->use();
+	modelViewArray = new glm::mat4[Hierachy->objectNum];
 		for (int i = 0; i < Hierachy->objectNum; i++) {
+			m_model.glPushMatrix();
+			//Scale
+			glm::vec3 scl = getObject(i + 1)->getScale();
+			glm::mat4 scale = glm::scale(glm::mat4(1.0f), scl);
+			m_model.glScale(scl.x, scl.y,scl.z);
+			//Rotate
+			glm::vec3 rot = getObject(i + 1)->getRotation();
+			m_model.glRotate(rot.z, 0, 0, 1);
+			m_model.glRotate(rot.y, 0, 1, 0);
+			m_model.glRotate(rot.x, 1, 0, 0);
+			//Translate
 			glm::vec3 position = getObject(i+1)->getPositon();
-			glm::mat4 location = glm::translate(glm::mat4(1.0f), position);
-			glm::mat4 mMVP = projectionMat * viewMat * location * modelMat;
+			m_model.glTranslate(position.x,position.y,position.z);
+
+			modelMat = m_model.getMatrix();
+			modelViewArray[i] = modelMat;
+
+			glm::mat4 mMVP = projectionMat * viewMat * modelMat;
 
 			glUniform1ui(pickingShaderProgram->uniform("gModelIndex"), getObjectID(i+1));
 			//std::cout << "getObjectID(i):" << getObjectID(i+1) << std::endl;
 			glUniformMatrix4fv(pickingShaderProgram->uniform("MVP"),1,GL_FALSE,glm::value_ptr(mMVP));
 			Hierachy->activeOBJList[i]->RenderPicking();
+
+			m_model.glPopMatrix();
 		}
 	pickingShaderProgram->disable();
 
@@ -116,14 +133,14 @@ void BackstageWindow::renderPhase() {
 
 	glm::mat4 origin = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, 0.0f));
 
-	Hierachy->drawList(modelMat, viewMat, projectionMat, origin, glm::vec3(0, 30, 0));
+	Hierachy->drawList(modelViewArray, viewMat, projectionMat, origin, glm::vec3(0, 30, 0));
 
 	/*m_cube->draw(modelMat, viewMat, projection, origin,cam.Position);
 	origin = glm::translate(glm::mat4(1.0f), glm::vec3(10.0f, 0.0f, 0.0f));
 	m_cylinder->draw(modelMat, viewMat, projection,origin,0,0,0);
 	origin = glm::translate(glm::mat4(1.0f), glm::vec3(-10.0f, 0.0f, 0.0f));
 	m_sphere->draw(modelMat, viewMat, projection, origin, glm::vec3(0, 30, 0));*/
-	m_model.glPopMatrix();
+	
 }
 
 void BackstageWindow::createBuiltInOBJ(int BuiltInType) {

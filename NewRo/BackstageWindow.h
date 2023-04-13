@@ -67,6 +67,7 @@ public:
 protected:
 	HierarchyWindow* Hierachy;
 	GLFWwindow* window;
+	glm::mat4* modelViewArray;
 private:
 	~BackstageWindow() {}
 

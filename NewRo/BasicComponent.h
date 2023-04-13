@@ -21,7 +21,7 @@ public:
 	OBJTransform() {
 		pos = { 0,0,0 };
 		rot = { 0, 0, 0 };
-		scale = { 0, 0, 0 };
+		scale = { 1, 1, 1 };
 	}
 
 	struct Position {

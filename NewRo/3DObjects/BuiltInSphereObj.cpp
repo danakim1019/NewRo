@@ -169,8 +169,6 @@ void BuiltInSphere::draw(glm::mat4& model, glm::mat4& view, glm::mat4& projectio
 
 		glDrawElements(GL_TRIANGLES, elements, GL_UNSIGNED_INT, 0);
 
-		
-
 	}
 
 	shaderProgram->disable();

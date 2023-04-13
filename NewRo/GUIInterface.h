@@ -278,8 +278,14 @@ public:
             transform[2] = pos.z;
 
             glm::vec3 rot = selectedObj->getRotation();
-            glm::vec3 sca = selectedObj->getScale();
+            rotation[0] = rot.x;
+            rotation[1] = rot.y;
+            rotation[2] = rot.z;
 
+            glm::vec3 sca = selectedObj->getScale();
+            scale[0] = sca.x;
+            scale[1] = sca.y;
+            scale[2] = sca.z;
 
             ImGui::Separator();
             ImGui::Text("Transform");
@@ -292,7 +298,8 @@ public:
 
 
             selectedObj->setPosition(transform[0], transform[1], transform[2]);
-
+            selectedObj->setRotation(rotation[0], rotation[1], rotation[2]);
+            selectedObj->setScale(scale[0], scale[1], scale[2]);
         }
 
         ImGui::End();
