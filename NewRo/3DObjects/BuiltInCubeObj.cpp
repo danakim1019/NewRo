@@ -103,6 +103,12 @@ void BuiltInCube::setup()
 
 }
 
+void BuiltInCube::RenderPicking() {
+	glBindVertexArray(vaoHandle);
+	glDrawElements(GL_TRIANGLES, vertexIndices.size(), GL_UNSIGNED_INT, 0);
+	glBindVertexArray(0);
+}
+
 void BuiltInCube::draw(glm::mat4& model, glm::mat4& view, glm::mat4& projection,glm::mat4& location, glm::vec3 lightPosition)
 {
 	glm::mat4 mview = view * model;

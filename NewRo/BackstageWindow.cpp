@@ -95,10 +95,10 @@ void BackstageWindow::pickingPhase() {
 		for (int i = 0; i < Hierachy->objectNum; i++) {
 			glm::vec3 position = getObject(i+1)->getPositon();
 			glm::mat4 location = glm::translate(glm::mat4(1.0f), position);
-			glm::mat4 mMVP = projectionMat * location * viewMat * modelMat;
+			glm::mat4 mMVP = projectionMat * viewMat * location * modelMat;
 
 			glUniform1ui(pickingShaderProgram->uniform("gModelIndex"), getObjectID(i+1));
-			//std::cout << "getObjectID(i):" << getObjectID(i) << std::endl;
+			//std::cout << "getObjectID(i):" << getObjectID(i+1) << std::endl;
 			glUniformMatrix4fv(pickingShaderProgram->uniform("MVP"),1,GL_FALSE,glm::value_ptr(mMVP));
 			Hierachy->activeOBJList[i]->RenderPicking();
 		}
@@ -151,7 +151,7 @@ void BackstageWindow::setupBuffer() {
 	cam = camera(glm::vec3(0.0f, 30.0f, 30.0f));
 	Hierachy = new HierarchyWindow();
 	grid = new Grid();
-	Hierachy->createOBJ(1);
+	//Hierachy->createOBJ(1);
 	/*m_cylinder = new BuiltInCylinder();
 	m_cube = new BuiltInCube(0);
 	m_sphere = new BuiltInSphere();*/

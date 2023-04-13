@@ -11,6 +11,7 @@ public:
 	BuiltInCylinder();
 	BuiltInCylinder(float radius, float length, int rings, int slices);
 	void setup();
+	void RenderPicking();
 	void draw(glm::mat4& model, glm::mat4& view, glm::mat4& projection, glm::mat4& offset, int colorNum, unsigned int idx, unsigned int num);
 	//void draw(glm::mat4& model, glm::mat4& view, glm::mat4& projection);
 private:

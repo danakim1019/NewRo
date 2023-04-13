@@ -210,6 +210,12 @@ void BuiltInCylinder::setup()
 
 }
 
+void BuiltInCylinder::RenderPicking() {
+	glBindVertexArray(vaoHandle);
+	glDrawElements(GL_TRIANGLES, vertexIndices.size(), GL_UNSIGNED_INT, 0);
+	glBindVertexArray(0);
+}
+
 void BuiltInCylinder::draw(glm::mat4& model, glm::mat4& view, glm::mat4& projection, glm::mat4& offset, int colorNum, unsigned int idx, unsigned int num)
 {
 

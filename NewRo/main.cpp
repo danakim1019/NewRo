@@ -21,10 +21,54 @@
 #pragma comment(lib, "legacy_stdio_definitions")
 #endif
 
+class Core : public GUIInterface
+{
+public:
+    // Our state
+    bool show_demo_window = true;
+    bool show_another_window = false;
+    bool show_menubar_window = true;
+    bool show_hierachy_window = true;
+    bool show_inspector_window = true;
+    bool show_project_window = true;
+    bool show_backstage_window = true;
+
+    Core(){
+        show_demo_window = true;
+        show_another_window = false;
+        show_menubar_window = true;
+        show_hierachy_window = true;
+        show_inspector_window = true;
+        show_project_window = true;
+        show_backstage_window = true;
+    }
+    void GUIRender() {
+        ShowMenuBarOverlay(&show_menubar_window);
+
+        if (show_hierachy_window) {
+            ShowHierachyOverlay(&show_hierachy_window);
+        }
+        if (show_inspector_window) {
+            ShowInspectorOverlay(&show_inspector_window);
+        }
+        if (show_project_window) {
+            ShowProjectOverlay(&show_project_window);
+        }
+
+        if (show_backstage_window) {
+            ShowBackstageOverlay(&show_backstage_window);
+        }
+
+        /* if (show_demo_window)
+             ImGui::ShowDemoWindow(&show_demo_window);*/
+    }
+};
 
 
 int main(int, char**)          
 {
+    Core core;
+
     // Setup window
     glfwSetErrorCallback(glfw_error_callback);
     if (!glfwInit())
@@ -68,15 +112,9 @@ int main(int, char**)
     glfwSetScrollCallback(window, scroll_callback);
     glfwSetCursorPosCallback(window, cursor_pos_callback);
     glfwSetMouseButtonCallback(window, mouse_button_callback);
+    
 
-    // Our state
-    bool show_demo_window = true;
-    bool show_another_window = false;
-    bool show_menubar_window = true;
-    bool show_hierachy_window = true;
-    bool show_inspector_window = true;
-    bool show_project_window = true;
-    bool show_backstage_window = true;
+    
     ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
 
     ImVec2 backstageSize = ImVec2(windowWidth - hierachyWidth - inspectorWidth, screenHeight - ((ImGui::GetStyle().FramePadding.y * 2) + 18));
@@ -104,24 +142,7 @@ int main(int, char**)
         ImGui::NewFrame();
         
 
-        ShowMenuBarOverlay(&show_menubar_window);
-
-        if (show_hierachy_window) {
-            ShowHierachyOverlay(&show_hierachy_window);
-        }
-        if (show_inspector_window) {
-            ShowInspectorOverlay(&show_inspector_window);
-        }
-        if (show_project_window) {
-            ShowProjectOverlay(&show_project_window);
-        }
-     
-        if (show_backstage_window) {
-            ShowBackstageOverlay(&show_backstage_window);
-        }
-
-       /* if (show_demo_window)
-            ImGui::ShowDemoWindow(&show_demo_window);*/
+        core.GUIRender();
 
         // Rendering
         ImGui::Render();

@@ -103,6 +103,13 @@ static void cursor_pos_callback(GLFWwindow* window, double xposIn, double yposIn
 // -------------------------------------------------------
 void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
 {
+    ImGui_ImplGlfw_MouseButtonCallback(window,button,action,mods);
+
+    if (action == GLFW_PRESS) {
+        double xpos, ypos;
+        glfwGetCursorPos(window, &xpos, &ypos);
+    }
+
     if (button == GLFW_MOUSE_BUTTON_LEFT) {
         if (action == GLFW_PRESS) {
             if ((xPos > hierachyWidth && xPos < hierachyWidth + screenWidth)
@@ -189,157 +196,173 @@ void window_size_callback(GLFWwindow* window, int width, int height)
     win->SetWindowSize(screenWidth, screenHeight - ((ImGui::GetStyle().FramePadding.y * 2) + 18), hierachyWidth, projectWindowHeight, width, height);
 }
 
-static void ShowMenuBarOverlay(bool* p_open)
-{
-    if (ImGui::BeginMainMenuBar())
+class GUIInterface {
+public:
+    static void ShowMenuBarOverlay(bool* p_open)
     {
-        if (ImGui::BeginMenu("File"))
+        if (ImGui::BeginMainMenuBar())
         {
-            //ShowExampleMenuFile();
-            if (ImGui::MenuItem("Save", "CTRL+S")) {}
-            if (ImGui::MenuItem("Save As", "CTRL+SHIFT+S")) {}
-            ImGui::Separator();
-            if (ImGui::MenuItem("Exit")) {}
-            ImGui::EndMenu();
-        }
-        if (ImGui::BeginMenu("Edit"))
-        {
-            if (ImGui::MenuItem("Undo", "CTRL+Z")) {}
-            if (ImGui::MenuItem("Redo", "CTRL+Y", false, false)) {}  // Disabled item
-            ImGui::Separator();
-            if (ImGui::MenuItem("Cut", "CTRL+X")) {}
-            if (ImGui::MenuItem("Copy", "CTRL+C")) {}
-            if (ImGui::MenuItem("Paste", "CTRL+V")) {}
-            ImGui::EndMenu();
-        }
-        if (ImGui::BeginMenu("Object")) {
-            if (ImGui::MenuItem("Create Empty")) {}
-            ImGui::Separator();
-            if (ImGui::BeginMenu("3D Object")) {
-                if (ImGui::MenuItem("Cube")) { win->createBuiltInOBJ(0); }
-                if (ImGui::MenuItem("Sphere")) { win->createBuiltInOBJ(1); }
-                if (ImGui::MenuItem("Cylinder")) { win->createBuiltInOBJ(2); }
+            if (ImGui::BeginMenu("File"))
+            {
+                //ShowExampleMenuFile();
+                if (ImGui::MenuItem("Save", "CTRL+S")) {}
+                if (ImGui::MenuItem("Save As", "CTRL+SHIFT+S")) {}
+                ImGui::Separator();
+                if (ImGui::MenuItem("Exit")) {}
                 ImGui::EndMenu();
             }
-            ImGui::EndMenu();
-        }
-        if (ImGui::BeginMenu("Window")) {
-            if (ImGui::BeginMenu("Layout")) {
-                if (ImGui::MenuItem("2 by 3")) {}
-                if (ImGui::MenuItem("4 split")) {}
-                if (ImGui::MenuItem("Default")) {}
+            if (ImGui::BeginMenu("Edit"))
+            {
+                if (ImGui::MenuItem("Undo", "CTRL+Z")) {}
+                if (ImGui::MenuItem("Redo", "CTRL+Y", false, false)) {}  // Disabled item
+                ImGui::Separator();
+                if (ImGui::MenuItem("Cut", "CTRL+X")) {}
+                if (ImGui::MenuItem("Copy", "CTRL+C")) {}
+                if (ImGui::MenuItem("Paste", "CTRL+V")) {}
                 ImGui::EndMenu();
             }
-            ImGui::EndMenu();
-        }
-        if (ImGui::BeginMenu("Extra")) {
-            if (ImGui::MenuItem("Profile")) {
-                //statUI(win);
+            if (ImGui::BeginMenu("Object")) {
+                if (ImGui::MenuItem("Create Empty")) {}
+                ImGui::Separator();
+                if (ImGui::BeginMenu("3D Object")) {
+                    if (ImGui::MenuItem("Cube")) { win->createBuiltInOBJ(0); }
+                    if (ImGui::MenuItem("Sphere")) { win->createBuiltInOBJ(1); }
+                    if (ImGui::MenuItem("Cylinder")) { win->createBuiltInOBJ(2); }
+                    ImGui::EndMenu();
+                }
+                ImGui::EndMenu();
             }
-            ImGui::EndMenu();
-        }
-        ImGui::EndMainMenuBar();
-    }
-}
-
-static void ShowInspectorOverlay(bool* p_open)
-{
-    ImGui::SetNextWindowPos(ImVec2(windowWidth - inspectorWidth, 22));
-    ImGui::SetNextWindowBgAlpha(0.5f);
-    ImGui::SetNextWindowSize(ImVec2(inspectorWidth, windowHeight - projectWindowHeight - ((ImGui::GetStyle().FramePadding.y * 2) + 18)));
-    if (!ImGui::Begin("Inspector", NULL, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings))
-    {
-        ImGui::End();
-        return;
-    }
-
-    if (selectedObj != NULL)
-    {
-        strcpy(str0, selectedObj->name.c_str());
-        if (ImGui::InputText("Object Name", str0, 64)) {
-            char* s = str0;
-            win->setObjectName(s, selectedObjID);
+            if (ImGui::BeginMenu("Window")) {
+                if (ImGui::BeginMenu("Layout")) {
+                    if (ImGui::MenuItem("2 by 3")) {}
+                    if (ImGui::MenuItem("4 split")) {}
+                    if (ImGui::MenuItem("Default")) {}
+                    ImGui::EndMenu();
+                }
+                ImGui::EndMenu();
+            }
+            if (ImGui::BeginMenu("Extra")) {
+                if (ImGui::MenuItem("Profile")) {
+                    //statUI(win);
+                }
+                ImGui::EndMenu();
+            }
+            ImGui::EndMainMenuBar();
         }
     }
 
-
-    ImGui::Separator();
-    ImGui::Text("Transform");
-    ImGui::Separator();
-    ImGui::InputFloat3("Position", transform);
-    ImGui::Separator();
-    ImGui::InputFloat3("Rotation", rotation);
-    ImGui::Separator();
-    ImGui::InputFloat3("Scale", scale);
-
-
-    ImGui::End();
-}
-
-static void ShowProjectOverlay(bool* p_opent)
-{
-    ImGui::SetNextWindowPos(ImVec2(0, windowHeight - projectWindowHeight));
-    ImGui::SetNextWindowBgAlpha(0.5f);
-    ImGui::SetNextWindowSize(ImVec2(windowWidth, projectWindowHeight));
-    if (!ImGui::Begin("Project", NULL, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoCollapse))
+    static void ShowInspectorOverlay(bool* p_open)
     {
+        ImGui::SetNextWindowPos(ImVec2(windowWidth - inspectorWidth, 22));
+        ImGui::SetNextWindowBgAlpha(0.5f);
+        ImGui::SetNextWindowSize(ImVec2(inspectorWidth, windowHeight - projectWindowHeight - ((ImGui::GetStyle().FramePadding.y * 2) + 18)));
+        if (!ImGui::Begin("Inspector", NULL, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings))
+        {
+            ImGui::End();
+            return;
+        }
+
+        if (selectedObj != NULL)
+        {
+            //name
+            strcpy(str0, selectedObj->name.c_str());
+            if (ImGui::InputText("Object Name", str0, 64)) {
+                char* s = str0;
+                win->setObjectName(s, selectedObjID);
+            }
+
+            //Transform
+            glm::vec3 pos = selectedObj->getPositon();
+            transform[0] = pos.x;
+            transform[1] = pos.y;
+            transform[2] = pos.z;
+
+            glm::vec3 rot = selectedObj->getRotation();
+            glm::vec3 sca = selectedObj->getScale();
+
+
+            ImGui::Separator();
+            ImGui::Text("Transform");
+            ImGui::Separator();
+            ImGui::InputFloat3("Position", transform);
+            ImGui::Separator();
+            ImGui::InputFloat3("Rotation", rotation);
+            ImGui::Separator();
+            ImGui::InputFloat3("Scale", scale);
+
+
+            selectedObj->setPosition(transform[0], transform[1], transform[2]);
+
+        }
+
         ImGui::End();
-        return;
     }
 
-    ImGui::End();
-}
-
-/// <summary>
-/// 하이어라키 화면
-/// </summary>
-/// <param name="p_open"></param>
-static void ShowHierachyOverlay(bool* p_open)
-{
-    ImGui::SetNextWindowPos(ImVec2(0, 22));
-    ImGui::SetNextWindowBgAlpha(0.5f);
-    ImGui::SetNextWindowSize(ImVec2(hierachyWidth, windowHeight - projectWindowHeight - ((ImGui::GetStyle().FramePadding.y * 2) + 18)));
-
-    if (!ImGui::Begin("Hierachy", NULL, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoCollapse))
+    static void ShowProjectOverlay(bool* p_opent)
     {
+        ImGui::SetNextWindowPos(ImVec2(0, windowHeight - projectWindowHeight));
+        ImGui::SetNextWindowBgAlpha(0.5f);
+        ImGui::SetNextWindowSize(ImVec2(windowWidth, projectWindowHeight));
+        if (!ImGui::Begin("Project", NULL, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoCollapse))
+        {
+            ImGui::End();
+            return;
+        }
+
         ImGui::End();
-        return;
     }
 
-
+    /// <summary>
+    /// 하이어라키 화면
+    /// </summary>
+    /// <param name="p_open"></param>
+    static void ShowHierachyOverlay(bool* p_open)
     {
-        char label[128];
-        for (int i = 1; i < win->getObjectNum()+1; i++) {
-            std::string str = win->getObjectName(i);
-            objName = const_cast<char*>(str.c_str());
-            sprintf_s(label, "%s", objName);
-            if (ImGui::Selectable(label, selectedObjID == i)) {
-                selectedObjID = win->getObjectID(i);
-                selectedObj = win->getObject(i);
+        ImGui::SetNextWindowPos(ImVec2(0, 22));
+        ImGui::SetNextWindowBgAlpha(0.5f);
+        ImGui::SetNextWindowSize(ImVec2(hierachyWidth, windowHeight - projectWindowHeight - ((ImGui::GetStyle().FramePadding.y * 2) + 18)));
+
+        if (!ImGui::Begin("Hierachy", NULL, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoCollapse))
+        {
+            ImGui::End();
+            return;
+        }
+
+
+        {
+            char label[128];
+            for (int i = 1; i < win->getObjectNum() + 1; i++) {
+                std::string str = win->getObjectName(i);
+                objName = const_cast<char*>(str.c_str());
+                sprintf_s(label, "%s", objName);
+                if (ImGui::Selectable(label, selectedObjID == i)) {
+                    selectedObjID = win->getObjectID(i);
+                    selectedObj = win->getObject(i);
+                }
             }
         }
-    }
-
-    ImGui::End();
-}
-
-static void ShowBackstageOverlay(bool* p_open)
-{
-    ImVec2 backstageSize = ImVec2(windowWidth - hierachyWidth - inspectorWidth, screenHeight - ((ImGui::GetStyle().FramePadding.y * 2) + 18));
-    ImGui::SetNextWindowPos(ImVec2(hierachyWidth, 22));
-    ImGui::SetNextWindowBgAlpha(0.0f);
-    ImGui::SetNextWindowSize(backstageSize);
-
-    if (!ImGui::Begin("Backstage", NULL, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoCollapse))
-    {
 
         ImGui::End();
-        return;
     }
-    /*ImDrawList* draw_list;
-    draw_list = ImGui::GetWindowDrawList();
-    draw_list->AddCallback(backstage_draw_callback, NULL);*/
-    win->DrawBackstageWindow(screenWidth, screenHeight);
 
-    ImGui::End();
-}
+    static void ShowBackstageOverlay(bool* p_open)
+    {
+        ImVec2 backstageSize = ImVec2(windowWidth - hierachyWidth - inspectorWidth, screenHeight - ((ImGui::GetStyle().FramePadding.y * 2) + 18));
+        ImGui::SetNextWindowPos(ImVec2(hierachyWidth, 22));
+        ImGui::SetNextWindowBgAlpha(0.0f);
+        ImGui::SetNextWindowSize(backstageSize);
+
+        if (!ImGui::Begin("Backstage", NULL, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoCollapse))
+        {
+
+            ImGui::End();
+            return;
+        }
+        /*ImDrawList* draw_list;
+        draw_list = ImGui::GetWindowDrawList();
+        draw_list->AddCallback(backstage_draw_callback, NULL);*/
+        win->DrawBackstageWindow(screenWidth, screenHeight);
+
+        ImGui::End();
+    }
+};

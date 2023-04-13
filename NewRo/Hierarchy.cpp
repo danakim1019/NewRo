@@ -17,7 +17,6 @@ void HierarchyWindow::createOBJ(int type)
 		temp = new BuiltInCylinder();
 	}
 
-
 	activeOBJList.push_back(temp);
 	objectNum = activeOBJList.size();
 	temp->id = objectNum;
@@ -29,17 +28,21 @@ void HierarchyWindow::createOBJ(int type)
 
 void HierarchyWindow::drawList(glm::mat4& model, glm::mat4& view, glm::mat4& projection, glm::mat4& location, glm::vec3 lightPosition) {
 	for (int i = 0; i < objectNum; i++) {
+		glm::mat4 origin = glm::translate(glm::mat4(1.0f), activeOBJList[i]->getPositon());
 		if (activeOBJList[i]->objectType == "Cube") {
 			BuiltInCube* pCube = dynamic_cast<BuiltInCube*>(activeOBJList[i]);
-			pCube->draw(model, view, projection, location, lightPosition);
+			pCube->draw(model, view, projection, origin, lightPosition);
+			//pCube->draw(model, view, projection, location, lightPosition);
 		}
 		else if (activeOBJList[i]->objectType == "Sphere") {
 			BuiltInSphere* pCube = dynamic_cast<BuiltInSphere*>(activeOBJList[i]);
-			pCube->draw(model, view, projection, location, lightPosition);
+			pCube->draw(model, view, projection, origin, lightPosition);
+			//pCube->draw(model, view, projection, location, lightPosition);
 		}
 		else if (activeOBJList[i]->objectType == "Cylinder") {
 			BuiltInCylinder* pCube = dynamic_cast<BuiltInCylinder*>(activeOBJList[i]);
-			pCube->draw(model, view, projection, location,0,0,0);
+			pCube->draw(model, view, projection, origin, 0,0,0);
+			//pCube->draw(model, view, projection, location,0,0,0);
 		}
 	}
 }
