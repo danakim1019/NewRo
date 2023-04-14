@@ -128,6 +128,8 @@ void BackstageWindow::pickingPhase() {
 
 void BackstageWindow::renderPhase() {
 
+	modelMat = m_model.getMatrix();
+
 	//그리드 그리기
 	grid->draw(modelMat, viewMat, projectionMat);
 

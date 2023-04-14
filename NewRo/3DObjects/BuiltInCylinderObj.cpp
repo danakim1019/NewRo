@@ -168,8 +168,6 @@ void BuiltInCylinder::setup()
 	m_shaderProgram->addUniform("Material.Ks");
 	m_shaderProgram->addUniform("Material.Shiness");
 
-	m_shaderProgram->addUniform("numChar");
-
 	m_shaderProgram->addUniform("location");
 
 	//create vbo for vertices
@@ -216,7 +214,7 @@ void BuiltInCylinder::RenderPicking() {
 	glBindVertexArray(0);
 }
 
-void BuiltInCylinder::draw(glm::mat4& model, glm::mat4& view, glm::mat4& projection, glm::mat4& offset, int colorNum, unsigned int idx, unsigned int num)
+void BuiltInCylinder::draw(glm::mat4& model, glm::mat4& view, glm::mat4& projection, glm::mat4& location, glm::vec3 lightPosition)
 {
 
 	glm::mat4 mview = view * model;
@@ -255,9 +253,7 @@ void BuiltInCylinder::draw(glm::mat4& model, glm::mat4& view, glm::mat4& project
 	glUniform3fv(m_shaderProgram->uniform("Material.Ks"), 1, glm::value_ptr(Ks));
 	glUniform1fv(m_shaderProgram->uniform("Material.Shiness"), 1, &shiness);
 
-	glUniform1ui(m_shaderProgram->uniform("numChar"), idx);
-
-	glUniformMatrix4fv(m_shaderProgram->uniform("location"), 1, GL_FALSE, glm::value_ptr(offset));
+	glUniformMatrix4fv(m_shaderProgram->uniform("location"), 1, GL_FALSE, glm::value_ptr(location));
 
 	//glGenBuffers(1, &ssboHandle_t);  //transformation
 	//glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssboHandle_t);

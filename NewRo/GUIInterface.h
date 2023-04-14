@@ -1,6 +1,7 @@
 #pragma once
 
 #include "ImGUI/imgui.h"
+#include"ImGUI/imgui_internal.h"
 #include "ImGUI/imgui_impl_glfw.h"
 #include "ImGUI/imgui_impl_opengl3.h"
 
@@ -46,7 +47,9 @@ BackstageWindow* win;
 
 static void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
-    if (!isEditingText) {
+    ImGui_ImplGlfw_KeyCallback(window, key, scancode, action, mods);
+    
+    if (ImGui::TempInputIsActive(ImGui::GetActiveID())) {
         if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
             glfwSetWindowShouldClose(window, GLFW_TRUE);
 
