@@ -185,6 +185,7 @@
     <None Include="Shader\black.vert" />
     <None Include="Shader\Diffuse.frag" />
     <None Include="Shader\Diffuse.vert" />
+    <None Include="Shader\Outline.frag" />
     <None Include="Shader\Phong.frag" />
     <None Include="Shader\Phong.vert" />
     <None Include="Shader\picking.frag" />

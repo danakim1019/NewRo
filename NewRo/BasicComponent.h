@@ -81,6 +81,9 @@ class OBJect : public OBJTransform {
 public:
 	virtual void draw(glm::mat4& model, glm::mat4& view, glm::mat4& projection, glm::mat4& location, glm::vec3 lightPosition) {}
 	virtual void RenderPicking(){}
+	void OutlineRender(){
+
+	}
 
 	std::string name;
 	unsigned int id = 0;

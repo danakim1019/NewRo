@@ -65,12 +65,13 @@ public:
 };
 
 
+
 int main(int, char**)          
 {
     Core core;
 
     // Setup window
-    glfwSetErrorCallback(glfw_error_callback);
+    glfwSetErrorCallback(core.glfw_error_callback);
     if (!glfwInit())
         return 1;
 
@@ -106,12 +107,12 @@ int main(int, char**)
         return -1;
     }       
 
-    glfwSetKeyCallback(window, key_callback);
+    glfwSetKeyCallback(window, core.key_callback);
     //glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
-    glfwSetWindowSizeCallback(window, window_size_callback);
-    glfwSetScrollCallback(window, scroll_callback);
-    glfwSetCursorPosCallback(window, cursor_pos_callback);
-    glfwSetMouseButtonCallback(window, mouse_button_callback);
+    glfwSetWindowSizeCallback(window, core.window_size_callback);
+    glfwSetScrollCallback(window, core.scroll_callback);
+    glfwSetCursorPosCallback(window, core.cursor_pos_callback);
+    glfwSetMouseButtonCallback(window, core.mouse_button_callback);
     
 
     

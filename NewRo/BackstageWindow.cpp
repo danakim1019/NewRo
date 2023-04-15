@@ -18,6 +18,15 @@ void BackstageWindow::setupPickingShader() {
 	pickingShaderProgram->addUniform("gModelIndex");
 	pickingShaderProgram->addUniform("gDrawIndex");
 
+	outlineShaderProgram = new ShaderProgram();
+	outlineShaderProgram->initFromFiles("Shader/picking.vert", "Shader/Outline.frag");
+
+	outlineShaderProgram->addAttribute("coord3d");
+
+	outlineShaderProgram->addUniform("MVP");
+	outlineShaderProgram->addUniform("gModelIndex");
+	outlineShaderProgram->addUniform("gDrawIndex");
+
 }
 
 BackstageWindow::PixelInfo BackstageWindow::ReadPixel(unsigned int x, unsigned int y) {
@@ -52,7 +61,7 @@ int BackstageWindow::selectObject(int cx, int cy,int selectedObjIndex) {
 	}
 }
 
-void BackstageWindow::DrawBackstageWindow(int m_width, int m_height) {
+void BackstageWindow::DrawBackstageWindow(int m_width, int m_height, int selectedObjID) {
 	//glViewport(0, 0, display_w, display_h);
   /* glViewport(0, 0, 200, 200);
    glClearColor(clear_color.x * clear_color.w, clear_color.y * clear_color.w, clear_color.z * clear_color.w, clear_color.w);
@@ -80,8 +89,8 @@ void BackstageWindow::DrawBackstageWindow(int m_width, int m_height) {
 	modelMat = m_model.getMatrix();
 
 	pickingPhase();
+	outlinePhase(selectedObjID);
 	renderPhase();
-
 }
 
 void BackstageWindow::pickingPhase() {
@@ -124,6 +133,35 @@ void BackstageWindow::pickingPhase() {
 
 	//FBO∏¶ «ÿ¡¶
 	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+}
+
+void BackstageWindow::outlinePhase(int selectedObjID) {
+	
+	//std::cout << selectedObjID << std::endl;
+	if (selectedObjID > 0) {
+		glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
+		glStencilMask(0x00);
+		glDisable(GL_DEPTH_TEST);
+
+		float outlineScale = 1.1f;
+
+		glm::mat4 outlineModel = modelViewArray[selectedObjID - 1];
+		outlineModel = glm::scale(outlineModel, glm::vec3(outlineScale, outlineScale, outlineScale));
+
+		glm::mat4 mMVP = projectionMat * viewMat * outlineModel;
+
+		outlineShaderProgram->use();
+
+		glUniformMatrix4fv(pickingShaderProgram->uniform("MVP"), 1, GL_FALSE, glm::value_ptr(mMVP));
+		Hierachy->activeOBJList[selectedObjID-1]->RenderPicking();
+
+		outlineShaderProgram->disable();
+
+		glStencilMask(0xFF);
+		glStencilFunc(GL_ALWAYS, 0, 0xFF);
+		glEnable(GL_DEPTH_TEST);
+	}
+	
 }
 
 void BackstageWindow::renderPhase() {

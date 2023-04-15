@@ -25,6 +25,9 @@ void HierarchyWindow::createOBJ(int type)
 	
 }
 
+void HierarchyWindow::drawOutline() {
+
+}
 
 void HierarchyWindow::drawList(glm::mat4* modelArray, glm::mat4& view, glm::mat4& projection, glm::mat4& location, glm::vec3 lightPosition) {
 	for (int i = 0; i < objectNum; i++) {

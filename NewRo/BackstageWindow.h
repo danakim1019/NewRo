@@ -30,8 +30,14 @@ public:
 	PixelInfo ReadPixel(unsigned int x, unsigned int y);
 	int selectObject(int cx, int cy,int selectedObjIndex);
 	ShaderProgram* pickingShaderProgram;
-
 	void pickingPhase();
+
+
+	//Outline
+	ShaderProgram* outlineShaderProgram;
+	GLuint m_outfbo;
+	void outlinePhase(int selectedObjID);
+	
 	void renderPhase();
 
 	camera cam;
@@ -39,7 +45,7 @@ public:
 	BackstageWindow(int m_width, int m_height, int windowWidth, int windowHeight);
 	void SetWindowSize(int m_width, int m_height, int xPos, int yPos, int m_windowWidth, int m_windowHeight);
 	void SetViewport(int m_width, int m_height);
-	void DrawBackstageWindow(int m_width, int m_height);
+	void DrawBackstageWindow(int m_width, int m_height, int selectedObjID);
 
 	//create BuiltIn Object
 	void createBuiltInOBJ(int BuiltInType);
