@@ -37,6 +37,8 @@ public:
                 if (ImGui::MenuItem("Create Empty")) {}
                 ImGui::Separator();
                 if (ImGui::BeginMenu("3D Object")) {
+                    if (ImGui::MenuItem("Import")) { win->createBuiltInOBJ(3); }
+                    ImGui::Separator();
                     if (ImGui::MenuItem("Cube")) { win->createBuiltInOBJ(0); }
                     if (ImGui::MenuItem("Sphere")) { win->createBuiltInOBJ(1); }
                     if (ImGui::MenuItem("Cylinder")) { win->createBuiltInOBJ(2); }
@@ -83,11 +85,11 @@ public:
                 win->setObjectName(s, selectedObjID);
             }
 
-            //Transform
+            //worldTransform
             glm::vec3 pos = selectedObj->getPositon();
-            transform[0] = pos.x;
-            transform[1] = pos.y;
-            transform[2] = pos.z;
+            worldTransform[0] = pos.x;
+            worldTransform[1] = pos.y;
+            worldTransform[2] = pos.z;
 
             glm::vec3 rot = selectedObj->getRotation();
             rotation[0] = rot.x;
@@ -102,14 +104,14 @@ public:
             ImGui::Separator();
             ImGui::Text("Transform");
             ImGui::Separator();
-            ImGui::InputFloat3("Position", transform);
+            ImGui::InputFloat3("Position", worldTransform);
             ImGui::Separator();
             ImGui::InputFloat3("Rotation", rotation);
             ImGui::Separator();
             ImGui::InputFloat3("Scale", scale);
 
 
-            selectedObj->setPosition(transform[0], transform[1], transform[2]);
+            selectedObj->setPosition(worldTransform[0], worldTransform[1], worldTransform[2]);
             selectedObj->setRotation(rotation[0], rotation[1], rotation[2]);
             selectedObj->setScale(scale[0], scale[1], scale[2]);
         }

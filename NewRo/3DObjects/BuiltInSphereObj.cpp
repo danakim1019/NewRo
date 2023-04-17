@@ -125,7 +125,7 @@ void BuiltInSphere::RenderPicking() {
 	glBindVertexArray(0);
 }
 
-void BuiltInSphere::draw(glm::mat4& model, glm::mat4& view, glm::mat4& projection, glm::mat4& location, glm::vec3 LightPos)
+void BuiltInSphere::draw(glm::mat4& model, glm::mat4& view, glm::mat4& projection, glm::mat4& location, glm::vec3 camPosition, glm::vec3 LightPos)
 {
 
 	glm::mat4 mview = view * model;

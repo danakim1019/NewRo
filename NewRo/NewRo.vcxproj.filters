@@ -69,6 +69,15 @@
     <ClCompile Include="Hierarchy.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
+    <ClCompile Include="3DObjects\interval.cpp">
+      <Filter>소스 파일\3DObjects</Filter>
+    </ClCompile>
+    <ClCompile Include="3DObjects\LoadedModelObj.cpp">
+      <Filter>소스 파일\3DObjects</Filter>
+    </ClCompile>
+    <ClCompile Include="3DObjects\texUtils.cpp">
+      <Filter>소스 파일\3DObjects</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ImGUI\imconfig.h">
@@ -131,6 +140,27 @@
     <ClInclude Include="GUIInterface.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
+    <ClInclude Include="Callback.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="3DObjects\Mesh.h">
+      <Filter>소스 파일\3DObjects</Filter>
+    </ClInclude>
+    <ClInclude Include="3DObjects\LoadedModelObj.h">
+      <Filter>소스 파일\3DObjects</Filter>
+    </ClInclude>
+    <ClInclude Include="3DObjects\interval.h">
+      <Filter>소스 파일\3DObjects</Filter>
+    </ClInclude>
+    <ClInclude Include="3DObjects\texUtils.h">
+      <Filter>소스 파일\3DObjects</Filter>
+    </ClInclude>
+    <ClInclude Include="3DObjects\stb_image.h">
+      <Filter>소스 파일\3DObjects</Filter>
+    </ClInclude>
+    <ClInclude Include="3DObjects\meshoptimizer.h">
+      <Filter>소스 파일\3DObjects</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="Shader\black.frag">
@@ -158,6 +188,12 @@
       <Filter>소스 파일\Shader</Filter>
     </None>
     <None Include="Shader\Outline.frag">
+      <Filter>소스 파일\Shader</Filter>
+    </None>
+    <None Include="Shader\modelTexture.vert">
+      <Filter>소스 파일\Shader</Filter>
+    </None>
+    <None Include="Shader\modelTexture.frag">
       <Filter>소스 파일\Shader</Filter>
     </None>
   </ItemGroup>

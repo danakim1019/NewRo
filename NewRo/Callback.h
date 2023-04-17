@@ -15,7 +15,7 @@ static int inspectorWidth = 300;                //하이어라키 윈도우
 static int hierachyWidth = 200;                 //하이어라키 윈도우
 static int projectWindowHeight = 200;       //프로젝트 윈도우
 
-static float transform[3] = { 0.f, 0.f, 0.f };
+static float worldTransform[3] = { 0.f, 0.f, 0.f };
 static float rotation[3] = { 0.f, 0.f, 0.f };
 static float scale[3] = { 0.f, 0.f, 0.f };
 
@@ -116,6 +116,8 @@ public:
     {
         ImGui_ImplGlfw_MouseButtonCallback(window, button, action, mods);
 
+        //std::cout << "ImGui::GetItemFlags():"<<ImGui::GetItemFlags() << std::endl;
+
         if (action == GLFW_PRESS) {
             double xpos, ypos;
             glfwGetCursorPos(window, &xpos, &ypos);
@@ -123,20 +125,23 @@ public:
 
         if (button == GLFW_MOUSE_BUTTON_LEFT) {
             if (action == GLFW_PRESS) {
-                if ((xPos > hierachyWidth && xPos < hierachyWidth + screenWidth)
-                    && (yPos > 20 && yPos < screenHeight)) {
-                    if (!isLeftMouseClicked) {
-                        unsigned int select = win->selectObject(xPos, yPos, selectedObjID);
-                        if (select > 0) {
-                            selectedObjID = select;
-                            selectedObj = win->getObject(selectedObjID);
+                //if (!ImGui::is())
+                {
+                    if ((xPos > hierachyWidth && xPos < hierachyWidth + screenWidth)
+                        && (yPos > 20 && yPos < screenHeight)) {
+                        if (!isLeftMouseClicked) {
+                            unsigned int select = win->selectObject(xPos, yPos, selectedObjID);
+                            if (select > 0) {
+                                selectedObjID = select;
+                                selectedObj = win->getObject(selectedObjID);
+                            }
+                            else {
+                                selectedObjID = -1;
+                                selectedObj = NULL;
+                                printf("not picking\n");
+                            }
+                            isLeftMouseClicked = true;
                         }
-                        else {
-                            selectedObjID = -1;
-                            selectedObj = NULL;
-                            printf("not picking");
-                        }
-                        isLeftMouseClicked = true;
                     }
                 }
             }
@@ -174,6 +179,7 @@ public:
                 isMiddleMouseClicked = false;
             }
         }
+
     }
 
 

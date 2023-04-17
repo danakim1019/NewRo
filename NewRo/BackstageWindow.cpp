@@ -173,7 +173,7 @@ void BackstageWindow::renderPhase() {
 
 	glm::mat4 origin = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, 0.0f));
 
-	Hierachy->drawList(modelViewArray, viewMat, projectionMat, origin, glm::vec3(0, 30, 0));
+	Hierachy->drawList(modelViewArray, viewMat, projectionMat, origin,cam.Position, glm::vec3(0, 30, 0));
 
 	/*m_cube->draw(modelMat, viewMat, projection, origin,cam.Position);
 	origin = glm::translate(glm::mat4(1.0f), glm::vec3(10.0f, 0.0f, 0.0f));

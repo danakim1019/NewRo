@@ -59,14 +59,14 @@ public:
             ShowBackstageOverlay(&show_backstage_window);
         }
 
-        /* if (show_demo_window)
+        /*if (show_demo_window)
              ImGui::ShowDemoWindow(&show_demo_window);*/
     }
 };
 
 
 
-int main(int, char**)          
+int main(int, char**)           
 {
     Core core;
 

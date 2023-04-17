@@ -17,7 +17,7 @@ public:
 	void setup();
 
 	void RenderPicking();
-	void draw(glm::mat4& model, glm::mat4& view, glm::mat4& projection, glm::mat4& location,glm::vec3 lightPosition);
+	void draw(glm::mat4& model, glm::mat4& view, glm::mat4& projection, glm::mat4& location, glm::vec3 camPosition,glm::vec3 lightPosition);
 
 	int type;		//Shader ¹øÈ£
 

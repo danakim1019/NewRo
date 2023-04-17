@@ -77,13 +77,13 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>C:\Graphics\Tools\glm;C:\Graphics\Tools\glfw\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Graphics\Tools\Assimp\include;C:\Graphics\Tools\glm;C:\Graphics\Tools\glfw\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>C:\Graphics\Tools\glfw\lib-vc2015;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>glfw3.lib;opengl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>C:\Graphics\Tools\Assimp\lib\x86;C:\Graphics\Tools\glfw\lib-vc2015;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>glfw3.lib;opengl32.lib;assimp.lib;meshoptimizer.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <IgnoreSpecificDefaultLibraries>
       </IgnoreSpecificDefaultLibraries>
     </Link>
@@ -141,6 +141,9 @@
     <ClCompile Include="3DObjects\BuiltInCubeObj.cpp" />
     <ClCompile Include="3DObjects\BuiltInCylinderObj.cpp" />
     <ClCompile Include="3DObjects\BuiltInSphereObj.cpp" />
+    <ClCompile Include="3DObjects\interval.cpp" />
+    <ClCompile Include="3DObjects\LoadedModelObj.cpp" />
+    <ClCompile Include="3DObjects\texUtils.cpp" />
     <ClCompile Include="BackstageWindow.cpp" />
     <ClCompile Include="Camera.cpp" />
     <ClCompile Include="Grid.cpp">
@@ -160,8 +163,15 @@
     <ClInclude Include="3DObjects\BuiltInCubeObj.h" />
     <ClInclude Include="3DObjects\BuiltInCylinderObj.h" />
     <ClInclude Include="3DObjects\BuiltInSphereObj.h" />
+    <ClInclude Include="3DObjects\interval.h" />
+    <ClInclude Include="3DObjects\LoadedModelObj.h" />
+    <ClInclude Include="3DObjects\Mesh.h" />
+    <ClInclude Include="3DObjects\meshoptimizer.h" />
+    <ClInclude Include="3DObjects\stb_image.h" />
+    <ClInclude Include="3DObjects\texUtils.h" />
     <ClInclude Include="BackstageWindow.h" />
     <ClInclude Include="BasicComponent.h" />
+    <ClInclude Include="Callback.h" />
     <ClInclude Include="Camera.h" />
     <ClInclude Include="Grid.h" />
     <ClInclude Include="GUIInterface.h" />
@@ -185,6 +195,8 @@
     <None Include="Shader\black.vert" />
     <None Include="Shader\Diffuse.frag" />
     <None Include="Shader\Diffuse.vert" />
+    <None Include="Shader\modelTexture.frag" />
+    <None Include="Shader\modelTexture.vert" />
     <None Include="Shader\Outline.frag" />
     <None Include="Shader\Phong.frag" />
     <None Include="Shader\Phong.vert" />

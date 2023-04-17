@@ -109,7 +109,7 @@ void BuiltInCube::RenderPicking() {
 	glBindVertexArray(0);
 }
 
-void BuiltInCube::draw(glm::mat4& model, glm::mat4& view, glm::mat4& projection,glm::mat4& location, glm::vec3 lightPosition)
+void BuiltInCube::draw(glm::mat4& model, glm::mat4& view, glm::mat4& projection,glm::mat4& location, glm::vec3 camPosition, glm::vec3 lightPosition)
 {
 	glm::mat4 mview = view * model;
 	glm::mat4 mvp = projection * view * model;
@@ -173,7 +173,7 @@ void BuiltInCube::computeNormal(glm::vec3 p1, glm::vec3 p2, glm::vec3 p3,bool re
 	//vertexNormals.push_back(norm);
 	//vertexNormals.push_back(norm);
 
-	std::cout << norm.x<<", "<< norm.y<<", "<< norm.z << std::endl;
+	//std::cout << norm.x<<", "<< norm.y<<", "<< norm.z << std::endl;
 }
 
 void BuiltInCube::generateVertices() {
