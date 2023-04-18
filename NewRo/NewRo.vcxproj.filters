@@ -75,7 +75,7 @@
     <ClCompile Include="3DObjects\LoadedModelObj.cpp">
       <Filter>소스 파일\3DObjects</Filter>
     </ClCompile>
-    <ClCompile Include="3DObjects\texUtils.cpp">
+    <ClCompile Include="3DObjects\Mesh.cpp">
       <Filter>소스 파일\3DObjects</Filter>
     </ClCompile>
   </ItemGroup>
@@ -150,9 +150,6 @@
       <Filter>소스 파일\3DObjects</Filter>
     </ClInclude>
     <ClInclude Include="3DObjects\interval.h">
-      <Filter>소스 파일\3DObjects</Filter>
-    </ClInclude>
-    <ClInclude Include="3DObjects\texUtils.h">
       <Filter>소스 파일\3DObjects</Filter>
     </ClInclude>
     <ClInclude Include="3DObjects\stb_image.h">

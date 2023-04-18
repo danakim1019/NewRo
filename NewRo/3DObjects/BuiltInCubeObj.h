@@ -16,8 +16,8 @@ public:
 	BuiltInCube(int type);
 	void setup();
 
-	void RenderPicking();
-	void draw(glm::mat4& model, glm::mat4& view, glm::mat4& projection, glm::mat4& location, glm::vec3 camPosition,glm::vec3 lightPosition);
+	virtual void RenderPicking() override;
+	virtual void RenderModel(glm::mat4& model, glm::mat4& view, glm::mat4& projection, glm::mat4& location, glm::vec3 camPosition,glm::vec3 lightPosition) override;
 
 	int type;		//Shader ¹øÈ£
 

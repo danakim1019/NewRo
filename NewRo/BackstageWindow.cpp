@@ -76,7 +76,7 @@ void BackstageWindow::DrawBackstageWindow(int m_width, int m_height, int selecte
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);		//clear up color and depth buffer
 	glEnable(GL_CLIP_DISTANCE0);
 	glEnable(GL_DEPTH_TEST);			//test whether an object is in front of other object?
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	//glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 
 	glViewport(backstageXPos, backstageYPos, m_width, m_height);
@@ -143,10 +143,11 @@ void BackstageWindow::outlinePhase(int selectedObjID) {
 		glStencilMask(0x00);
 		glDisable(GL_DEPTH_TEST);
 
-		float outlineScale = 1.1f;
+		float outlineScale = 1.02f;
 
 		glm::mat4 outlineModel = modelViewArray[selectedObjID - 1];
 		outlineModel = glm::scale(outlineModel, glm::vec3(outlineScale, outlineScale, outlineScale));
+		
 
 		glm::mat4 mMVP = projectionMat * viewMat * outlineModel;
 

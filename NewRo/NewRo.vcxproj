@@ -143,7 +143,7 @@
     <ClCompile Include="3DObjects\BuiltInSphereObj.cpp" />
     <ClCompile Include="3DObjects\interval.cpp" />
     <ClCompile Include="3DObjects\LoadedModelObj.cpp" />
-    <ClCompile Include="3DObjects\texUtils.cpp" />
+    <ClCompile Include="3DObjects\Mesh.cpp" />
     <ClCompile Include="BackstageWindow.cpp" />
     <ClCompile Include="Camera.cpp" />
     <ClCompile Include="Grid.cpp">
@@ -168,7 +168,6 @@
     <ClInclude Include="3DObjects\Mesh.h" />
     <ClInclude Include="3DObjects\meshoptimizer.h" />
     <ClInclude Include="3DObjects\stb_image.h" />
-    <ClInclude Include="3DObjects\texUtils.h" />
     <ClInclude Include="BackstageWindow.h" />
     <ClInclude Include="BasicComponent.h" />
     <ClInclude Include="Callback.h" />

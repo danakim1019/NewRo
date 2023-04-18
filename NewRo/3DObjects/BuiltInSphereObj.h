@@ -48,8 +48,8 @@ public:
 	BuiltInSphere();
 	~BuiltInSphere();
 	BuiltInSphere(float rad, GLuint sl, GLuint st, int type);
-	void RenderPicking();
-	void draw(glm::mat4& model, glm::mat4& view, glm::mat4& projection, glm::mat4& location, glm::vec3 camPosition, glm::vec3 LightPos);
+	virtual void RenderPicking() override;
+	virtual void RenderModel(glm::mat4& model, glm::mat4& view, glm::mat4& projection, glm::mat4& location, glm::vec3 camPosition, glm::vec3 LightPos) override;
 	void generateVerts(float* verts, float* norms, float* tex, unsigned int* el);
 
 	int getVertexArrayHandle();
