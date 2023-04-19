@@ -2,6 +2,9 @@
 
 HierarchyWindow::HierarchyWindow() {
 	objectNum = 0;
+	for(int i=0;i<10;i++)
+		activeOBJList.push_back(new OBJect());
+	objectNum = activeOBJList.size();
 }
 
 void HierarchyWindow::createOBJ(int type)
@@ -17,7 +20,7 @@ void HierarchyWindow::createOBJ(int type)
 		temp = new BuiltInCylinder();
 	}
 	else if (type == 3) {		//obj loader
-		temp = new LoadedModelObj("../Asset/nanosuit/nanosuit.obj",true);
+		temp = new LoadedModelObj("../Asset/nanosuit/nanosuit.obj","modelTexture",true);
 	}
 
 	activeOBJList.push_back(temp);

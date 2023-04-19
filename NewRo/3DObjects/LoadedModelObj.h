@@ -20,6 +20,7 @@ using namespace std;
 class LoadedModelObj : public OBJect
 {
 public:
+	glm::vec3 DiffuseColor;
 	/*  Model Data */
 	vector<Texture> textures_loaded;	// stores all the textures loaded so far, optimization to make sure textures aren't loaded more than once.
 	vector<Mesh> meshes;
@@ -28,14 +29,14 @@ public:
 
 	/*  Functions   */
 	// constructor, expects a filepath to a 3D model.
-	LoadedModelObj(const string& path, bool gamma = false);
+	LoadedModelObj(const string& path, std::string sType, bool gamma=false,glm::vec3 Ka=glm::vec3(1,1,1));
 	virtual void RenderPicking() override;
 	virtual void RenderModel(glm::mat4& model, glm::mat4& view, glm::mat4& projection, glm::mat4& location, glm::vec3 camPosition, glm::vec3 lightPosition) override;
 
 private:
 	/*  Functions  */
 	// loads a model with supported ASSIMP extensions from file and stores the resulting meshes in the meshes vector.
-	void loadModel(string const& path);
+	void loadModel(string const& path, std::string sType);
 
 	// processes a node in a recursive fashion. Processes each individual mesh located at the node and repeats this process on its children nodes (if any).
 	void processNode(aiNode* node, const aiScene* scene);

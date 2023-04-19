@@ -81,13 +81,11 @@ class OBJect : public OBJTransform {
 public:
 	virtual void RenderModel(glm::mat4& model, glm::mat4& view, glm::mat4& projection, glm::mat4& location, glm::vec3 camPosition, glm::vec3 lightPosition) {}
 	virtual void RenderPicking(){}
-	void OutlineRender(){
-
-	}
 
 	std::string name;
 	unsigned int id = 0;
 	std::string objectType;
+	std::string shaderType;
 };
 
 #endif

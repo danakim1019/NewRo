@@ -43,16 +43,16 @@ public:
 	vector<GLuint> indices;
 	vector<Texture> textures;
 	/*  Functions  */
-	Mesh(vector<Vertex> vertices, vector<GLuint> indices, vector<Texture> textures);
+	Mesh(vector<Vertex> vertices, vector<GLuint> indices, vector<Texture> textures, std::string shaderType);
 	void Draw(glm::mat4 view, glm::mat4 model, glm::mat4 projection, glm::vec3 lightPos);
 	void RenderPicking();
-	void RenderModel(glm::mat4& model, glm::mat4& view, glm::mat4& projection, glm::mat4& location, glm::vec3 camPosition, glm::vec3 lightPosition);
+	void RenderModel(glm::mat4& model, glm::mat4& view, glm::mat4& projection, glm::mat4& location, glm::vec3 camPosition, glm::vec3 lightPosition, std::string shaderType,glm::vec3 DiffuseColor);
  
 private:
 	/*  Render data  */
 	GLuint VAO;
 	/*  Functions    */
-	void setupMesh();
+	void setupMesh(std::string shaderType);
 };
 
 //#pragma once

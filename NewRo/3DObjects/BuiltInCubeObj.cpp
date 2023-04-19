@@ -18,6 +18,7 @@ BuiltInCube::BuiltInCube(int type)
 
 	name = "Cube";
 	objectType = "Cube";
+	shaderType = "Phong";
 }
 
 void BuiltInCube::setup()

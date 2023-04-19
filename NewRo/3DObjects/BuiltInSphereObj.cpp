@@ -22,6 +22,7 @@ BuiltInSphere::BuiltInSphere()
 
 	name = "Sphere";
 	objectType = "Sphere";
+	shaderType = "Phong";
 }
 
 

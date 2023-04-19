@@ -5,9 +5,9 @@
 
 /*  Functions   */
 // constructor, expects a filepath to a 3D model.
-LoadedModelObj::LoadedModelObj(const string& path, bool gamma) : gammaCorrection(gamma)
+LoadedModelObj::LoadedModelObj(const string& path, std::string sType, bool gamma, glm::vec3 Ka) : gammaCorrection(gamma), DiffuseColor(Ka)
 {
-	loadModel(path);
+	loadModel(path, sType);
 }
 
 void LoadedModelObj::RenderPicking()
@@ -19,12 +19,12 @@ void LoadedModelObj::RenderPicking()
 void LoadedModelObj::RenderModel(glm::mat4& model, glm::mat4& view, glm::mat4& projection, glm::mat4& location, glm::vec3 camPosition, glm::vec3 lightPosition)
 {
 	for (GLuint i = 0; i < meshes.size(); i++)
-		meshes[i].RenderModel(model, view, projection,location, camPosition, lightPosition);
+		meshes[i].RenderModel(model, view, projection,location, camPosition, lightPosition,shaderType, DiffuseColor);
 }
 
 /*  Functions   */
 // loads a model with supported ASSIMP extensions from file and stores the resulting meshes in the meshes vector.
-void LoadedModelObj::loadModel(string const& path)
+void LoadedModelObj::loadModel(string const& path,std::string sType)
 {
 	// read file via ASSIMP
 	Assimp::Importer importer;
@@ -41,6 +41,9 @@ void LoadedModelObj::loadModel(string const& path)
 	name = path.substr(path.find_last_of('/')+1, path.size());
 	std::size_t pos = name.rfind('.');
 	name = name.substr(0, pos);
+
+	objectType = "LoadedModel";
+	shaderType = sType;
 
 	// process ASSIMP's root node recursively
 	processNode(scene->mRootNode, scene);
@@ -129,7 +132,7 @@ Mesh LoadedModelObj::processMesh(aiMesh* mesh, const aiScene* scene)
 		textures.insert(textures.end(), heightMaps.begin(), heightMaps.end());
 	}
 	// return a mesh object created from the extracted mesh data
-	return Mesh(vertices, indices, textures);
+	return Mesh(vertices, indices, textures,shaderType);
 }
 
 // checks all material textures of a given type and loads the textures if they're not loaded yet.

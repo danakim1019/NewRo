@@ -4,6 +4,7 @@
 
 GLFWwindow* window;
 
+#define OBJectStartNum 10
 
 class GUIInterface :public Callback{
 public:
@@ -152,7 +153,7 @@ public:
 
         {
             char label[128];
-            for (int i = 1; i < win->getObjectNum() + 1; i++) {
+            for (int i = OBJectStartNum+1; i < win->getObjectNum() + 1; i++) {
                 std::string str = win->getObjectName(i);
                 objName = const_cast<char*>(str.c_str());
                 sprintf_s(label, "%s", objName);
@@ -183,6 +184,7 @@ public:
         draw_list = ImGui::GetWindowDrawList();
         draw_list->AddCallback(backstage_draw_callback, NULL);*/
         win->DrawBackstageWindow(screenWidth, screenHeight,selectedObjID);
+
 
         ImGui::End();
     }
