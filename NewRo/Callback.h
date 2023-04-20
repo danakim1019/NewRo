@@ -4,6 +4,8 @@
 #include"ImGUI/imgui_internal.h"
 #include "ImGUI/imgui_impl_glfw.h"
 #include "ImGUI/imgui_impl_opengl3.h"
+#include"ImGUI/ImGuizmo.h"
+
 
 #include"BackstageWindow.h"
 
@@ -121,19 +123,25 @@ public:
         if (action == GLFW_PRESS) {
             double xpos, ypos;
             glfwGetCursorPos(window, &xpos, &ypos);
+            
         }
 
         if (button == GLFW_MOUSE_BUTTON_LEFT) {
             if (action == GLFW_PRESS) {
-                //if (!ImGui::is())
-                {
+                
                     if ((xPos > hierachyWidth && xPos < hierachyWidth + screenWidth)
                         && (yPos > 20 && yPos < screenHeight)) {
                         if (!isLeftMouseClicked) {
                             unsigned int select = win->selectObject(xPos, yPos, selectedObjID);
                             if (select > 0) {
-                                selectedObjID = select;
-                                selectedObj = win->getObject(selectedObjID);
+                                if (!ImGuizmo::IsOver()&&!ImGuizmo::IsUsing())
+                                {
+                                    selectedObjID = select;
+                                    selectedObj = win->getObject(selectedObjID);
+                                }
+                                else if (ImGuizmo::IsOver() && ImGuizmo::IsUsing()) {
+                                    //ImGuizmo::
+                                }
                             }
                             else {
                                 selectedObjID = -1;
@@ -142,7 +150,9 @@ public:
                             }
                             isLeftMouseClicked = true;
                         }
-                    }
+                }
+                else {
+                    isLeftMouseClicked = true;
                 }
             }
             else {

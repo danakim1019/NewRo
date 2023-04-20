@@ -125,6 +125,7 @@ int main(int, char**)
     win->SetWindowSize(screenWidth, screenHeight - ((ImGui::GetStyle().FramePadding.y * 2) + 18), hierachyWidth, projectWindowHeight, windowWidth, windowHeight);
 
 
+
     // Main loop
     while (!glfwWindowShouldClose(window))
     {

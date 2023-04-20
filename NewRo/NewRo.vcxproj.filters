@@ -22,6 +22,9 @@
     <Filter Include="헤더 파일\ImGUI">
       <UniqueIdentifier>{a28e8fb8-94b7-48b5-8125-74cbf9012d36}</UniqueIdentifier>
     </Filter>
+    <Filter Include="소스 파일\BuiltInObject">
+      <UniqueIdentifier>{611baad5-3fe2-4334-ac9e-5220ed598aca}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -77,6 +80,9 @@
     </ClCompile>
     <ClCompile Include="3DObjects\Mesh.cpp">
       <Filter>소스 파일\3DObjects</Filter>
+    </ClCompile>
+    <ClCompile Include="ImGUI\ImGuizmo.cpp">
+      <Filter>헤더 파일\ImGUI</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -157,6 +163,9 @@
     </ClInclude>
     <ClInclude Include="3DObjects\meshoptimizer.h">
       <Filter>소스 파일\3DObjects</Filter>
+    </ClInclude>
+    <ClInclude Include="ImGUI\ImGuizmo.h">
+      <Filter>헤더 파일\ImGUI</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

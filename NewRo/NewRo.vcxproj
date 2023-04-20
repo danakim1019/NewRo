@@ -151,6 +151,7 @@
     </ClCompile>
     <ClCompile Include="Hierarchy.cpp" />
     <ClCompile Include="ImGUI\imgui.cpp" />
+    <ClCompile Include="ImGUI\ImGuizmo.cpp" />
     <ClCompile Include="ImGUI\imgui_demo.cpp" />
     <ClCompile Include="ImGUI\imgui_draw.cpp" />
     <ClCompile Include="ImGUI\imgui_impl_glfw.cpp" />
@@ -177,6 +178,7 @@
     <ClInclude Include="Hierarchy.h" />
     <ClInclude Include="ImGUI\imconfig.h" />
     <ClInclude Include="ImGUI\imgui.h" />
+    <ClInclude Include="ImGUI\ImGuizmo.h" />
     <ClInclude Include="ImGUI\imgui_impl_glfw.h" />
     <ClInclude Include="ImGUI\imgui_impl_opengl3.h" />
     <ClInclude Include="ImGUI\imgui_impl_opengl3_loader.h">

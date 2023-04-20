@@ -9,6 +9,12 @@
 
 #include"Hierarchy.h"
 
+#include "ImGUI/imgui.h"
+#include"ImGUI/imgui_internal.h"
+#include "ImGUI/imgui_impl_glfw.h"
+#include "ImGUI/imgui_impl_opengl3.h"
+#include"ImGUI/ImGuizmo.h"
+
 #include"Loader.h"
 
 class BackstageWindow {
@@ -38,7 +44,7 @@ public:
 	GLuint m_outfbo;
 	void outlinePhase(int selectedObjID);
 	
-	void renderPhase();
+	void renderPhase(int selectedObjID);
 
 	camera cam;
 
@@ -93,7 +99,6 @@ private:
 	glm::mat4 modelMat;
 
 	Grid* grid;
-	
 
 	BuiltInCylinder* m_cylinder;
 	BuiltInCube* m_cube;
