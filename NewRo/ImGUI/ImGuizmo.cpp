@@ -2075,6 +2075,7 @@ namespace IMGUIZMO_NAMESPACE
 
     static bool HandleTranslation(float* matrix, float* deltaMatrix, OPERATION op, int& type, const float* snap)
     {
+       
         if (!Intersects(op, TRANSLATE) || type != MT_NONE)
         {
             return false;
@@ -2102,9 +2103,13 @@ namespace IMGUIZMO_NAMESPACE
             // 1 axis constraint
             if (gContext.mCurrentOperation >= MT_MOVE_X && gContext.mCurrentOperation <= MT_MOVE_Z)
             {
+                //gContext.mCurrentOperation : current clicked axis number
                 const int axisIndex = gContext.mCurrentOperation - MT_MOVE_X;
+                //axisValue : which axis clicked (x : 1,0,0),(y : 0,1,0),(z : 0,0,1)
                 const vec_t& axisValue = *(vec_t*)&gContext.mModel.m[axisIndex];
+                //lengthOnAxis : length of drag
                 const float lengthOnAxis = Dot(axisValue, delta);
+                //delta : translate vector
                 delta = axisValue * lengthOnAxis;
             }
 

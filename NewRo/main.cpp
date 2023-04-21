@@ -9,6 +9,7 @@
 
 #include <stdio.h>
 
+#include"3DObjects/stb_image.h"
 
 //#include"BackstageWindow.h"
 #include"Camera.h"
@@ -83,6 +84,9 @@ int main(int, char**)
     
     // Create window with graphics context
     window = glfwCreateWindow(windowWidth, windowHeight, "NewRo Engine", NULL, NULL);
+    GLFWimage images[1];
+    images[0].pixels = stbi_load("icon.png",&images[0].width,&images[0].height,0,4);
+    glfwSetWindowIcon(window, 1, images);
 
     if (window == NULL)
         return 1;

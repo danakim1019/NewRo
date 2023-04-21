@@ -17,8 +17,18 @@
 
 #include"Loader.h"
 
+static bool useSnap = false;
+static float snap[3] = { 1.f, 1.f, 1.f };
+static float bounds[] = { -0.5f, -0.5f, -0.5f, 0.5f, 0.5f, 0.5f };
+static float boundsSnap[] = { 0.1f, 0.1f, 0.1f };
+static bool boundSizing = false;
+static bool boundSizingSnap = false;
+
 class BackstageWindow {
 public:
+	ImGuizmo::OPERATION mCurrentGizmoOperation;
+	ImGuizmo::MODE mCurrentGizmoMode;
+
 	struct PixelInfo {
 		float objectID;
 		float drawID;
@@ -38,6 +48,7 @@ public:
 	ShaderProgram* pickingShaderProgram;
 	void pickingPhase();
 
+	void guizmoPhase(int selectedObjID);
 
 	//Outline
 	ShaderProgram* outlineShaderProgram;

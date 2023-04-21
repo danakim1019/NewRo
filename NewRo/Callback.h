@@ -6,7 +6,6 @@
 #include "ImGUI/imgui_impl_opengl3.h"
 #include"ImGUI/ImGuizmo.h"
 
-
 #include"BackstageWindow.h"
 
 static int windowWidth = 1500;              //ÀüÃ¼ Ã¢
@@ -41,7 +40,7 @@ static double _delta_time;
 
 static const char* objName;
 static OBJect* selectedObj;
-static unsigned int selectedObjID;
+static unsigned int selectedObjID=-1;
 static char str0[32]{ " ", };
 
 BackstageWindow* win;
@@ -63,8 +62,23 @@ public:
             if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
                 glfwSetWindowShouldClose(window, GLFW_TRUE);
 
-            if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-                win->cam.ProcessKeyboard(FORWARD, _delta_time);
+            if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS) {
+                std::cout << "QQQQ" << std::endl;
+                win->mCurrentGizmoOperation = ImGuizmo::TRANSLATE;
+            }
+            if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS) {
+                win->mCurrentGizmoOperation = ImGuizmo::SCALE;
+            }
+            if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
+                if (selectedObj!=NULL|| win->mCurrentGizmoOperation!=ImGuizmo::ROTATE)
+                {
+                    win->mCurrentGizmoOperation = ImGuizmo::ROTATE;
+                    win->mCurrentGizmoMode = ImGuizmo::LOCAL;
+                }
+                else {
+                    win->cam.ProcessKeyboard(FORWARD, _delta_time);
+                }
+            }
             if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
                 win->cam.ProcessKeyboard(BACKWARD, _delta_time);
             if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
@@ -128,31 +142,25 @@ public:
 
         if (button == GLFW_MOUSE_BUTTON_LEFT) {
             if (action == GLFW_PRESS) {
-                
-                    if ((xPos > hierachyWidth && xPos < hierachyWidth + screenWidth)
-                        && (yPos > 20 && yPos < screenHeight)) {
-                        if (!isLeftMouseClicked) {
-                            unsigned int select = win->selectObject(xPos, yPos, selectedObjID);
-                            if (select > 0) {
-                                if (!ImGuizmo::IsOver()&&!ImGuizmo::IsUsing())
-                                {
-                                    selectedObjID = select;
-                                    selectedObj = win->getObject(selectedObjID);
-                                }
-                                else if (ImGuizmo::IsOver() && ImGuizmo::IsUsing()) {
-                                    //ImGuizmo::
-                                }
+                if ((xPos > hierachyWidth && xPos < hierachyWidth + screenWidth)
+                    && (yPos > 20 && yPos < screenHeight)) 
+                {
+                    if (!isLeftMouseClicked) {
+                        unsigned int select = win->selectObject(xPos, yPos, selectedObjID);
+                        if (select > 0) {
+                            if (!ImGuizmo::IsUsing())
+                            {
+                                selectedObjID = select;
+                                selectedObj = win->getObject(selectedObjID);
                             }
-                            else {
-                                selectedObjID = -1;
-                                selectedObj = NULL;
-                                printf("not picking\n");
-                            }
-                            isLeftMouseClicked = true;
                         }
-                }
-                else {
-                    isLeftMouseClicked = true;
+                        else {
+                            selectedObjID = -1;
+                            selectedObj = NULL;
+                            printf("not picking\n");
+                        }
+                        isLeftMouseClicked = true;
+                    }
                 }
             }
             else {

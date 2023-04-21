@@ -1,13 +1,6 @@
 #include"BackstageWindow.h"
 
-static ImGuizmo::OPERATION mCurrentGizmoOperation(ImGuizmo::TRANSLATE);
-static ImGuizmo::MODE mCurrentGizmoMode(ImGuizmo::LOCAL);
-static bool useSnap = false;
-static float snap[3] = { 1.f, 1.f, 1.f };
-static float bounds[] = { -0.5f, -0.5f, -0.5f, 0.5f, 0.5f, 0.5f };
-static float boundsSnap[] = { 0.1f, 0.1f, 0.1f };
-static bool boundSizing = false;
-static bool boundSizingSnap = false;
+
 
 BackstageWindow::BackstageWindow(int m_width, int m_height,int w_Width,int w_Height) :backstageWidth(m_width), backstageHeight(m_height) , windowWidth(w_Width),windowHeight(w_Height)
 { 
@@ -15,6 +8,9 @@ BackstageWindow::BackstageWindow(int m_width, int m_height,int w_Width,int w_Hei
 	m_ratio = backstageWidth / static_cast<float>(backstageHeight);
 	setupPickingShader();
 	setupBuffer();
+
+	mCurrentGizmoOperation = ImGuizmo::TRANSLATE;
+	mCurrentGizmoMode = ImGuizmo::LOCAL;
 }
 
 void BackstageWindow::setupPickingShader() {
@@ -98,6 +94,7 @@ void BackstageWindow::DrawBackstageWindow(int m_width, int m_height, int selecte
 	modelMat = m_model.getMatrix();
 
 	pickingPhase();
+	guizmoPhase(selectedObjID);
 	outlinePhase(selectedObjID);
 	renderPhase(selectedObjID);
 }
@@ -112,18 +109,19 @@ void BackstageWindow::pickingPhase() {
 	modelViewArray = new glm::mat4[Hierachy->objectNum];
 		for (int i = 0; i < Hierachy->objectNum; i++) {
 			m_model.glPushMatrix();
-			//Scale
-			glm::vec3 scl = getObject(i + 1)->getScale();
-			glm::mat4 scale = glm::scale(glm::mat4(1.0f), scl);
-			m_model.glScale(scl.x, scl.y,scl.z);
+
+			//Translate
+			glm::vec3 position = getObject(i+1)->getPositon();
+			m_model.glTranslate(position.x,position.y,position.z);
 			//Rotate
 			glm::vec3 rot = getObject(i + 1)->getRotation();
 			m_model.glRotate(rot.z, 0, 0, 1);
 			m_model.glRotate(rot.y, 0, 1, 0);
 			m_model.glRotate(rot.x, 1, 0, 0);
-			//Translate
-			glm::vec3 position = getObject(i+1)->getPositon();
-			m_model.glTranslate(position.x,position.y,position.z);
+			//Scale
+			glm::vec3 scl = getObject(i + 1)->getScale();
+			glm::mat4 scale = glm::scale(glm::mat4(1.0f), scl);
+			m_model.glScale(scl.x, scl.y, scl.z);
 
 			modelMat = m_model.getMatrix();
 			modelViewArray[i] = modelMat;
@@ -142,6 +140,55 @@ void BackstageWindow::pickingPhase() {
 
 	//FBO를 해제
 	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+}
+
+void BackstageWindow::guizmoPhase(int selectedObjID) {
+	if (selectedObjID > 0) {
+		ImGuizmo::SetID(selectedObjID);
+		//mCurrentGizmoOperation = ImGuizmo::TRANSLATE;
+		glm::vec3 pos = Hierachy->activeOBJList[selectedObjID - 1]->getPositon();
+		float camDistance = glm::length(pos - cam.Position);
+		glm::mat4 modelV = glm::translate(glm::mat4(1.0f), pos);
+
+		//ImGuizmo setting
+		ImGuiIO& io = ImGui::GetIO();
+		float viewManipulateRight = io.DisplaySize.x;
+		float viewManipulateTop = 0;
+		static ImGuiWindowFlags gizmoWindowFlags = 0;
+		//ImGui::Begin("Gizmo", 0, gizmoWindowFlags);
+		ImGuizmo::SetDrawlist();
+
+		ImGuizmo::RecomposeMatrixFromComponents((const float*)(&(Hierachy->activeOBJList[selectedObjID - 1]->pos.x))
+			, (const float*)(&(Hierachy->activeOBJList[selectedObjID - 1]->rot.x)),
+			(const float*)(&(Hierachy->activeOBJList[selectedObjID - 1]->scale.x)),
+			(float*)glm::value_ptr(modelViewArray[selectedObjID - 1]));
+
+
+		float windowWidth = (float)ImGui::GetWindowWidth();
+		float windowHeight = (float)ImGui::GetWindowHeight();
+		ImGuizmo::SetRect(ImGui::GetWindowPos().x, ImGui::GetWindowPos().y, windowWidth, windowHeight);
+		viewManipulateRight = ImGui::GetWindowPos().x + windowWidth;
+		viewManipulateTop = ImGui::GetWindowPos().y;
+		//std::cout << "viewManipulateTop: " << viewManipulateTop << std::endl;
+		gizmoWindowFlags = ImGui::IsWindowHovered() && ImGui::IsMouseHoveringRect(ImVec2(backstageXPos, backstageYPos)
+			, ImVec2(backstageXPos + backstageWidth, backstageYPos)) ? ImGuiWindowFlags_NoMove : 0;
+
+		ImGuizmo::Manipulate((const float*)glm::value_ptr(viewMat)
+			, (const float*)glm::value_ptr(projectionMat), mCurrentGizmoOperation, mCurrentGizmoMode, (float*)glm::value_ptr(modelViewArray[selectedObjID - 1]), NULL, useSnap ? &snap[0] : NULL, boundSizing ? bounds : NULL, boundSizingSnap ? boundsSnap : NULL);
+		//matrix는 바꿀 매트릭스
+		ImGuizmo::ViewManipulate((float*)glm::value_ptr(viewMat), camDistance, ImVec2(viewManipulateRight - 128, viewManipulateTop), ImVec2(128, 128), 0x10101010);
+
+
+		ImGuizmo::DecomposeMatrixToComponents((const float*)glm::value_ptr(modelViewArray[selectedObjID - 1]),
+			(float*)(&(Hierachy->activeOBJList[selectedObjID - 1]->pos.x))
+			, (float*)(&(Hierachy->activeOBJList[selectedObjID - 1]->rot.x)),
+			(float*)(&(Hierachy->activeOBJList[selectedObjID - 1]->scale.x)));
+
+
+	}
+	else {
+		ImGuizmo::SetID(-1);
+	}
 }
 
 void BackstageWindow::outlinePhase(int selectedObjID) {
@@ -183,47 +230,15 @@ void BackstageWindow::renderPhase(int selectedObjID) {
 
 	glm::mat4 origin = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, 0.0f));
 
-	Hierachy->drawList(modelViewArray, viewMat, projectionMat, origin,cam.Position, glm::vec3(0, 30, 0));
-
 	/*m_cube->draw(modelMat, viewMat, projection, origin,cam.Position);
 	origin = glm::translate(glm::mat4(1.0f), glm::vec3(10.0f, 0.0f, 0.0f));
 	m_cylinder->draw(modelMat, viewMat, projection,origin,0,0,0);
 	origin = glm::translate(glm::mat4(1.0f), glm::vec3(-10.0f, 0.0f, 0.0f));
 	m_sphere->draw(modelMat, viewMat, projection, origin, glm::vec3(0, 30, 0));*/
-	if (selectedObjID > 0) {
-		mCurrentGizmoOperation = ImGuizmo::TRANSLATE;
-		glm::vec3 pos = Hierachy->activeOBJList[selectedObjID - 1]->getPositon();
-		float camDistance = glm::length(pos - cam.Position);
-		glm::mat4 modelV = glm::translate(glm::mat4(1.0f), pos);
 
-		//ImGuizmo setting
-		ImGuiIO& io = ImGui::GetIO();
-		float viewManipulateRight = io.DisplaySize.x;
-		float viewManipulateTop = 0;
-		static ImGuiWindowFlags gizmoWindowFlags = 0;
-		//ImGui::Begin("Gizmo", 0, gizmoWindowFlags);
-		ImGuizmo::SetDrawlist();
-		float windowWidth = (float)ImGui::GetWindowWidth();
-		float windowHeight = (float)ImGui::GetWindowHeight();
-		ImGuizmo::SetRect(ImGui::GetWindowPos().x, ImGui::GetWindowPos().y, windowWidth, windowHeight);
-		viewManipulateRight = ImGui::GetWindowPos().x + windowWidth;
-		viewManipulateTop = ImGui::GetWindowPos().y;
-		gizmoWindowFlags = ImGui::IsWindowHovered() && ImGui::IsMouseHoveringRect(ImVec2(backstageXPos, backstageYPos)
-			, ImVec2(backstageXPos+backstageWidth, backstageYPos)) ? ImGuiWindowFlags_NoMove : 0;
-		ImGuizmo::Manipulate((const float*)glm::value_ptr(viewMat)
-			, (const float*)glm::value_ptr(projectionMat), mCurrentGizmoOperation, mCurrentGizmoMode, (float*)glm::value_ptr(modelV), NULL, useSnap ? &snap[0] : NULL, boundSizing ? bounds : NULL, boundSizingSnap ? boundsSnap : NULL);
-		//matrix는 바꿀 매트릭스
-		ImGuizmo::ViewManipulate((float*)glm::value_ptr(viewMat), camDistance, ImVec2(viewManipulateRight - 128, viewManipulateTop), ImVec2(128, 128), 0x10101010);
-		if (ImGuizmo::IsUsing()) {
-			
-			ImGui::Text("Using gizmo");
-		}
-		//ImGui::End();
-		//ImGuizmo
-		//glDisable(GL_DEPTH_TEST);
-		//axisObj->drawAxis(pos, viewMat, projectionMat, origin, cam.Position, glm::vec3(0, 30, 0));
-		//glEnable(GL_DEPTH_TEST);
-	}
+
+	Hierachy->drawList(modelViewArray, viewMat, projectionMat, origin,cam.Position, glm::vec3(0, 30, 0));
+
 }
 
 void BackstageWindow::createBuiltInOBJ(int BuiltInType) {
