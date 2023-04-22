@@ -188,6 +188,7 @@
     <ClInclude Include="ImGUI\imstb_rectpack.h" />
     <ClInclude Include="ImGUI\imstb_textedit.h" />
     <ClInclude Include="ImGUI\imstb_truetype.h" />
+    <ClInclude Include="Lights\Light.h" />
     <ClInclude Include="Loader.h" />
     <ClInclude Include="ModelView.h" />
   </ItemGroup>

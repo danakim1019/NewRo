@@ -31,7 +31,7 @@ out vec3 outColor;
 void main()
 {
 	//change vertex position : 모든 light 계산은 camera좌표계에서 이루어짐
-	vec4 P= ModelViewMatrix * vec4(coord3d,1.0); //camera좌표계에서의 vertex위치값
+	vec4 P= view*location*model * vec4(coord3d,1.0); //camera좌표계에서의 vertex위치값
 	//normal 변경
 	vec3 N = normalize(NormalMatrix * v_normal); //local 좌표계에서의 normal을 변경
 	
