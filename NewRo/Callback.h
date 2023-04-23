@@ -38,9 +38,10 @@ int yPos;
 static double _frame_start_time;
 static double _delta_time;
 
+
 static const char* objName;
 static OBJect* selectedObj;
-static unsigned int selectedObjID=-1;
+static unsigned int selectedObjID;
 static char str0[32]{ " ", };
 
 BackstageWindow* win;
@@ -145,21 +146,25 @@ public:
                 if ((xPos > hierachyWidth && xPos < hierachyWidth + screenWidth)
                     && (yPos > 20 && yPos < screenHeight)) 
                 {
-                    if (!isLeftMouseClicked) {
-                        unsigned int select = win->selectObject(xPos, yPos, selectedObjID);
+                    unsigned int select = win->selectObject(xPos, yPos, selectedObjID);
+
+                    if ((ImGuizmo::IsOver()==true))
+                    {
+                        if (selectedObjID<1&&select>0) {
+                            selectedObjID = select;
+                            selectedObj = win->getObject(selectedObjID);
+                        }
+                    }
+                    else {
                         if (select > 0) {
-                            if (!ImGuizmo::IsUsing())
-                            {
-                                selectedObjID = select;
-                                selectedObj = win->getObject(selectedObjID);
-                            }
+                            selectedObjID = select;
+                            selectedObj = win->getObject(selectedObjID);
                         }
                         else {
-                            selectedObjID = -1;
+                            selectedObjID = 0;
                             selectedObj = NULL;
                             printf("not picking\n");
                         }
-                        isLeftMouseClicked = true;
                     }
                 }
             }
