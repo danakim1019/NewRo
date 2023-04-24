@@ -44,6 +44,7 @@ public:
 		WorldUp = up;
 		Yaw = yaw;
 		Pitch = pitch;
+		Roll = 0;
 		updateCameraVectors();
 	}
 	// constructor with scalar values
@@ -128,6 +129,14 @@ public:
 		updateCameraVectors();
 	}
 
+	void setCameraSetting(glm::vec3 Positoin, glm::vec3 Rotation,glm::vec3 Scale) {
+		this->Position = Position;
+		Yaw = Rotation.x;
+		Pitch = Rotation.y;
+		Roll = Rotation.z;
+		//this->Scale = Scale;
+		updateCameraVectors();
+	}
 private:
 	// calculates the front vector from the Camera's (updated) Euler Angles
 	void updateCameraVectors()

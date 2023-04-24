@@ -122,7 +122,7 @@ void BackstageWindow::pickingPhase() {
 			glm::vec3 scl = getObject(i + 1)->getScale();
 			glm::mat4 scale = glm::scale(glm::mat4(1.0f), scl);
 			m_model.glScale(scl.x, scl.y, scl.z);
-
+ 
 			modelMat = m_model.getMatrix();
 			modelViewArray[i] = modelMat;
 
@@ -163,7 +163,6 @@ void BackstageWindow::guizmoPhase(int selectedObjID) {
 			(const float*)(&(Hierachy->activeOBJList[selectedObjID - 1]->scale.x)),
 			(float*)glm::value_ptr(modelViewArray[selectedObjID - 1]));
 
-
 		float windowWidth = (float)ImGui::GetWindowWidth();
 		float windowHeight = (float)ImGui::GetWindowHeight();
 		ImGuizmo::SetRect(ImGui::GetWindowPos().x, ImGui::GetWindowPos().y, windowWidth, windowHeight);
@@ -173,21 +172,34 @@ void BackstageWindow::guizmoPhase(int selectedObjID) {
 		gizmoWindowFlags = ImGui::IsWindowHovered() && ImGui::IsMouseHoveringRect(ImVec2(backstageXPos, backstageYPos)
 			, ImVec2(backstageXPos + backstageWidth, backstageYPos)) ? ImGuiWindowFlags_NoMove : 0;
 
-		ImGuizmo::Manipulate((const float*)glm::value_ptr(viewMat)
-			, (const float*)glm::value_ptr(projectionMat), mCurrentGizmoOperation, mCurrentGizmoMode, (float*)glm::value_ptr(modelViewArray[selectedObjID - 1]), NULL, useSnap ? &snap[0] : NULL, boundSizing ? bounds : NULL, boundSizingSnap ? boundsSnap : NULL);
-		//matrix는 바꿀 매트릭스
-		ImGuizmo::ViewManipulate((float*)glm::value_ptr(viewMat), camDistance, ImVec2(viewManipulateRight - 128, viewManipulateTop), ImVec2(128, 128), 0x10101010);
+		glm::mat4 cameraViewM = cam.GetViewMatrix();
 
+		ImGuizmo::Manipulate((const float*)glm::value_ptr(cameraViewM)
+			, (const float*)glm::value_ptr(projectionMat), mCurrentGizmoOperation, mCurrentGizmoMode, (float*)glm::value_ptr(modelViewArray[selectedObjID - 1]), NULL, useSnap ? &snap[0] : NULL, boundSizing ? bounds : NULL, boundSizingSnap ? boundsSnap : NULL);
+
+		glm::vec3 Position = cam.Position;
+		glm::vec3 Rotation = glm::vec3(cam.Yaw, cam.Pitch,cam.Roll);
+		glm::vec3 Scale = glm::vec3(1.0);
+
+		ImGuizmo::RecomposeMatrixFromComponents((const float*)glm::value_ptr(Position)
+			, (const float*)glm::value_ptr(Rotation),
+			(const float*)glm::value_ptr(Scale), (float*)glm::value_ptr(cameraViewM));
+
+		//
+		ImGuizmo::ViewManipulate((float*)glm::value_ptr(cameraViewM), camDistance, ImVec2(viewManipulateRight - 128, viewManipulateTop), ImVec2(128, 128), 0x10101010);
+
+		ImGuizmo::DecomposeMatrixToComponents((const float*)glm::value_ptr(cameraViewM),
+			(float*)glm::value_ptr(Position)
+			, (float*)glm::value_ptr(Rotation),
+			(float*)glm::value_ptr(Scale));
+
+		cam.setCameraSetting(Position, Rotation, Scale);
 
 		ImGuizmo::DecomposeMatrixToComponents((const float*)glm::value_ptr(modelViewArray[selectedObjID - 1]),
 			(float*)(&(Hierachy->activeOBJList[selectedObjID - 1]->pos.x))
 			, (float*)(&(Hierachy->activeOBJList[selectedObjID - 1]->rot.x)),
 			(float*)(&(Hierachy->activeOBJList[selectedObjID - 1]->scale.x)));
 
-
-	}
-	else {
-		ImGuizmo::SetID(-1);
 	}
 }
 
@@ -254,7 +266,8 @@ void BackstageWindow::SetWindowSize(int m_width, int m_height, int xPos, int yPo
 	windowHeight = m_windowHeight;
 	glViewport(backstageXPos, backstageYPos, m_width, m_height);
 
-	FBOInit();
+	generateOutlineMap();
+	generateShadowMap((ShadowType)0);
 }
 
 void BackstageWindow::SetViewport(int m_width, int m_height) {
@@ -266,16 +279,17 @@ void BackstageWindow::setupBuffer() {
 	cam = camera(glm::vec3(0.0f, 30.0f, 30.0f));
 	Hierachy = new HierarchyWindow();
 	grid = new Grid();
-
+	Hierachy->createOBJ(4);
 	//Hierachy->createOBJ(1);
 	/*m_cylinder = new BuiltInCylinder();
 	m_cube = new BuiltInCube(0);
 	m_sphere = new BuiltInSphere();*/
 
-	FBOInit();
+	generateOutlineMap();
+	generateShadowMap((ShadowType)0);
 }
 
-bool BackstageWindow::FBOInit() {
+bool BackstageWindow::generateOutlineMap() {
 	//Create the FBO
 	glGenFramebuffers(1, &m_fbo);
 	glBindFramebuffer(GL_FRAMEBUFFER, m_fbo);
@@ -311,5 +325,9 @@ bool BackstageWindow::FBOInit() {
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 	return glGetError() == GL_NO_ERROR;
+
+}
+
+void BackstageWindow::generateShadowMap(ShadowType type) {
 
 }

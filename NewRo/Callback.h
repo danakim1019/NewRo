@@ -143,27 +143,29 @@ public:
 
         if (button == GLFW_MOUSE_BUTTON_LEFT) {
             if (action == GLFW_PRESS) {
-                if ((xPos > hierachyWidth && xPos < hierachyWidth + screenWidth)
-                    && (yPos > 20 && yPos < screenHeight)) 
+                if ((xPos > hierachyWidth && xPos < hierachyWidth + screenWidth)&& (yPos > 20 && yPos < screenHeight)) 
                 {
-                    unsigned int select = win->selectObject(xPos, yPos, selectedObjID);
-
-                    if ((ImGuizmo::IsOver()==true))
+                    if (xPos<hierachyWidth+screenWidth-128&&yPos>128) 
                     {
-                        if (selectedObjID<1&&select>0) {
-                            selectedObjID = select;
-                            selectedObj = win->getObject(selectedObjID);
-                        }
-                    }
-                    else {
-                        if (select > 0) {
-                            selectedObjID = select;
-                            selectedObj = win->getObject(selectedObjID);
+                        unsigned int select = win->selectObject(xPos, yPos, selectedObjID);
+
+                        if ((ImGuizmo::IsOver() == true))
+                        {
+                            if (selectedObjID < 1 && select>0) {
+                                selectedObjID = select;
+                                selectedObj = win->getObject(selectedObjID);
+                            }
                         }
                         else {
-                            selectedObjID = 0;
-                            selectedObj = NULL;
-                            printf("not picking\n");
+                            if (select > 0) {
+                                selectedObjID = select;
+                                selectedObj = win->getObject(selectedObjID);
+                            }
+                            else {
+                                selectedObjID = 0;
+                                selectedObj = NULL;
+                                printf("not picking\n");
+                            }
                         }
                     }
                 }

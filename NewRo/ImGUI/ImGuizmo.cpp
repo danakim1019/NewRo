@@ -2953,8 +2953,8 @@ namespace IMGUIZMO_NAMESPACE
         {
             matrix_t rx, ry, roll;
 
-            rx.RotationAxis(referenceUp, -io.MouseDelta.x * 0.01f);
-            ry.RotationAxis(viewInverse.v.right, -io.MouseDelta.y * 0.01f);
+            rx.RotationAxis(referenceUp, -io.MouseDelta.x * 0.001f);
+            ry.RotationAxis(viewInverse.v.right, -io.MouseDelta.y * 0.001f);
 
             roll = rx * ry;
 
