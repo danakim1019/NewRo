@@ -55,6 +55,13 @@ public:
 	GLuint m_outfbo;
 	void outlinePhase(int selectedObjID);
 	
+	ShaderProgram* shadowShaderProgram;
+	void shadowPhase(ShadowType type);
+	GLuint m_shadowfbo;
+
+	ShaderProgram* sShaderProgram;
+	GLuint shadowMap;
+
 	void renderPhase(int selectedObjID);
 
 	camera cam;
@@ -95,7 +102,10 @@ private:
 	~BackstageWindow() {}
 
 	void setupBuffer();
-	bool FBOInit();
+	bool initializeShadowMap();
+	void generateShadowMap(glm::mat4 lightSpace);
+	bool generateOutlineMap();
+
 
 	int backstageWidth, backstageHeight;
 	int backstageXPos, backstageYPos;
@@ -114,6 +124,8 @@ private:
 	BuiltInCylinder* m_cylinder;
 	BuiltInCube* m_cube;
 	BuiltInSphere* m_sphere;
+
+	float angle;
 };
 
 #endif

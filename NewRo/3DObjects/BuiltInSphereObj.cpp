@@ -6,7 +6,7 @@ BuiltInSphere::BuiltInSphere()
 	slices = 60;
 	stacks = 60;
 
-	Ka = glm::vec3(0.1, 0.1, 0.1);
+	Ka = glm::vec3(1, 0, 0);
 	Kd = glm::vec3(1, 0, 0);
 	Ks = glm::vec3(1, 1, 1);
 	shiness = 10;

@@ -222,9 +222,9 @@ void BuiltInCylinder::RenderModel(glm::mat4& model, glm::mat4& view, glm::mat4& 
 	glm::mat3 nmat = glm::mat3(glm::transpose(imvp));
 
 
-	glm::vec3 Ka(0.1, 0.1, 0.1);
+	glm::vec3 Ka(1, 0, 0);
 	glm::vec3 Kd(1, 0, 0);
-	glm::vec3 Ks(1, 1, 0);
+	glm::vec3 Ks(1, 1, 1);
 	GLfloat shiness = 10;
 
 	glm::vec3 La(0.9, 0.9, 0.9);

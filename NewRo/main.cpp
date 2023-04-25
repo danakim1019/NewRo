@@ -22,6 +22,8 @@
 #pragma comment(lib, "legacy_stdio_definitions")
 #endif
 
+
+
 class Core : public GUIInterface
 {
 public:
@@ -119,7 +121,6 @@ int main(int, char**)
     glfwSetMouseButtonCallback(window, core.mouse_button_callback);
     
 
-    
     ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
 
     ImVec2 backstageSize = ImVec2(windowWidth - hierachyWidth - inspectorWidth, screenHeight - ((ImGui::GetStyle().FramePadding.y * 2) + 18));
@@ -127,7 +128,6 @@ int main(int, char**)
     screenWidth = windowWidth - inspectorWidth - hierachyWidth;
     screenHeight = windowHeight - projectWindowHeight;
     win->SetWindowSize(screenWidth, screenHeight - ((ImGui::GetStyle().FramePadding.y * 2) + 18), hierachyWidth, projectWindowHeight, windowWidth, windowHeight);
-
 
 
     // Main loop

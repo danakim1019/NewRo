@@ -43,7 +43,5 @@ public:
 	glm::vec3 Ld;
 	glm::vec3 Ls;
 
-	glm::vec4 lightPos;
-
 };
 #endif

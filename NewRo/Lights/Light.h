@@ -16,7 +16,9 @@ public:
 	glm::vec3 LightColor;
 	float LightIntensity;
 
-	Light() {
+	Light(float xPos,float yPos, float zPos)
+	{
+		setPosition(xPos, yPos, zPos);
 		name = "Light";
 	}
 };

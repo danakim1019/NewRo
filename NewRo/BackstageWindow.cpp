@@ -1,6 +1,6 @@
 #include"BackstageWindow.h"
 
-
+#include"3DObjects/stb_image.h"
 
 BackstageWindow::BackstageWindow(int m_width, int m_height,int w_Width,int w_Height) :backstageWidth(m_width), backstageHeight(m_height) , windowWidth(w_Width),windowHeight(w_Height)
 { 
@@ -8,6 +8,8 @@ BackstageWindow::BackstageWindow(int m_width, int m_height,int w_Width,int w_Hei
 	m_ratio = backstageWidth / static_cast<float>(backstageHeight);
 	setupPickingShader();
 	setupBuffer();
+
+	angle = 0;
 
 	mCurrentGizmoOperation = ImGuizmo::TRANSLATE;
 	mCurrentGizmoMode = ImGuizmo::LOCAL;
@@ -32,6 +34,37 @@ void BackstageWindow::setupPickingShader() {
 	outlineShaderProgram->addUniform("gModelIndex");
 	outlineShaderProgram->addUniform("gDrawIndex");
 
+
+
+	shadowShaderProgram = new ShaderProgram();
+	shadowShaderProgram->initFromFiles("Shader/shadowMap.vert", "Shader/shadowMap.frag");
+	shadowShaderProgram->addUniform("lightSpaceMatrix");
+	shadowShaderProgram->addUniform("Model");
+
+	sShaderProgram = new ShaderProgram();
+	sShaderProgram->initFromFiles("Shader/shadow.vert", "Shader/shadow.frag");
+	sShaderProgram->addAttribute("VertexPosition");
+	sShaderProgram->addAttribute("VertexNormal");
+	sShaderProgram->addAttribute("VertexColor");
+
+	sShaderProgram->addUniform("Light.Position");
+	sShaderProgram->addUniform("Light.Intensity");
+	sShaderProgram->addUniform("hasColor");
+
+	sShaderProgram->addUniform("Material.Ka");
+	sShaderProgram->addUniform("Material.Kd");
+	sShaderProgram->addUniform("Material.Ks");
+	sShaderProgram->addUniform("Material.Shiness");
+
+	sShaderProgram->addUniform("ModelViewMatrix");
+	sShaderProgram->addUniform("ProjectionMatrix");
+	sShaderProgram->addUniform("NormalMatrix");
+	sShaderProgram->addUniform("ModelMatrix");
+	sShaderProgram->addUniform("MVP");
+
+	sShaderProgram->addUniform("lightSpaceMatrix");
+	sShaderProgram->addUniform("shadowMap");
+	sShaderProgram->addUniform("shadowType");
 }
 
 BackstageWindow::PixelInfo BackstageWindow::ReadPixel(unsigned int x, unsigned int y) {
@@ -67,36 +100,44 @@ int BackstageWindow::selectObject(int cx, int cy,int selectedObjIndex) {
 }
 
 void BackstageWindow::DrawBackstageWindow(int m_width, int m_height, int selectedObjID) {
-	//glViewport(0, 0, display_w, display_h);
-  /* glViewport(0, 0, 200, 200);
-   glClearColor(clear_color.x * clear_color.w, clear_color.y * clear_color.w, clear_color.z * clear_color.w, clear_color.w);
-   glClear(GL_COLOR_BUFFER_BIT);*/
-	
 
-	glClearColor(0.0f, 0.0f, 0.0f, 0);		//background color
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);		//clear up color and depth buffer
-
-	glEnable(GL_SCISSOR_TEST);
-	glClearColor(0.5f, 0.5f, 0.5f, 0);		//background color
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);		//clear up color and depth buffer
-	glEnable(GL_CLIP_DISTANCE0);
-	glEnable(GL_DEPTH_TEST);			//test whether an object is in front of other object?
-	//glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-
-	glViewport(backstageXPos, backstageYPos, m_width, m_height);
-	glScissor(backstageXPos, backstageYPos, backstageWidth, backstageHeight);
-
-	glDisable(GL_SCISSOR_TEST);
+	SetViewport(m_width,m_height);
    
 	viewMat = cam.GetViewMatrix();
 	projectionMat = glm::perspective(glm::radians(fovy), m_ratio, 0.1f, 1000.0f);
 	modelMat = m_model.getMatrix();
 
+	
+	glm::mat4 model;
+	glm::mat4 lightView = glm::lookAt(Hierachy->activeLightList[0]->getPositon(), glm::vec3(0, 0, 0),
+		glm::vec3(0, 1, 0));
+	glm::mat4 lightProjection = glm::ortho(-30.0f, 30.0f, -30.0f, 30.0f, -30.0f, 30.0f);
+	glm::mat4 lightSpace = lightProjection * lightView;
+
+
 	pickingPhase();
+
+	generateShadowMap(lightSpace);
+
 	guizmoPhase(selectedObjID);
 	outlinePhase(selectedObjID);
-	renderPhase(selectedObjID);
+
+	modelMat = m_model.getMatrix();
+	//그리드 그리기
+	grid->draw(modelMat, viewMat, projectionMat);
+
+	//renderPhase(selectedObjID);
+	shadowPhase((ShadowType)0);
+
+
+	if (angle == 360)
+		angle = 0;
+	else
+		angle += 0.01;
+	float radius = 20;
+	float x = glm::sin(angle)*radius;
+	float z = glm::cos(angle) * radius;
+	Hierachy->activeLightList[0]->setPosition(x, 10, z);
 }
 
 void BackstageWindow::pickingPhase() {
@@ -198,7 +239,7 @@ void BackstageWindow::guizmoPhase(int selectedObjID) {
 		ImGuizmo::DecomposeMatrixToComponents((const float*)glm::value_ptr(modelViewArray[selectedObjID - 1]),
 			(float*)(&(Hierachy->activeOBJList[selectedObjID - 1]->pos.x))
 			, (float*)(&(Hierachy->activeOBJList[selectedObjID - 1]->rot.x)),
-			(float*)(&(Hierachy->activeOBJList[selectedObjID - 1]->scale.x)));
+			(float*)(&(Hierachy->activeOBJList[selectedObjID - 1]->scale.x))); 
 
 	}
 }
@@ -233,12 +274,69 @@ void BackstageWindow::outlinePhase(int selectedObjID) {
 	
 }
 
+
+void BackstageWindow::shadowPhase(ShadowType type) {
+	/*glEnable(GL_CULL_FACE);
+	glCullFace(GL_BACK);
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);*/
+	//glEnable(GL_MULTISAMPLE_ARB);
+	//glHint(GL_MULTISAMPLE_FILTER_HINT_NV, GL_NICEST);
+
+	glm::mat4 model;
+	int id = (int)type;
+	glm::mat4 lightView = glm::lookAt(Hierachy->activeLightList[0]->getPositon(), glm::vec3(0, 0, 0),
+		glm::vec3(0, 1, 0));
+	glm::mat4 lightProjection = glm::ortho(-30.0f, 30.0f, -30.0f, 30.0f, -30.0f, 30.0f);
+	glm::mat4 lightSpace = lightProjection * lightView;
+
+
+	//shadow draw(projection mapping)
+	sShaderProgram->use();
+	for (int i = 10; i < Hierachy->objectNum; i++) {
+		glm::mat4 mview = viewMat * modelViewArray[i];
+		glm::mat4 mvp = projectionMat * mview;
+		glm::mat4 imvp = glm::inverse(mview);
+		glm::mat4 nmat = glm::mat3(glm::transpose(imvp));
+
+		glm::vec3 Ka = glm::vec3(0.3, 0.3, 0.3);
+		glm::vec3 Kd = glm::vec3(0.4, 0.4, 0.4);
+		glm::vec3 Ks = glm::vec3(0.9, 0.9, 0.9);
+		float shiness = 10;
+
+		glUniformMatrix4fv(sShaderProgram->uniform("ModelViewMatrix"),1,GL_FALSE,glm::value_ptr(mview));
+		glUniformMatrix4fv(sShaderProgram->uniform("ModelMatrix"), 1, GL_FALSE, glm::value_ptr(modelViewArray[i]));
+		glUniformMatrix4fv(sShaderProgram->uniform("MVP"), 1, GL_FALSE, glm::value_ptr(mvp));
+		glUniformMatrix3fv(sShaderProgram->uniform("NormalMatrix"), 1, GL_FALSE, glm::value_ptr(nmat));
+		glUniform4fv(sShaderProgram->uniform("Light.Position"), 1, glm::value_ptr(Hierachy->activeLightList[0]->getPositon()));
+		glUniform3fv(sShaderProgram->uniform("Light.Intensity"), 1, glm::value_ptr(glm::vec3(1,1,1)));
+
+		glUniform3fv(sShaderProgram->uniform("Material.Ka"), 1, glm::value_ptr(Ka));
+		glUniform3fv(sShaderProgram->uniform("Material.Kd"), 1, glm::value_ptr(Kd));
+		glUniform3fv(sShaderProgram->uniform("Material.Ks"), 1, glm::value_ptr(Ks));
+		glUniform1fv(sShaderProgram->uniform("Material.Shiness"), 1, &shiness);
+
+
+		glUniformMatrix4fv(sShaderProgram->uniform("lightSpaceMatrix"), 1, GL_FALSE, glm::value_ptr(lightSpace));
+
+		glUniform1i(sShaderProgram->uniform("shadowMap"), 0);
+
+		glUniform1i(sShaderProgram->uniform("hasColor"), false);
+		glUniform1i(sShaderProgram->uniform("shadowType"), i);
+		
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, shadowMap);
+
+		Hierachy->activeOBJList[i]->RenderPicking();
+	}
+	sShaderProgram->disable();
+
+	/*glDisable(GL_CULL_FACE);
+	glDisable(GL_BLEND);*/
+}
+
 void BackstageWindow::renderPhase(int selectedObjID) {
 
-	modelMat = m_model.getMatrix();
-
-	//그리드 그리기
-	grid->draw(modelMat, viewMat, projectionMat);
 
 	glm::mat4 origin = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, 0.0f));
 
@@ -247,7 +345,6 @@ void BackstageWindow::renderPhase(int selectedObjID) {
 	m_cylinder->draw(modelMat, viewMat, projection,origin,0,0,0);
 	origin = glm::translate(glm::mat4(1.0f), glm::vec3(-10.0f, 0.0f, 0.0f));
 	m_sphere->draw(modelMat, viewMat, projection, origin, glm::vec3(0, 30, 0));*/
-
 
 	Hierachy->drawList(modelViewArray, viewMat, projectionMat, origin,cam.Position, glm::vec3(0, 30, 0));
 
@@ -264,15 +361,30 @@ void BackstageWindow::SetWindowSize(int m_width, int m_height, int xPos, int yPo
 	backstageYPos = yPos+4;
 	windowWidth = m_windowWidth;
 	windowHeight = m_windowHeight;
-	glViewport(backstageXPos, backstageYPos, m_width, m_height);
+	glViewport(backstageXPos, backstageYPos, backstageWidth, backstageHeight);
+
+	//SetViewport(windowWidth, windowHeight);
 
 	generateOutlineMap();
-	generateShadowMap((ShadowType)0);
+	initializeShadowMap();
 }
 
 void BackstageWindow::SetViewport(int m_width, int m_height) {
-	std::cout << "SetViewport" << std::endl;
+	//std::cout << "SetViewport" << std::endl;
 	//glViewport(backstageXPos, backstageYPos, m_width, m_height);
+	glClearColor(0.0f, 0.0f, 0.0f, 0);		//background color
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);		//clear up color and depth buffer
+
+	glEnable(GL_SCISSOR_TEST);
+	glClearColor(0.5f, 0.5f, 0.5f, 0);		//background color
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);		//clear up color and depth buffer
+	glEnable(GL_CLIP_DISTANCE0);
+	glEnable(GL_DEPTH_TEST);			//test whether an object is in front of other object?
+
+	glViewport(backstageXPos, backstageYPos, windowWidth, windowHeight);
+	glScissor(backstageXPos, backstageYPos, backstageWidth, backstageHeight);
+
+	glDisable(GL_SCISSOR_TEST);
 }
 
 void BackstageWindow::setupBuffer() {
@@ -280,13 +392,63 @@ void BackstageWindow::setupBuffer() {
 	Hierachy = new HierarchyWindow();
 	grid = new Grid();
 	Hierachy->createOBJ(4);
-	//Hierachy->createOBJ(1);
+	Hierachy->createOBJ(1);
+	Hierachy->createOBJ(0);
 	/*m_cylinder = new BuiltInCylinder();
 	m_cube = new BuiltInCube(0);
 	m_sphere = new BuiltInSphere();*/
 
 	generateOutlineMap();
-	generateShadowMap((ShadowType)0);
+	initializeShadowMap();
+}
+
+void BackstageWindow::generateShadowMap(glm::mat4 lightSpace) {
+
+	SetViewport(windowWidth, windowHeight);
+
+	//glCullFace(GL_FRONT);
+	shadowShaderProgram->use();
+	for (int i = 10; i < Hierachy->objectNum; i++) {
+		glUniformMatrix4fv(shadowShaderProgram->uniform("Model"), 1, GL_FALSE, glm::value_ptr(modelViewArray[i]));
+		glUniformMatrix4fv(shadowShaderProgram->uniform("lightSpaceMatrix"), 1, GL_FALSE, glm::value_ptr(lightSpace));
+
+		Hierachy->activeOBJList[i]->RenderPicking();
+	}
+	shadowShaderProgram->disable();
+	//glCullFace(GL_BACK);
+
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+	SetViewport(windowWidth, windowHeight);
+
+}
+
+bool BackstageWindow::initializeShadowMap() {
+	glGenFramebuffers(1, &m_shadowfbo);
+	glBindFramebuffer(GL_FRAMEBUFFER, m_shadowfbo);
+
+	glGenTextures(1, &shadowMap);
+	glBindTexture(GL_TEXTURE_2D, shadowMap);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, backstageWidth, backstageWidth, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+
+
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, shadowMap, 0);
+
+	glDrawBuffer(GL_NONE);
+	glReadBuffer(GL_NONE);
+	//Always check that our framebuffer is ok
+	if (glCheckFramebufferStatus((GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE))
+		return false;
+
+	glBindTexture(GL_TEXTURE_2D, 0);
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+	return true;
+	
 }
 
 bool BackstageWindow::generateOutlineMap() {
@@ -297,7 +459,6 @@ bool BackstageWindow::generateOutlineMap() {
 	//Create the texture object for the primitive information buffer
 	glGenTextures(1, &m_pickingTexture);
 	glBindTexture(GL_TEXTURE_2D, m_pickingTexture);
-	//glTexImage2D(GL_TEXTURE_2D, 0,GL_RGB32F, backstageWidth, backstageHeight, 0, GL_RGB, GL_FLOAT, NULL);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F, windowWidth, windowHeight, 0, GL_RGB, GL_FLOAT, NULL);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_pickingTexture, 0);
 	
@@ -325,9 +486,5 @@ bool BackstageWindow::generateOutlineMap() {
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 	return glGetError() == GL_NO_ERROR;
-
-}
-
-void BackstageWindow::generateShadowMap(ShadowType type) {
 
 }

@@ -204,6 +204,10 @@
     <None Include="Shader\Phong.vert" />
     <None Include="Shader\picking.frag" />
     <None Include="Shader\picking.vert" />
+    <None Include="Shader\shadow.frag" />
+    <None Include="Shader\shadow.vert" />
+    <None Include="Shader\shadowMap.frag" />
+    <None Include="Shader\shadowMap.vert" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -208,5 +208,17 @@
     <None Include="Shader\modelTexture.frag">
       <Filter>소스 파일\Shader</Filter>
     </None>
+    <None Include="Shader\shadowMap.frag">
+      <Filter>소스 파일\Shader</Filter>
+    </None>
+    <None Include="Shader\shadowMap.vert">
+      <Filter>소스 파일\Shader</Filter>
+    </None>
+    <None Include="Shader\shadow.frag">
+      <Filter>소스 파일\Shader</Filter>
+    </None>
+    <None Include="Shader\shadow.vert">
+      <Filter>소스 파일\Shader</Filter>
+    </None>
   </ItemGroup>
 </Project>
