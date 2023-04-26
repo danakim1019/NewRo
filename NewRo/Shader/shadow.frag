@@ -49,6 +49,61 @@ float ShadowCalculation(vec4 fragPosLightSpace){
 	return shadow;
 }
 
+float InterpolatedCompare(sampler2D depths, vec2 uv, float currentDepth, float bias){
+	vec2 textureSize = textureSize(shadowMap,0);
+	float closestDepth = texture(shadowMap,uv).r;
+
+	vec3 normal = normalize(Normal);
+	vec3 lightdir = normalize(Light.Position.xyz-Position);
+
+	float shadow = currentDepth>closestDepth+bias?1.0:0.0;
+	if(currentDepth>1.0||uv.x<0||uv.y<0||1<uv.x||1<uv.y)
+		shadow=0.0;
+
+	return shadow;
+}
+
+float InterpolatedComparePCF(sampler2D depths, vec2 uv, float currentDepth){
+	vec2 size = textureSize(shadowMap,0);
+	vec2 texelSize = vec2(1.0,1.0)/size;
+
+	vec2 f = fract(uv*size+0.5);
+
+	vec2 textureSize = textureSize(shadowMap,0);
+	float bias = 2.0/textureSize.x;
+
+	float lb = InterpolatedCompare(depths, uv+texelSize*vec2(0.0,0.0),currentDepth,bias);
+	float lt = InterpolatedCompare(depths, uv+texelSize*vec2(0.0,1.0),currentDepth,bias);
+	float rb = InterpolatedCompare(depths, uv+texelSize*vec2(1.0,0.0),currentDepth,bias);
+	float rt = InterpolatedCompare(depths, uv+texelSize*vec2(1.0,1.0),currentDepth,bias);
+	float a = mix(lb,lt,f.y);
+	float b = mix(rb,rt,f.y);
+	float c = mix(a,b,f.x);
+	return c;
+}
+
+float ShadowCalculationInterPCF(vec4 fragPosLightSpace){
+	vec2 size = textureSize(shadowMap,0);
+	vec2 texelSize = vec2(1.0,1.0)/size;
+
+	vec3 projCoords = fragPosLightSpace.xyz/fragPosLightSpace.w;
+	projCoords = projCoords*0.5+0.5;
+	vec2 uv = projCoords.xy;
+	float currentDepth = projCoords.z;
+	float result = 0.0;
+
+	for(int x=-1;x<=1;x++)
+	{
+		for(int y=-1;y<=1;y++)
+		{
+			vec2 off = vec2(x,y)/size;
+			result += InterpolatedComparePCF(shadowMap,uv+off,currentDepth);
+		}
+	}
+
+	return result/9.0;
+}
+
 float ShadowCalculationVSMAnti(vec4 fragPosLightSpace){
    float shadow =0.0;
    vec3 projCoords = fragPosLightSpace.xyz / fragPosLightSpace.w;
@@ -93,6 +148,14 @@ void main()
 //		FragColors = vec4((ambient*(1.0-shadow))+diffuse+spec,1.0)*vec4(Color,1.0);
 //	else
 //		FragColors = vec4((ambient*(1.0-shadow))+diffuse+spec,1.0);
+
+	//InterPCF
+//	shadow = ShadowCalculationInterPCF(FragPosLightSpace);
+//	if(hasColor)
+//		FragColors = vec4((ambient*(1.0-shadow))+diffuse+spec,1.0)*vec4(Color,1.0);
+//	else
+//		FragColors = vec4((ambient*(1.0-shadow))+diffuse+spec,1.0);
+
 	//VSMAnti only
 	shadow = ShadowCalculationVSMAnti(FragPosLightSpace);
 	vec3 finalShadow = vec3(shadow);

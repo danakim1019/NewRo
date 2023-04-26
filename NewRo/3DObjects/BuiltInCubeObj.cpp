@@ -215,7 +215,6 @@ void BuiltInCube::generateNormals(glm::vec3 positions[]) {
 		vertexNormals.push_back(glm::vec3(0, 0, -1)); // Back Side
 	for (int i = 0; i < 2; i++)
 		vertexNormals.push_back(glm::vec3(0, 0, 1)); // front Side
-	
 	for (int i = 0; i < 2; i++)
 		vertexNormals.push_back(glm::vec3(0, 1, 0)); // top Side
 	for (int i = 0; i < 2; i++)

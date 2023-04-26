@@ -1,6 +1,6 @@
 #include"BackstageWindow.h"
 
-#include"3DObjects/stb_image.h"
+const unsigned int SHADOW_WIDTH = 1024, SHADOW_HEIGHT = 1024;
 
 BackstageWindow::BackstageWindow(int m_width, int m_height,int w_Width,int w_Height) :backstageWidth(m_width), backstageHeight(m_height) , windowWidth(w_Width),windowHeight(w_Height)
 { 
@@ -113,7 +113,7 @@ void BackstageWindow::DrawBackstageWindow(int m_width, int m_height, int selecte
 		glm::vec3(0, 1, 0));
 	glm::mat4 lightProjection = glm::ortho(-30.0f, 30.0f, -30.0f, 30.0f, -30.0f, 30.0f);
 	glm::mat4 lightSpace = lightProjection * lightView;
-
+	glm::mat4 origin = glm::mat4(1.0);
 
 	pickingPhase();
 
@@ -122,9 +122,8 @@ void BackstageWindow::DrawBackstageWindow(int m_width, int m_height, int selecte
 	guizmoPhase(selectedObjID);
 	outlinePhase(selectedObjID);
 
-	modelMat = m_model.getMatrix();
 	//그리드 그리기
-	grid->draw(modelMat, viewMat, projectionMat);
+	grid->draw(origin, viewMat, projectionMat);
 
 	//renderPhase(selectedObjID);
 	shadowPhase((ShadowType)0);
@@ -381,7 +380,8 @@ void BackstageWindow::SetViewport(int m_width, int m_height) {
 	glEnable(GL_CLIP_DISTANCE0);
 	glEnable(GL_DEPTH_TEST);			//test whether an object is in front of other object?
 
-	glViewport(backstageXPos, backstageYPos, windowWidth, windowHeight);
+	//glViewport(backstageXPos, backstageYPos, windowWidth, windowHeight);
+	glViewport(backstageXPos, backstageYPos, backstageWidth, backstageHeight);
 	glScissor(backstageXPos, backstageYPos, backstageWidth, backstageHeight);
 
 	glDisable(GL_SCISSOR_TEST);
@@ -404,7 +404,22 @@ void BackstageWindow::setupBuffer() {
 
 void BackstageWindow::generateShadowMap(glm::mat4 lightSpace) {
 
-	SetViewport(windowWidth, windowHeight);
+	/*glEnable(GL_CULL_FACE);
+	glCullFace(GL_BACK);
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);*/
+
+	//SetViewport(windowWidth, windowHeight);
+	//glEnable(GL_SCISSOR_TEST);
+	//glEnable(GL_CLIP_DISTANCE0);
+	//glEnable(GL_DEPTH_TEST);			//test whether an object is in front of other object?
+	glViewport(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT);
+	glBindFramebuffer(GL_FRAMEBUFFER, m_shadowfbo);
+	glClear(GL_DEPTH_BUFFER_BIT);
+	glActiveTexture(GL_TEXTURE0);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);		//clear up color and depth b
+	//glScissor(backstageXPos, backstageYPos, backstageWidth, backstageHeight);
+	//glDisable(GL_SCISSOR_TEST);
 
 	//glCullFace(GL_FRONT);
 	shadowShaderProgram->use();
@@ -419,6 +434,7 @@ void BackstageWindow::generateShadowMap(glm::mat4 lightSpace) {
 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
+	//glViewport(0, 0, windowWidth, windowHeight);
 	SetViewport(windowWidth, windowHeight);
 
 }
@@ -429,7 +445,7 @@ bool BackstageWindow::initializeShadowMap() {
 
 	glGenTextures(1, &shadowMap);
 	glBindTexture(GL_TEXTURE_2D, shadowMap);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, backstageWidth, backstageWidth, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, SHADOW_WIDTH, SHADOW_HEIGHT, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
