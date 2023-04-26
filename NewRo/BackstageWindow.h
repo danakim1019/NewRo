@@ -55,12 +55,18 @@ public:
 	GLuint m_outfbo;
 	void outlinePhase(int selectedObjID);
 	
+	//Shadow
 	ShaderProgram* shadowShaderProgram;
 	void shadowPhase(ShadowType type);
 	GLuint m_shadowfbo;
 
 	ShaderProgram* sShaderProgram;
 	GLuint shadowMap;
+
+	int shadowType;
+	bool isShadowDraw;
+	glm::mat4 lightProjection;
+	glm::mat4 lightSpace;
 
 	void renderPhase(int selectedObjID);
 

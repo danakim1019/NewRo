@@ -148,7 +148,7 @@ void BuiltInSphere::RenderModel(glm::mat4& model, glm::mat4& view, glm::mat4& pr
 
 	//if (type == 1)
 	{
-		glUniform4fv(shaderProgram->uniform("Light.Position"), 1, glm::value_ptr(lightPos));
+		glUniform4fv(shaderProgram->uniform("Light.Position"), 1, glm::value_ptr(view *lightPos));
 		glUniform3fv(shaderProgram->uniform("Light.La"), 1, glm::value_ptr(La));
 		glUniform3fv(shaderProgram->uniform("Light.Ld"), 1, glm::value_ptr(Ld));
 		glUniform3fv(shaderProgram->uniform("Light.Ls"), 1, glm::value_ptr(Ls));

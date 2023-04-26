@@ -115,6 +115,20 @@ public:
             selectedObj->setPosition(worldTransform[0], worldTransform[1], worldTransform[2]);
             selectedObj->setRotation(rotation[0], rotation[1], rotation[2]);
             selectedObj->setScale(scale[0], scale[1], scale[2]);
+
+            if (selectedObj->objectType == "Light") {
+                ImGui::Separator();
+                ImGui::Text("Light");
+                ImGui::Separator();
+                static bool isShadow = false;
+                ImGui::Checkbox("isShadow", &isShadow);
+                win->isShadowDraw = isShadow;
+                ImGui::Separator();
+                const char* items[] = { "HARD_SHADOW","INTERPOLED_SHADOW" ,"PCF_SHADOW" ,"INTERPOLED_PCF_SHADOW","VSM_SHADOW","FILTERED_VSM_SHADOW"};
+                static int item_current = 0;
+                ImGui::Combo("Shadow Type",&item_current,items,IM_ARRAYSIZE(items));
+                win->shadowType = item_current;
+            }
         }
 
         ImGui::End();

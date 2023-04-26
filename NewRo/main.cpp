@@ -62,7 +62,7 @@ public:
             ShowBackstageOverlay(&show_backstage_window);
         }
 
-        /*if (show_demo_window)
+      /*  if (show_demo_window)
              ImGui::ShowDemoWindow(&show_demo_window);*/
     }
 };

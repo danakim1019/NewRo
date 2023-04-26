@@ -1,6 +1,6 @@
 #include"BackstageWindow.h"
 
-const unsigned int SHADOW_WIDTH = 1024, SHADOW_HEIGHT = 1024;
+const unsigned int SHADOW_WIDTH = 2028, SHADOW_HEIGHT = 2028;
 
 BackstageWindow::BackstageWindow(int m_width, int m_height,int w_Width,int w_Height) :backstageWidth(m_width), backstageHeight(m_height) , windowWidth(w_Width),windowHeight(w_Height)
 { 
@@ -10,6 +10,8 @@ BackstageWindow::BackstageWindow(int m_width, int m_height,int w_Width,int w_Hei
 	setupBuffer();
 
 	angle = 0;
+
+	lightProjection = glm::ortho(-30.0f, 30.0f, -30.0f, 30.0f, -30.0f, 50.0f);
 
 	mCurrentGizmoOperation = ImGuizmo::TRANSLATE;
 	mCurrentGizmoMode = ImGuizmo::LOCAL;
@@ -50,6 +52,7 @@ void BackstageWindow::setupPickingShader() {
 	sShaderProgram->addUniform("Light.Position");
 	sShaderProgram->addUniform("Light.Intensity");
 	sShaderProgram->addUniform("hasColor");
+	sShaderProgram->addUniform("isShadow");
 
 	sShaderProgram->addUniform("Material.Ka");
 	sShaderProgram->addUniform("Material.Kd");
@@ -111,7 +114,6 @@ void BackstageWindow::DrawBackstageWindow(int m_width, int m_height, int selecte
 	glm::mat4 model;
 	glm::mat4 lightView = glm::lookAt(Hierachy->activeLightList[0]->getPositon(), glm::vec3(0, 0, 0),
 		glm::vec3(0, 1, 0));
-	glm::mat4 lightProjection = glm::ortho(-30.0f, 30.0f, -30.0f, 30.0f, -30.0f, 30.0f);
 	glm::mat4 lightSpace = lightProjection * lightView;
 	glm::mat4 origin = glm::mat4(1.0);
 
@@ -286,8 +288,7 @@ void BackstageWindow::shadowPhase(ShadowType type) {
 	int id = (int)type;
 	glm::mat4 lightView = glm::lookAt(Hierachy->activeLightList[0]->getPositon(), glm::vec3(0, 0, 0),
 		glm::vec3(0, 1, 0));
-	glm::mat4 lightProjection = glm::ortho(-30.0f, 30.0f, -30.0f, 30.0f, -30.0f, 30.0f);
-	glm::mat4 lightSpace = lightProjection * lightView;
+	lightSpace = lightProjection * lightView;
 
 
 	//shadow draw(projection mapping)
@@ -296,7 +297,7 @@ void BackstageWindow::shadowPhase(ShadowType type) {
 		glm::mat4 mview = viewMat * modelViewArray[i];
 		glm::mat4 mvp = projectionMat * mview;
 		glm::mat4 imvp = glm::inverse(mview);
-		glm::mat4 nmat = glm::mat3(glm::transpose(imvp));
+		glm::mat3 nmat = glm::mat3(glm::transpose(imvp));
 
 		glm::vec3 Ka = glm::vec3(0.3, 0.3, 0.3);
 		glm::vec3 Kd = glm::vec3(0.4, 0.4, 0.4);
@@ -307,7 +308,7 @@ void BackstageWindow::shadowPhase(ShadowType type) {
 		glUniformMatrix4fv(sShaderProgram->uniform("ModelMatrix"), 1, GL_FALSE, glm::value_ptr(modelViewArray[i]));
 		glUniformMatrix4fv(sShaderProgram->uniform("MVP"), 1, GL_FALSE, glm::value_ptr(mvp));
 		glUniformMatrix3fv(sShaderProgram->uniform("NormalMatrix"), 1, GL_FALSE, glm::value_ptr(nmat));
-		glUniform4fv(sShaderProgram->uniform("Light.Position"), 1, glm::value_ptr(Hierachy->activeLightList[0]->getPositon()));
+		glUniform4fv(sShaderProgram->uniform("Light.Position"), 1, glm::value_ptr(viewMat*glm::vec4(Hierachy->activeLightList[0]->getPositon(),1.0)));
 		glUniform3fv(sShaderProgram->uniform("Light.Intensity"), 1, glm::value_ptr(glm::vec3(1,1,1)));
 
 		glUniform3fv(sShaderProgram->uniform("Material.Ka"), 1, glm::value_ptr(Ka));
@@ -321,7 +322,8 @@ void BackstageWindow::shadowPhase(ShadowType type) {
 		glUniform1i(sShaderProgram->uniform("shadowMap"), 0);
 
 		glUniform1i(sShaderProgram->uniform("hasColor"), false);
-		glUniform1i(sShaderProgram->uniform("shadowType"), i);
+		glUniform1i(sShaderProgram->uniform("isShadow"), isShadowDraw);
+		glUniform1i(sShaderProgram->uniform("shadowType"), shadowType);
 		
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, shadowMap);
@@ -421,7 +423,7 @@ void BackstageWindow::generateShadowMap(glm::mat4 lightSpace) {
 	//glScissor(backstageXPos, backstageYPos, backstageWidth, backstageHeight);
 	//glDisable(GL_SCISSOR_TEST);
 
-	//glCullFace(GL_FRONT);
+	glCullFace(GL_FRONT);
 	shadowShaderProgram->use();
 	for (int i = 10; i < Hierachy->objectNum; i++) {
 		glUniformMatrix4fv(shadowShaderProgram->uniform("Model"), 1, GL_FALSE, glm::value_ptr(modelViewArray[i]));
@@ -430,7 +432,7 @@ void BackstageWindow::generateShadowMap(glm::mat4 lightSpace) {
 		Hierachy->activeOBJList[i]->RenderPicking();
 	}
 	shadowShaderProgram->disable();
-	//glCullFace(GL_BACK);
+	glCullFace(GL_BACK);
 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 

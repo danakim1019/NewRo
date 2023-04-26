@@ -23,7 +23,7 @@ void main(void)
    //FragOut = vec3(ModelMatrix*vec4(VertexPosition,1.0));
    FragOut = vec3(ModelMatrix*vec4(VertexPosition,1.0));
    Normal = normalize(NormalMatrix*VertexNormal);
-   Position = vec3(ModelViewMatrix * vec4(VertexPosition,1.0));
+   Position = (ModelViewMatrix * vec4(VertexPosition,1.0)).xyz;
    FragPosLightSpace = lightSpaceMatrix*vec4(FragOut,1.0);
    if(hasColor)
 		Color = VertexColor;
