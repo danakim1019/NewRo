@@ -1,13 +1,25 @@
 # NewRo
 ![](NewRo.gif)
 
-### NewRo is working on 💻!
+### **NewRo is working on 💻!**
+### **Only OpenGL 3.0 but update later**
+
+----------------------------------------------------------
+## **Shaodw**
+![](Shadow.gif)
+
+Shadow works only directional light now.
+
+PCF applied in my project and acne remain.
+
+Spot light and acne remove later topic.
 
 
-
+----------------------------------------------------------
 ## Libraries
 - ImGui : https://github.com/ocornut/imgui
 - ImGuizmo : https://github.com/CedricGuillemet/ImGuizmo
+- Meshoptimizer : https://github.com/zeux/meshoptimizer
 - GLEW : https://www.glfw.org/
 - Assimp : https://github.com/assimp/assimp
 - GLM : https://github.com/g-truc/glm
