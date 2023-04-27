@@ -22,11 +22,11 @@
     <Filter Include="헤더 파일\ImGUI">
       <UniqueIdentifier>{a28e8fb8-94b7-48b5-8125-74cbf9012d36}</UniqueIdentifier>
     </Filter>
-    <Filter Include="소스 파일\BuiltInObject">
-      <UniqueIdentifier>{611baad5-3fe2-4334-ac9e-5220ed598aca}</UniqueIdentifier>
-    </Filter>
     <Filter Include="소스 파일\Lights">
       <UniqueIdentifier>{8072898b-0a2a-4693-99cb-0103284f5489}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="소스 파일\Component">
+      <UniqueIdentifier>{611baad5-3fe2-4334-ac9e-5220ed598aca}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -172,6 +172,9 @@
     </ClInclude>
     <ClInclude Include="Lights\Light.h">
       <Filter>소스 파일\Lights</Filter>
+    </ClInclude>
+    <ClInclude Include="Component\Material.h">
+      <Filter>소스 파일\Component</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

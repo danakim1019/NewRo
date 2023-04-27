@@ -16,6 +16,8 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/mat4x4.hpp>
 
+#include"Component/Material.h"
+
 class OBJTransform {
 public:
 	OBJTransform() {
@@ -86,6 +88,8 @@ public:
 	unsigned int id = 0;
 	std::string objectType;
 	std::string shaderType;
+
+	Material* m_mat;
 };
 
 #endif

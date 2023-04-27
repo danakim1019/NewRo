@@ -12,20 +12,23 @@ void HierarchyWindow::createOBJ(int type)
 	OBJect* temp = new OBJect();
 	if (type == 0) {
 		temp = new BuiltInCube(0);
+		temp->m_mat = new Material();
 	}
 	else if (type == 1) {
 		temp = new BuiltInSphere();
+		temp->m_mat = new Material();
 	}
 	else if (type == 2) {
 		temp = new BuiltInCylinder();
+		temp->m_mat = new Material();
 	}
 	else if (type == 3) {		//obj loader
 		temp = new LoadedModelObj("../Asset/nanosuit/nanosuit.obj","modelTexture",true);
+		temp->m_mat = new Material();
 	}
 	else if (type == 4) {		//Light
 		temp = new Light(10,10,0);
-		//Light 정보값 입력
-					
+		//Light 정보값 입력		
 	}
 
 	activeOBJList.push_back(temp);

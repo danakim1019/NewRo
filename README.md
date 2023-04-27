@@ -1,12 +1,12 @@
 # NewRo
-![](NewRo.gif)
+![](Video/NewRo.gif)
 
 ### **NewRo is working on 💻!**
 ### **Only OpenGL 3.0 but update later**
 
 ----------------------------------------------------------
 ## **Shaodw**
-![](Shadow.gif)
+![](Video/Shadow.gif)
 
 Shadow works only directional light now.
 
@@ -14,6 +14,13 @@ PCF applied in my project and acne remain.
 
 Spot light and acne remove later topic.
 
+----------------------------------------------------------
+## **Material**
+![](Video/Material.gif)
+
+Material component change object color.
+
+Texture variable will update asap.
 
 ----------------------------------------------------------
 ## Libraries

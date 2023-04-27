@@ -68,6 +68,8 @@ public:
 
     static void ShowInspectorOverlay(bool* p_open)
     {
+        static ImVec4 color = ImVec4(114.0f / 255.0f, 144.0f / 255.0f, 154.0f / 255.0f, 200.0f / 255.0f);
+
         ImGui::SetNextWindowPos(ImVec2(windowWidth - inspectorWidth, 22));
         ImGui::SetNextWindowBgAlpha(0.5f);
         ImGui::SetNextWindowSize(ImVec2(inspectorWidth, windowHeight - projectWindowHeight - ((ImGui::GetStyle().FramePadding.y * 2) + 18)));
@@ -86,48 +88,86 @@ public:
                 win->setObjectName(s, selectedObjID);
             }
 
-            //worldTransform
-            glm::vec3 pos = selectedObj->getPositon();
-            worldTransform[0] = pos.x;
-            worldTransform[1] = pos.y;
-            worldTransform[2] = pos.z;
+            if (ImGui::CollapsingHeader("Transform", ImGuiTreeNodeFlags_DefaultOpen)) {
+                ImGui::Spacing();
+                //worldTransform
+                glm::vec3 pos = selectedObj->getPositon();
+                worldTransform[0] = pos.x;
+                worldTransform[1] = pos.y;
+                worldTransform[2] = pos.z;
 
-            glm::vec3 rot = selectedObj->getRotation();
-            rotation[0] = rot.x;
-            rotation[1] = rot.y;
-            rotation[2] = rot.z;
+                glm::vec3 rot = selectedObj->getRotation();
+                rotation[0] = rot.x;
+                rotation[1] = rot.y;
+                rotation[2] = rot.z;
 
-            glm::vec3 sca = selectedObj->getScale();
-            scale[0] = sca.x;
-            scale[1] = sca.y;
-            scale[2] = sca.z;
+                glm::vec3 sca = selectedObj->getScale();
+                scale[0] = sca.x;
+                scale[1] = sca.y;
+                scale[2] = sca.z;
 
-            ImGui::Separator();
-            ImGui::Text("Transform");
-            ImGui::Separator();
-            ImGui::InputFloat3("Position", worldTransform);
-            ImGui::Separator();
-            ImGui::InputFloat3("Rotation", rotation);
-            ImGui::Separator();
-            ImGui::InputFloat3("Scale", scale);
+                ImGui::InputFloat3("Position", worldTransform);
+                ImGui::InputFloat3("Rotation", rotation);
+                ImGui::InputFloat3("Scale", scale);
 
-
-            selectedObj->setPosition(worldTransform[0], worldTransform[1], worldTransform[2]);
-            selectedObj->setRotation(rotation[0], rotation[1], rotation[2]);
-            selectedObj->setScale(scale[0], scale[1], scale[2]);
+                selectedObj->setPosition(worldTransform[0], worldTransform[1], worldTransform[2]);
+                selectedObj->setRotation(rotation[0], rotation[1], rotation[2]);
+                selectedObj->setScale(scale[0], scale[1], scale[2]);
+            }
 
             if (selectedObj->objectType == "Light") {
-                ImGui::Separator();
-                ImGui::Text("Light");
-                ImGui::Separator();
-                static bool isShadow = false;
-                ImGui::Checkbox("isShadow", &isShadow);
-                win->isShadowDraw = isShadow;
-                ImGui::Separator();
-                const char* items[] = { "HARD_SHADOW","INTERPOLED_SHADOW" ,"PCF_SHADOW" ,"INTERPOLED_PCF_SHADOW","VSM_SHADOW","FILTERED_VSM_SHADOW"};
-                static int item_current = 0;
-                ImGui::Combo("Shadow Type",&item_current,items,IM_ARRAYSIZE(items));
-                win->shadowType = item_current;
+                if (ImGui::CollapsingHeader("Light", ImGuiTreeNodeFlags_DefaultOpen)) {
+                    ImGui::Spacing();
+                    static bool isShadow = false;
+                    ImGui::Checkbox("isShadow", &isShadow);
+                    win->isShadowDraw = isShadow;
+                    //ImGui::Separator();
+                    const char* items[] = { "HARD_SHADOW","INTERPOLED_SHADOW" ,"PCF_SHADOW" ,"INTERPOLED_PCF_SHADOW","VSM_SHADOW","FILTERED_VSM_SHADOW" };
+                    static int item_current = 0;
+                    ImGui::Combo("Shadow Type", &item_current, items, IM_ARRAYSIZE(items));
+                    win->shadowType = item_current;
+                    static ImVec4 light_color = ImVec4(1, 1, 1, 1);
+                    ImGui::ColorEdit4("Light Color", &light_color.x, ImGuiColorEditFlags_NoInputs);
+                }
+            }
+
+            if (selectedObj->m_mat!=NULL) {
+                if (ImGui::CollapsingHeader("Material", ImGuiTreeNodeFlags_DefaultOpen)) {
+                    ImGui::Spacing();
+                    static bool alpha_preview = true;
+                    static bool alpha_half_preview = false;
+                    static bool drag_and_drop = true;
+                    static bool options_menu = true;
+                    static bool hdr = false;
+                    ImGuiColorEditFlags misc_flags = (hdr ? ImGuiColorEditFlags_HDR : 0) | (drag_and_drop ? 0 : ImGuiColorEditFlags_NoDragDrop) | (alpha_half_preview ? ImGuiColorEditFlags_AlphaPreviewHalf : (alpha_preview ? ImGuiColorEditFlags_AlphaPreview : 0)) | (options_menu ? 0 : ImGuiColorEditFlags_NoOptions);
+                    static ImVec4 Ka_color = ImVec4(1, 1, 1, 1), Kd_color = ImVec4(1, 1, 1, 1), Ks_color = ImVec4(1, 1, 1, 1);
+
+                    float* valueM = selectedObj->m_mat->getKa();
+                    ImVec4 _value = ImVec4(valueM[0], valueM[1], valueM[2], 1.0);
+                    Ka_color = _value;
+
+                    valueM = selectedObj->m_mat->getKd();
+                    _value = ImVec4(valueM[0], valueM[1], valueM[2], 1.0);
+                    Kd_color = _value;
+
+                    valueM = selectedObj->m_mat->getKs();
+                    _value = ImVec4(valueM[0], valueM[1], valueM[2], 1.0);
+                    Ks_color = _value;
+
+                    static float shiness;
+                    shiness = selectedObj->m_mat->getShiness();
+
+                    ImGui::SliderFloat("Shiness", &shiness, 0, 32);
+                    ImGui::ColorEdit4("Ka", &Ka_color.x, ImGuiColorEditFlags_NoInputs); ImGui::SameLine();
+                    ImGui::ColorEdit4("Kd", &Kd_color.x, ImGuiColorEditFlags_NoInputs); ImGui::SameLine();
+                    ImGui::ColorEdit4("Ks", &Ks_color.x, ImGuiColorEditFlags_NoInputs);
+                    
+                    float* valueKa = new float[3] {Ka_color.x, Ka_color.y, Ka_color.z};
+                    float* valueKd = new float[3] {Kd_color.x, Kd_color.y, Kd_color.z};
+                    float* valueKs = new float[3] {Ks_color.x, Ks_color.y, Ks_color.z};
+                    selectedObj->m_mat->setShaderValue(valueKa, valueKd, valueKs,shiness);
+
+                }
             }
         }
 

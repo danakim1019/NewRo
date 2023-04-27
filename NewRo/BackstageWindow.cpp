@@ -299,10 +299,7 @@ void BackstageWindow::shadowPhase(ShadowType type) {
 		glm::mat4 imvp = glm::inverse(mview);
 		glm::mat3 nmat = glm::mat3(glm::transpose(imvp));
 
-		glm::vec3 Ka = glm::vec3(0.3, 0.3, 0.3);
-		glm::vec3 Kd = glm::vec3(0.4, 0.4, 0.4);
-		glm::vec3 Ks = glm::vec3(0.9, 0.9, 0.9);
-		float shiness = 10;
+		glm::vec3 errorColor = glm::vec3(1,0.353,0.808);
 
 		glUniformMatrix4fv(sShaderProgram->uniform("ModelViewMatrix"),1,GL_FALSE,glm::value_ptr(mview));
 		glUniformMatrix4fv(sShaderProgram->uniform("ModelMatrix"), 1, GL_FALSE, glm::value_ptr(modelViewArray[i]));
@@ -311,11 +308,23 @@ void BackstageWindow::shadowPhase(ShadowType type) {
 		glUniform4fv(sShaderProgram->uniform("Light.Position"), 1, glm::value_ptr(viewMat*glm::vec4(Hierachy->activeLightList[0]->getPositon(),1.0)));
 		glUniform3fv(sShaderProgram->uniform("Light.Intensity"), 1, glm::value_ptr(glm::vec3(1,1,1)));
 
-		glUniform3fv(sShaderProgram->uniform("Material.Ka"), 1, glm::value_ptr(Ka));
-		glUniform3fv(sShaderProgram->uniform("Material.Kd"), 1, glm::value_ptr(Kd));
-		glUniform3fv(sShaderProgram->uniform("Material.Ks"), 1, glm::value_ptr(Ks));
-		glUniform1fv(sShaderProgram->uniform("Material.Shiness"), 1, &shiness);
+		if (Hierachy->activeOBJList[i]->m_mat != NULL) {
+			float* Ka = Hierachy->activeOBJList[i]->m_mat->getKa();
+			float* Kd = Hierachy->activeOBJList[i]->m_mat->getKd();
+			float* Ks = Hierachy->activeOBJList[i]->m_mat->getKs();
+			float shiness = Hierachy->activeOBJList[i]->m_mat->getShiness();
 
+			glUniform3fv(sShaderProgram->uniform("Material.Ka"), 1, Ka);
+			glUniform3fv(sShaderProgram->uniform("Material.Kd"), 1, Kd);
+			glUniform3fv(sShaderProgram->uniform("Material.Ks"), 1, Ks);
+			glUniform1fv(sShaderProgram->uniform("Material.Shiness"), 1, &shiness);
+		}
+		else {
+			glUniform3fv(sShaderProgram->uniform("Material.Ka"), 1, glm::value_ptr(errorColor));
+			glUniform3fv(sShaderProgram->uniform("Material.Kd"), 1, glm::value_ptr(errorColor));
+			glUniform3fv(sShaderProgram->uniform("Material.Ks"), 1, glm::value_ptr(errorColor));
+			glUniform1fv(sShaderProgram->uniform("Material.Shiness"), 1, 0);
+		}
 
 		glUniformMatrix4fv(sShaderProgram->uniform("lightSpaceMatrix"), 1, GL_FALSE, glm::value_ptr(lightSpace));
 

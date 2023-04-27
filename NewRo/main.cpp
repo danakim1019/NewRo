@@ -62,8 +62,8 @@ public:
             ShowBackstageOverlay(&show_backstage_window);
         }
 
-      /*  if (show_demo_window)
-             ImGui::ShowDemoWindow(&show_demo_window);*/
+        //if (show_demo_window)
+        //     ImGui::ShowDemoWindow(&show_demo_window);
     }
 };
 
@@ -103,6 +103,9 @@ int main(int, char**)
 
     // Setup Dear ImGui style
     ImGui::StyleColorsDark();
+    ImGuiStyle* style = &ImGui::GetStyle();
+    style->WindowTitleAlign=ImVec2(0.5f, 0.5f);
+    style->ItemSpacing = ImVec2(6, 8);
 
     // Setup Platform/Renderer backends
     ImGui_ImplGlfw_InitForOpenGL(window, true);
