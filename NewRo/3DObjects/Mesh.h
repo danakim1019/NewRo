@@ -13,11 +13,11 @@
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
 
-
-
 //#include "Light.h"
 
 using namespace std;
+
+#define NUM_BONES_PER_VERTEX 4
 
 struct Vertex
 {
@@ -31,6 +31,47 @@ struct Texture
 	unsigned int id;
 	string type;
 	aiString path;
+};
+
+struct BoneInfo {
+	glm::mat4 offset;
+	glm::mat4 FinalTransformation;
+	glm::fdualquat FinalTransDQ;	//dual quaternion
+
+	BoneInfo() {
+		offset = glm::mat4(1.0f);
+		FinalTransformation = glm::mat4(1.0f);
+		FinalTransDQ.real = glm::quat(1.0f, 0.0f, 0.0f, 0.0f);
+		FinalTransDQ.dual = glm::quat(0.0f, 0.0f, 0.0f, 0.0f);
+	}
+};
+
+struct VertexBoneData {
+	//vertex bone data
+	unsigned int BoneIDs[NUM_BONES_PER_VERTEX];
+	float Weights[NUM_BONES_PER_VERTEX];
+
+	VertexBoneData() {
+		Reset();
+	}
+
+	void Reset() {
+		for (unsigned int i = 0; i < NUM_BONES_PER_VERTEX; i++) {
+			BoneIDs[i] = 0;
+			Weights[i] = 0;
+		}
+	}
+
+	void AddBoneData(unsigned int BoneID, float Weight) {
+		for (unsigned int i = 0; i < NUM_BONES_PER_VERTEX; i++) {
+			if (Weights[i] == 0.0)
+			{
+				BoneIDs[i] = BoneID;
+				Weights[i] = Weight;
+				return;
+			}
+		}
+	}
 };
 
 class Mesh

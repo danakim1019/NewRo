@@ -176,6 +176,9 @@
     <ClInclude Include="Component\Material.h">
       <Filter>소스 파일\Component</Filter>
     </ClInclude>
+    <ClInclude Include="3DObjects\Skeleton.h">
+      <Filter>소스 파일\3DObjects</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="Shader\black.frag">

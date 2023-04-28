@@ -360,6 +360,49 @@ void BackstageWindow::renderPhase(int selectedObjID) {
 
 }
 
+void BackstageWindow::animationPhase(float animationTime, unsigned int st, unsigned int num, unsigned int shadow)
+{
+	animShaderProgram->use();
+		//반복하도록 설정
+		float TimeInTicks = animationTime * 30.0f;
+
+		int type = ((LoadedModelObj*)Hierachy->activeOBJList[0])->BoneTransform(TimeInTicks, Transforms, dualQuaternions);
+		type = 0;
+		float rate = 0.5;
+
+		vector<glm::fdualquat> dualQuaternions3;
+		for (unsigned int i = 0; i < Transforms.size(); i++) {
+			glm::fdualquat a = dualQuaternions[i];
+			//glm::fdualquat b = dualQuaternions2[i];
+			//glm::fdualquat c = glm::lerp(a,b,rate);
+
+			Transforms3[i] = Transforms[i];
+			dualQuaternions3.push_back(a);
+		}
+
+		glUniformMatrix4fv(animShaderProgram->uniform("gBones[0]"), Transforms3.size(), GL_FALSE, glm::value_ptr(Transforms3[0]));
+	
+		DQs.resize(dualQuaternions.size());
+
+		for (unsigned int i = 0; i < dualQuaternions.size(); i++) {
+			DQs[i] = glm::mat2x4_cast(dualQuaternions3[i]);		//blended result
+		}
+		glUniformMatrix2x4fv(animShaderProgram->uniform("dqs[0]"),dualQuaternions.size(),GL_FALSE,glm::value_ptr(DQs[0]));
+
+		unsigned int startIndex = st;
+		glUniform1uiv(animShaderProgram->uniform("startIndex"), 1, &startIndex);
+		glUniform1ui(animShaderProgram->uniform("character"), 1);
+
+		if (shadow)
+			glUniform1ui(animShaderProgram->uniform("shadow"), 1);
+		else
+			glUniform1ui(animShaderProgram->uniform("shadow"), 0);
+
+
+
+	animShaderProgram->disable();
+}
+
 void BackstageWindow::createBuiltInOBJ(int BuiltInType) {
 	Hierachy->createOBJ(BuiltInType);
 }

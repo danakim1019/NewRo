@@ -70,6 +70,21 @@ public:
 
 	void renderPhase(int selectedObjID);
 
+	//Animation
+	void animationPhase(float animationTime, unsigned int st, unsigned int num, unsigned int shadow);
+	vector<glm::mat4> Transforms;
+	vector<glm::fdualquat> dualQuaternions;
+	vector<glm::mat2x4> DQs;
+
+	vector<glm::mat4> Transforms2;
+	vector<glm::mat4> Transforms3;
+
+	ShaderProgram* animShaderProgram;
+
+	//vector<glm::fdualquat> dualQuaternions2;
+	//vector<glm::mat2x4> DQs2;
+
+
 	camera cam;
 
 	BackstageWindow(int m_width, int m_height, int windowWidth, int windowHeight);
