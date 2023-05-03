@@ -118,14 +118,12 @@ public:
             if (selectedObj->objectType == "Light") {
                 if (ImGui::CollapsingHeader("Light", ImGuiTreeNodeFlags_DefaultOpen)) {
                     ImGui::Spacing();
-                    static bool isShadow = false;
+                    static bool isShadow = true;
                     ImGui::Checkbox("isShadow", &isShadow);
-                    win->isShadowDraw = isShadow;
-                    //ImGui::Separator();
                     const char* items[] = { "HARD_SHADOW","INTERPOLED_SHADOW" ,"PCF_SHADOW" ,"INTERPOLED_PCF_SHADOW","VSM_SHADOW","FILTERED_VSM_SHADOW" };
-                    static int item_current = 0;
-                    ImGui::Combo("Shadow Type", &item_current, items, IM_ARRAYSIZE(items));
-                    win->shadowType = item_current;
+                    static int shadowType_current = 0;
+                    ImGui::Combo("Shadow Type", &shadowType_current, items, IM_ARRAYSIZE(items));
+                    win->setShadow(isShadow, shadowType_current);
                     static ImVec4 light_color = ImVec4(1, 1, 1, 1);
                     ImGui::ColorEdit4("Light Color", &light_color.x, ImGuiColorEditFlags_NoInputs);
                 }

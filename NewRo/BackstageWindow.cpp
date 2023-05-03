@@ -11,7 +11,7 @@ BackstageWindow::BackstageWindow(int m_width, int m_height,int w_Width,int w_Hei
 
 	angle = 0;
 
-	lightProjection = glm::ortho(-30.0f, 30.0f, -30.0f, 30.0f, -30.0f, 50.0f);
+	lightProjection = glm::ortho(-30.0f, 30.0f, -30.0f, 30.0f, -80.0f, 80.0f);
 
 	mCurrentGizmoOperation = ImGuizmo::TRANSLATE;
 	mCurrentGizmoMode = ImGuizmo::LOCAL;
@@ -45,29 +45,7 @@ void BackstageWindow::setupPickingShader() {
 
 	sShaderProgram = new ShaderProgram();
 	sShaderProgram->initFromFiles("Shader/shadow.vert", "Shader/shadow.frag");
-	sShaderProgram->addAttribute("VertexPosition");
-	sShaderProgram->addAttribute("VertexNormal");
-	sShaderProgram->addAttribute("VertexColor");
-
-	sShaderProgram->addUniform("Light.Position");
-	sShaderProgram->addUniform("Light.Intensity");
-	sShaderProgram->addUniform("hasColor");
-	sShaderProgram->addUniform("isShadow");
-
-	sShaderProgram->addUniform("Material.Ka");
-	sShaderProgram->addUniform("Material.Kd");
-	sShaderProgram->addUniform("Material.Ks");
-	sShaderProgram->addUniform("Material.Shiness");
-
-	sShaderProgram->addUniform("ModelViewMatrix");
-	sShaderProgram->addUniform("ProjectionMatrix");
-	sShaderProgram->addUniform("NormalMatrix");
-	sShaderProgram->addUniform("ModelMatrix");
-	sShaderProgram->addUniform("MVP");
-
-	sShaderProgram->addUniform("lightSpaceMatrix");
-	sShaderProgram->addUniform("shadowMap");
-	sShaderProgram->addUniform("shadowType");
+	
 }
 
 BackstageWindow::PixelInfo BackstageWindow::ReadPixel(unsigned int x, unsigned int y) {
@@ -119,7 +97,9 @@ void BackstageWindow::DrawBackstageWindow(int m_width, int m_height, int selecte
 
 	pickingPhase();
 
-	generateShadowMap(lightSpace);
+	if (Hierachy->activeLightList.size() > 0) {
+		generateShadowMap(lightSpace, ((Light*)Hierachy->activeLightList[0])->shadow);
+	}
 
 	guizmoPhase(selectedObjID);
 	outlinePhase(selectedObjID);
@@ -128,7 +108,9 @@ void BackstageWindow::DrawBackstageWindow(int m_width, int m_height, int selecte
 	grid->draw(origin, viewMat, projectionMat);
 
 	//renderPhase(selectedObjID);
-	shadowPhase((ShadowType)0);
+	if (Hierachy->activeLightList.size() > 0) {
+		shadowPhase(((Light*)Hierachy->activeLightList[0])->shadow);
+	}
 
 
 	if (angle == 360)
@@ -276,7 +258,7 @@ void BackstageWindow::outlinePhase(int selectedObjID) {
 }
 
 
-void BackstageWindow::shadowPhase(ShadowType type) {
+void BackstageWindow::shadowPhase(Shadow* shadow) {
 	/*glEnable(GL_CULL_FACE);
 	glCullFace(GL_BACK);
 	glEnable(GL_BLEND);
@@ -285,61 +267,101 @@ void BackstageWindow::shadowPhase(ShadowType type) {
 	//glHint(GL_MULTISAMPLE_FILTER_HINT_NV, GL_NICEST);
 
 	glm::mat4 model;
-	int id = (int)type;
 	glm::mat4 lightView = glm::lookAt(Hierachy->activeLightList[0]->getPositon(), glm::vec3(0, 0, 0),
 		glm::vec3(0, 1, 0));
 	lightSpace = lightProjection * lightView;
 
+	glm::mat4 origin = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, 0.0f));
+	Hierachy->drawList(modelViewArray, viewMat, projectionMat, origin, 
+		cam.Position, glm::vec3(0, 30, 0), lightSpace, shadow);
 
 	//shadow draw(projection mapping)
-	sShaderProgram->use();
-	for (int i = 10; i < Hierachy->objectNum; i++) {
-		glm::mat4 mview = viewMat * modelViewArray[i];
-		glm::mat4 mvp = projectionMat * mview;
-		glm::mat4 imvp = glm::inverse(mview);
-		glm::mat3 nmat = glm::mat3(glm::transpose(imvp));
+	//sShaderProgram->use();
+	//for (int i = 10; i < Hierachy->objectNum; i++) {
+	//	glm::mat4 mview = viewMat * modelViewArray[i];
+	//	glm::mat4 mvp = projectionMat * mview;
+	//	glm::mat4 imvp = glm::inverse(mview);
+	//	glm::mat3 nmat = glm::mat3(glm::transpose(imvp));
 
-		glm::vec3 errorColor = glm::vec3(1,0.353,0.808);
+	//	glm::vec3 errorColor = glm::vec3(1,0.353,0.808);
 
-		glUniformMatrix4fv(sShaderProgram->uniform("ModelViewMatrix"),1,GL_FALSE,glm::value_ptr(mview));
-		glUniformMatrix4fv(sShaderProgram->uniform("ModelMatrix"), 1, GL_FALSE, glm::value_ptr(modelViewArray[i]));
-		glUniformMatrix4fv(sShaderProgram->uniform("MVP"), 1, GL_FALSE, glm::value_ptr(mvp));
-		glUniformMatrix3fv(sShaderProgram->uniform("NormalMatrix"), 1, GL_FALSE, glm::value_ptr(nmat));
-		glUniform4fv(sShaderProgram->uniform("Light.Position"), 1, glm::value_ptr(viewMat*glm::vec4(Hierachy->activeLightList[0]->getPositon(),1.0)));
-		glUniform3fv(sShaderProgram->uniform("Light.Intensity"), 1, glm::value_ptr(glm::vec3(1,1,1)));
+	//*	glUniformMatrix4fv(sShaderProgram->uniform("ModelViewMatrix"),1,GL_FALSE,glm::value_ptr(mview));
+	//	glUniformMatrix4fv(sShaderProgram->uniform("ModelMatrix"), 1, GL_FALSE, glm::value_ptr(modelViewArray[i]));
+	//	glUniformMatrix4fv(sShaderProgram->uniform("MVP"), 1, GL_FALSE, glm::value_ptr(mvp));
+	//	glUniformMatrix3fv(sShaderProgram->uniform("NormalMatrix"), 1, GL_FALSE, glm::value_ptr(nmat));
+	//	glUniform4fv(sShaderProgram->uniform("Light.Position"), 1, glm::value_ptr(viewMat*glm::vec4(Hierachy->activeLightList[0]->getPositon(),1.0)));
+	//	glUniform3fv(sShaderProgram->uniform("Light.Intensity"), 1, glm::value_ptr(glm::vec3(1,1,1)));*/
 
-		if (Hierachy->activeOBJList[i]->m_mat != NULL) {
-			float* Ka = Hierachy->activeOBJList[i]->m_mat->getKa();
-			float* Kd = Hierachy->activeOBJList[i]->m_mat->getKd();
-			float* Ks = Hierachy->activeOBJList[i]->m_mat->getKs();
-			float shiness = Hierachy->activeOBJList[i]->m_mat->getShiness();
+	//	if (Hierachy->activeOBJList[i]->m_mat != NULL) {
+	//		float* Ka = Hierachy->activeOBJList[i]->m_mat->getKa();
+	//		float* Kd = Hierachy->activeOBJList[i]->m_mat->getKd();
+	//		float* Ks = Hierachy->activeOBJList[i]->m_mat->getKs();
+	//		float shiness = Hierachy->activeOBJList[i]->m_mat->getShiness();
 
-			glUniform3fv(sShaderProgram->uniform("Material.Ka"), 1, Ka);
-			glUniform3fv(sShaderProgram->uniform("Material.Kd"), 1, Kd);
-			glUniform3fv(sShaderProgram->uniform("Material.Ks"), 1, Ks);
-			glUniform1fv(sShaderProgram->uniform("Material.Shiness"), 1, &shiness);
-		}
-		else {
-			glUniform3fv(sShaderProgram->uniform("Material.Ka"), 1, glm::value_ptr(errorColor));
-			glUniform3fv(sShaderProgram->uniform("Material.Kd"), 1, glm::value_ptr(errorColor));
-			glUniform3fv(sShaderProgram->uniform("Material.Ks"), 1, glm::value_ptr(errorColor));
-			glUniform1fv(sShaderProgram->uniform("Material.Shiness"), 1, 0);
-		}
+	//		glUniform3fv(sShaderProgram->uniform("Material.Ka"), 1, Ka);
+	//		glUniform3fv(sShaderProgram->uniform("Material.Kd"), 1, Kd);
+	//		glUniform3fv(sShaderProgram->uniform("Material.Ks"), 1, Ks);
+	//		glUniform1fv(sShaderProgram->uniform("Material.Shiness"), 1, &shiness);
+	//	}
+	//	else {
+	//		glUniform3fv(sShaderProgram->uniform("Material.Ka"), 1, glm::value_ptr(errorColor));
+	//		glUniform3fv(sShaderProgram->uniform("Material.Kd"), 1, glm::value_ptr(errorColor));
+	//		glUniform3fv(sShaderProgram->uniform("Material.Ks"), 1, glm::value_ptr(errorColor));
+	//		glUniform1fv(sShaderProgram->uniform("Material.Shiness"), 1, 0);
+	//	}
 
-		glUniformMatrix4fv(sShaderProgram->uniform("lightSpaceMatrix"), 1, GL_FALSE, glm::value_ptr(lightSpace));
+	//	glUniformMatrix4fv(sShaderProgram->uniform("lightSpaceMatrix"), 1, GL_FALSE, glm::value_ptr(lightSpace));
 
-		glUniform1i(sShaderProgram->uniform("shadowMap"), 0);
+	//	glUniform1i(sShaderProgram->uniform("shadowMap"), 0);
 
-		glUniform1i(sShaderProgram->uniform("hasColor"), false);
-		glUniform1i(sShaderProgram->uniform("isShadow"), isShadowDraw);
-		glUniform1i(sShaderProgram->uniform("shadowType"), shadowType);
-		
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, shadowMap);
+	//	glUniform1i(sShaderProgram->uniform("hasColor"), false);
+	//	glUniform1i(sShaderProgram->uniform("isShadow"), isShadowDraw);
+	//	glUniform1i(sShaderProgram->uniform("shadowType"), shadowType);
+	//	
+	//	glActiveTexture(GL_TEXTURE0);
+	//	glBindTexture(GL_TEXTURE_2D, shadowMap);
 
-		Hierachy->activeOBJList[i]->RenderPicking();
-	}
-	sShaderProgram->disable();
+	//	if (Hierachy->activeOBJList[i]->objectType == "LoadedModel") {
+	//		LoadedModelObj* obj = (LoadedModelObj*)Hierachy->activeOBJList[i];
+
+	//		//texture ³Ñ±â±â
+	//		unsigned int diffuseNr = 1;
+	//		unsigned int specularNr = 1;
+	//		unsigned int normalNr = 1;
+	//		unsigned int heightNr = 1;
+
+	//		for (GLuint z = 0; z < obj->meshes.size(); z++) {
+	//			for (unsigned int j = 0; i < obj->meshes[z].textures.size(); j++)
+	//			{
+	//				glActiveTexture(GL_TEXTURE0 + j); // activate proper texture unit before binding
+	//				// retrieve texture number (the N in diffuse_textureN)
+	//				std::stringstream ss;
+	//				std::string number;
+	//				std::string name = obj->meshes[z].textures[j].type;
+
+	//				if (name == "texture_diffuse")
+	//					ss << diffuseNr++; // transfer unsigned int to stream
+	//				else if (name == "texture_specular")
+	//					ss << specularNr++; // transfer unsigned int to stream
+	//				else if (name == "texture_normal")
+	//					ss << normalNr++; // transfer unsigned int to stream
+	//				else if (name == "texture_height")
+	//					ss << heightNr++; // transfer unsigned int to stream
+	//				number = ss.str();
+
+	//				std::string uniformName = name + number;
+	//				glUniform1i(sShaderProgram->uniform(uniformName), j);
+
+	//				glBindTexture(GL_TEXTURE_2D, obj->meshes[z].textures[j].id);
+
+	//			}
+	//		}
+	//	}
+
+
+	//	Hierachy->activeOBJList[i]->RenderPicking();
+	//}
+	//sShaderProgram->disable();
 
 	/*glDisable(GL_CULL_FACE);
 	glDisable(GL_BLEND);*/
@@ -356,7 +378,7 @@ void BackstageWindow::renderPhase(int selectedObjID) {
 	origin = glm::translate(glm::mat4(1.0f), glm::vec3(-10.0f, 0.0f, 0.0f));
 	m_sphere->draw(modelMat, viewMat, projection, origin, glm::vec3(0, 30, 0));*/
 
-	Hierachy->drawList(modelViewArray, viewMat, projectionMat, origin,cam.Position, glm::vec3(0, 30, 0));
+	Hierachy->drawList(modelViewArray, viewMat, projectionMat, origin,cam.Position, glm::vec3(0, 30, 0),lightSpace,0);
 
 }
 
@@ -405,6 +427,11 @@ void BackstageWindow::animationPhase(float animationTime, unsigned int st, unsig
 
 void BackstageWindow::createBuiltInOBJ(int BuiltInType) {
 	Hierachy->createOBJ(BuiltInType);
+	if (BuiltInType == 4) {
+		Shadow* shadow = ((Light*)Hierachy->activeLightList[0])->shadow;
+		initializeShadowMap();
+		shadow->shadowGLuint = shadowMap;
+	}
 }
 
 void BackstageWindow::SetWindowSize(int m_width, int m_height, int xPos, int yPos,int m_windowWidth,int m_windowHeight) {
@@ -419,7 +446,6 @@ void BackstageWindow::SetWindowSize(int m_width, int m_height, int xPos, int yPo
 	//SetViewport(windowWidth, windowHeight);
 
 	generateOutlineMap();
-	initializeShadowMap();
 }
 
 void BackstageWindow::SetViewport(int m_width, int m_height) {
@@ -445,18 +471,17 @@ void BackstageWindow::setupBuffer() {
 	cam = camera(glm::vec3(0.0f, 30.0f, 30.0f));
 	Hierachy = new HierarchyWindow();
 	grid = new Grid();
-	Hierachy->createOBJ(4);
-	Hierachy->createOBJ(1);
-	Hierachy->createOBJ(0);
+	createBuiltInOBJ(4);
+	createBuiltInOBJ(1);
+	createBuiltInOBJ(0);
 	/*m_cylinder = new BuiltInCylinder();
 	m_cube = new BuiltInCube(0);
 	m_sphere = new BuiltInSphere();*/
 
 	generateOutlineMap();
-	initializeShadowMap();
 }
 
-void BackstageWindow::generateShadowMap(glm::mat4 lightSpace) {
+void BackstageWindow::generateShadowMap(glm::mat4 lightSpace,Shadow* shadow) {
 
 	/*glEnable(GL_CULL_FACE);
 	glCullFace(GL_BACK);
@@ -477,7 +502,7 @@ void BackstageWindow::generateShadowMap(glm::mat4 lightSpace) {
 
 	glCullFace(GL_FRONT);
 	shadowShaderProgram->use();
-	for (int i = 10; i < Hierachy->objectNum; i++) {
+	for (int i = 0; i < Hierachy->objectNum; i++) {
 		glUniformMatrix4fv(shadowShaderProgram->uniform("Model"), 1, GL_FALSE, glm::value_ptr(modelViewArray[i]));
 		glUniformMatrix4fv(shadowShaderProgram->uniform("lightSpaceMatrix"), 1, GL_FALSE, glm::value_ptr(lightSpace));
 

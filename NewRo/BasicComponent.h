@@ -17,6 +17,20 @@
 #include <glm/mat4x4.hpp>
 
 #include"Component/Material.h"
+#include"ImGUI/imgui_impl_opengl3_loader.h"
+
+class Shadow {
+public:
+	bool isShadow;
+	int shadowType;
+	GLuint shadowGLuint;
+
+	Shadow() {
+		shadowType = 0;
+		isShadow = false;
+		shadowGLuint = 0;
+	}
+};
 
 class OBJTransform {
 public:
@@ -81,7 +95,8 @@ public:
 
 class OBJect : public OBJTransform {
 public:
-	virtual void RenderModel(glm::mat4& model, glm::mat4& view, glm::mat4& projection, glm::mat4& location, glm::vec3 camPosition, glm::vec3 lightPosition) {}
+	virtual void RenderModel(glm::mat4& model, glm::mat4& view, glm::mat4& projection, glm::mat4& location, 
+		glm::vec3 camPosition, glm::vec3 lightPosition, glm::mat4& lightSpace,Shadow* shadowType) {}
 	virtual void RenderPicking(){}
 
 	std::string name;

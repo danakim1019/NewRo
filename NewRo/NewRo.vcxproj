@@ -210,6 +210,8 @@
     <None Include="Shader\shadow.vert" />
     <None Include="Shader\shadowMap.frag" />
     <None Include="Shader\shadowMap.vert" />
+    <None Include="Shader\shadowNT.frag" />
+    <None Include="Shader\shadowNT.vert" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

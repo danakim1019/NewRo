@@ -11,7 +11,7 @@ public:
 	}
 
 	Material() {
-		float* defaultKaValue = new float[3] {0.388, 0.388, 0.388};
+		float* defaultKaValue = new float[3] {0.141, 0.141, 0.141};
 		float* defaultKdValue = new float[3]{0.839, 0.839, 0.839};
 		float* defaultKsValue = new float[3] {1,1,1};
 		setShaderValue(defaultKaValue, defaultKdValue, defaultKsValue);

@@ -16,12 +16,15 @@ public:
 	glm::vec3 LightColor;
 	float LightIntensity;
 
-	int ShadowType;
+	Shadow* shadow;
+	//int ShadowType;
 
 	Light(float xPos,float yPos, float zPos)
 	{
 		setPosition(xPos, yPos, zPos);
 		name = "Light";
 		objectType = "Light";
+
+		shadow = new Shadow();
 	}
 };

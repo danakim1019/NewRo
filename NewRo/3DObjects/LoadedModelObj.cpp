@@ -58,10 +58,11 @@ void LoadedModelObj::RenderPicking()
 		meshes[i].RenderPicking();
 }
 
-void LoadedModelObj::RenderModel(glm::mat4& model, glm::mat4& view, glm::mat4& projection, glm::mat4& location, glm::vec3 camPosition, glm::vec3 lightPosition)
+void LoadedModelObj::RenderModel(glm::mat4& model, glm::mat4& view, glm::mat4& projection, glm::mat4& location, 
+	glm::vec3 camPosition, glm::vec3 lightPosition, glm::mat4& lightSpace, Shadow* shadow)
 {
 	for (GLuint i = 0; i < meshes.size(); i++)
-		meshes[i].RenderModel(model, view, projection,location, camPosition, lightPosition,shaderType, DiffuseColor);
+		meshes[i].RenderModel(model, view, projection,location, camPosition, lightPosition,lightSpace, shadow,shaderType, m_mat);
 }
 
 /*  Functions   */

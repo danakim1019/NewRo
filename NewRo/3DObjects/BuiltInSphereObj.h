@@ -21,8 +21,6 @@ private:
 
 	ShaderProgram* shaderProgram;
 
-	int type;			//Shader 
-
 	glm::vec3 Ka;
 	glm::vec3 Kd;
 	glm::vec3 Ks;
@@ -49,7 +47,8 @@ public:
 	~BuiltInSphere();
 	BuiltInSphere(float rad, GLuint sl, GLuint st, int type);
 	virtual void RenderPicking() override;
-	virtual void RenderModel(glm::mat4& model, glm::mat4& view, glm::mat4& projection, glm::mat4& location, glm::vec3 camPosition, glm::vec3 LightPos) override;
+	virtual void RenderModel(glm::mat4& model, glm::mat4& view, glm::mat4& projection, glm::mat4& location,
+		glm::vec3 camPosition, glm::vec3 lightPosition, glm::mat4& lightSpace, Shadow* shadow) override;
 	void generateVerts(float* verts, float* norms, float* tex, unsigned int* el);
 
 	int getVertexArrayHandle();

@@ -4,7 +4,7 @@
 BuiltInCube::BuiltInCube(int type)
 {
 	this->type = type;
-	setup();
+
 	Ka= glm::vec3(0.5, 0.5, 0.5);
 	Kd= glm::vec3(1, 0, 0);
 	Ks= glm::vec3(1, 1, 1);
@@ -16,7 +16,9 @@ BuiltInCube::BuiltInCube(int type)
 
 	name = "Cube";
 	objectType = "Cube";
-	shaderType = "Phong";
+	shaderType = "Shadow";
+
+	setup();
 }
 
 void BuiltInCube::setup()
@@ -27,14 +29,14 @@ void BuiltInCube::setup()
 
 	shaderProgram = new ShaderProgram();
 
-	if (type == 0)
+	//create vao
+	glGenVertexArrays(1, &vaoHandle);
+	glBindVertexArray(vaoHandle);
+
+	if (shaderType == "Diffuse")
 	{
 		//load shaders
 		shaderProgram->initFromFiles("Shader/Diffuse.vert", "Shader/Diffuse.frag");
-
-		//create vao
-		glGenVertexArrays(1, &vaoHandle);
-		glBindVertexArray(vaoHandle);
 
 		//add attributes and uniform vars
 		shaderProgram->addAttribute("coord3d");
@@ -56,46 +58,51 @@ void BuiltInCube::setup()
 		shaderProgram->addUniform("model");
 		shaderProgram->addUniform("view");
 		shaderProgram->addUniform("projection");
-
-
-		//create vbo for vertices
-		glGenBuffers(1, &vbo_cube_vertices);
-		glBindBuffer(GL_ARRAY_BUFFER, vbo_cube_vertices);
-		glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec3) * vertexPositions.size(),vertexPositions.data(), GL_STATIC_DRAW);
-		glVertexAttribPointer(
-			shaderProgram->attribute("coord3d"), // attribute
-			3,                 // number of elements per vertex, here (x,y,z,1)
-			GL_FLOAT,          // the type of each element
-			GL_FALSE,          // take our values as-is
-			0,                 // no extra data between each position
-			0                  // offset of first element
-		);
-		glEnableVertexAttribArray(shaderProgram->attribute("coord3d"));
-
-
-		//create vbo for colors
-		glGenBuffers(1, &vbo_cube_normals);
-		glBindBuffer(GL_ARRAY_BUFFER, vbo_cube_normals);
-		glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec3) * vertexNormals.size(),vertexNormals.data(), GL_STATIC_DRAW);
-		glVertexAttribPointer(
-			shaderProgram->attribute("v_normal"), // attribute
-			3,                 // number of elements per vertex, here (R,G,B)
-			GL_FLOAT,          // the type of each element
-			GL_FALSE,          // take our values as-is
-			0,                 // no extra data between each position
-			0                  // offset of first element
-		);
-		glEnableVertexAttribArray(shaderProgram->attribute("v_normal"));
-
-
-		/*glGenBuffers(1, &ibo_cube_elements);
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo_cube_elements);
-		glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(cube_elements), cube_elements, GL_STATIC_DRAW);*/
-
-		glGenBuffers(1, &ibo_cube_elements);
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo_cube_elements);
-		glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(unsigned int) * vertexIndices.size(), vertexIndices.data(), GL_STATIC_DRAW);
 	}
+	else if (shaderType == "Shadow") {
+		shaderProgram->initFromFiles("Shader/shadowNT.vert", "Shader/shadowNT.frag");
+
+		shaderProgram->addAttribute("VertexPosition");
+		shaderProgram->addAttribute("VertexNormal");
+
+		shaderProgram->addUniform("Light.Position");
+		shaderProgram->addUniform("Light.Intensity");
+
+		shaderProgram->addUniform("isShadow");
+
+		shaderProgram->addUniform("Material.Ka");
+		shaderProgram->addUniform("Material.Kd");
+		shaderProgram->addUniform("Material.Ks");
+		shaderProgram->addUniform("Material.Shiness");
+
+		shaderProgram->addUniform("ModelViewMatrix");
+		shaderProgram->addUniform("NormalMatrix");
+		shaderProgram->addUniform("ModelMatrix");
+		shaderProgram->addUniform("MVP");
+
+		shaderProgram->addUniform("lightSpaceMatrix");
+		shaderProgram->addUniform("shadowMap");
+		shaderProgram->addUniform("shadowType");
+
+	}
+
+	//create vbo for vertices
+	glGenBuffers(1, &vbo_cube_vertices);
+	glBindBuffer(GL_ARRAY_BUFFER, vbo_cube_vertices);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec3) * vertexPositions.size(), vertexPositions.data(), GL_STATIC_DRAW);
+	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(0,3,GL_FLOAT,GL_FALSE,0,0);
+
+	//create vbo for colors
+	glGenBuffers(1, &vbo_cube_normals);
+	glBindBuffer(GL_ARRAY_BUFFER, vbo_cube_normals);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec3) * vertexNormals.size(), vertexNormals.data(), GL_STATIC_DRAW);
+	glEnableVertexAttribArray(1);
+	glVertexAttribPointer(1,3,GL_FLOAT,GL_FALSE,0,0);
+
+	glGenBuffers(1, &ibo_cube_elements);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo_cube_elements);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(unsigned int) * vertexIndices.size(), vertexIndices.data(), GL_STATIC_DRAW);
 
 	glBindVertexArray(0);
 
@@ -106,9 +113,12 @@ void BuiltInCube::RenderPicking() {
 	glBindVertexArray(vaoHandle);
 	glDrawElements(GL_TRIANGLES, vertexIndices.size(), GL_UNSIGNED_INT, 0);
 	glBindVertexArray(0);
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, 0);
 }
 
-void BuiltInCube::RenderModel(glm::mat4& model, glm::mat4& view, glm::mat4& projection,glm::mat4& location, glm::vec3 camPosition, glm::vec3 lightPosition)
+void BuiltInCube::RenderModel(glm::mat4& model, glm::mat4& view, glm::mat4& projection, glm::mat4& location,
+	glm::vec3 camPosition, glm::vec3 lightPosition, glm::mat4& lightSpace, Shadow* shadow)
 {
 	glm::mat4 mview = view * model;
 	glm::mat4 mvp = projection * view * model;
@@ -118,20 +128,22 @@ void BuiltInCube::RenderModel(glm::mat4& model, glm::mat4& view, glm::mat4& proj
 
 	glm::vec4 lightP = glm::vec4(lightPosition, 1.0f);
 
+	float shininess = m_mat->getShiness();
+
 	shaderProgram->use();
 
 	//simple
-	if (type == 0)
+	if (shaderType == "Diffuse")
 	{
 		glUniform4fv(shaderProgram->uniform("Light.Position"), 1, glm::value_ptr(lightP));
 		glUniform3fv(shaderProgram->uniform("Light.La"), 1, glm::value_ptr(La));
 		glUniform3fv(shaderProgram->uniform("Light.Ld"), 1, glm::value_ptr(Ld));
 		glUniform3fv(shaderProgram->uniform("Light.Ls"), 1, glm::value_ptr(Ls));
 
-		glUniform3fv(shaderProgram->uniform("Material.Ka"), 1, glm::value_ptr(Ka));
-		glUniform3fv(shaderProgram->uniform("Material.Kd"), 1, glm::value_ptr(Kd));
-		glUniform3fv(shaderProgram->uniform("Material.Ks"), 1, glm::value_ptr(Ks));
-		glUniform1fv(shaderProgram->uniform("Material.Shiness"), 1, &shiness);
+		glUniform3fv(shaderProgram->uniform("Material.Ka"), 1, m_mat->getKa());
+		glUniform3fv(shaderProgram->uniform("Material.Kd"), 1, m_mat->getKd());
+		glUniform3fv(shaderProgram->uniform("Material.Ks"), 1, m_mat->getKs());
+		glUniform1fv(shaderProgram->uniform("Material.Shiness"), 1, &shininess);
 
 		glUniformMatrix4fv(shaderProgram->uniform("ModelViewMatrix"), 1, GL_FALSE, glm::value_ptr(mview));
 		glUniformMatrix3fv(shaderProgram->uniform("NormalMatrix"), 1, GL_FALSE, glm::value_ptr(nmat));
@@ -141,12 +153,36 @@ void BuiltInCube::RenderModel(glm::mat4& model, glm::mat4& view, glm::mat4& proj
 		glUniformMatrix4fv(shaderProgram->uniform("view"), 1, GL_FALSE, glm::value_ptr(view));
 		glUniformMatrix4fv(shaderProgram->uniform("projection"), 1, GL_FALSE, glm::value_ptr(projection));
 
+	}
+	else if (shaderType == "Shadow") {
 
-		glBindVertexArray(vaoHandle);
+		glUniformMatrix4fv(shaderProgram->uniform("ModelViewMatrix"), 1, GL_FALSE, glm::value_ptr(mview));
+		glUniformMatrix4fv(shaderProgram->uniform("ModelMatrix"), 1, GL_FALSE, glm::value_ptr(model));
+		glUniformMatrix4fv(shaderProgram->uniform("MVP"), 1, GL_FALSE, glm::value_ptr(mvp));
+		glUniformMatrix3fv(shaderProgram->uniform("NormalMatrix"), 1, GL_FALSE, glm::value_ptr(nmat));
 
-		glDrawElements(GL_TRIANGLES, vertexIndices.size(), GL_UNSIGNED_INT, 0);
+		glUniform3fv(shaderProgram->uniform("Material.Ka"), 1, m_mat->getKa());
+		glUniform3fv(shaderProgram->uniform("Material.Kd"), 1, m_mat->getKd());
+		glUniform3fv(shaderProgram->uniform("Material.Ks"), 1, m_mat->getKs());
+		glUniform1fv(shaderProgram->uniform("Material.Shiness"), 1, &shininess);
+
+		glUniform4fv(shaderProgram->uniform("Light.Position"), 1, glm::value_ptr(view * glm::vec4(lightPosition, 1.0)));
+		glUniform3fv(shaderProgram->uniform("Light.Intensity"), 1, glm::value_ptr(glm::vec3(1, 1, 1)));
+
+		glUniformMatrix4fv(shaderProgram->uniform("lightSpaceMatrix"), 1, GL_FALSE, glm::value_ptr(lightSpace));
+
+		glUniform1i(shaderProgram->uniform("shadowMap"), 0);
+
+		glUniform1i(shaderProgram->uniform("isShadow"), shadow->isShadow);
+		glUniform1i(shaderProgram->uniform("shadowType"), shadow->shadowType);
+
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, shadow->shadowGLuint);
 	}
 
+	glBindVertexArray(vaoHandle);
+	glDrawElements(GL_TRIANGLES, vertexIndices.size(), GL_UNSIGNED_INT, 0);
+	glBindVertexArray(0);
 
 	shaderProgram->disable();
 

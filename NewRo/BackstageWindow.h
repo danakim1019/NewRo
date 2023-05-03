@@ -57,14 +57,12 @@ public:
 	
 	//Shadow
 	ShaderProgram* shadowShaderProgram;
-	void shadowPhase(ShadowType type);
+	void shadowPhase(Shadow* shadow);
 	GLuint m_shadowfbo;
 
 	ShaderProgram* sShaderProgram;
 	GLuint shadowMap;
 
-	int shadowType;
-	bool isShadowDraw;
 	glm::mat4 lightProjection;
 	glm::mat4 lightSpace;
 
@@ -115,6 +113,13 @@ public:
 		Hierachy->activeOBJList[id-1]->name = name;
 	}
 
+	void setShadow(bool isShadow, int shadowType) {
+		((Light*)Hierachy->activeLightList[0])->shadow->isShadow = isShadow;
+		((Light*)Hierachy->activeLightList[0])->shadow->shadowType = shadowType;
+	}
+
+	bool initializeShadowMap();
+
 protected:
 	HierarchyWindow* Hierachy;
 	GLFWwindow* window;
@@ -123,8 +128,7 @@ private:
 	~BackstageWindow() {}
 
 	void setupBuffer();
-	bool initializeShadowMap();
-	void generateShadowMap(glm::mat4 lightSpace);
+	void generateShadowMap(glm::mat4 lightSpace, Shadow* shadow);
 	bool generateOutlineMap();
 
 
