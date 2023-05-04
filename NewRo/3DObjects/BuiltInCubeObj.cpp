@@ -106,15 +106,12 @@ void BuiltInCube::setup()
 
 	glBindVertexArray(0);
 
-
 }
 
 void BuiltInCube::RenderPicking() {
 	glBindVertexArray(vaoHandle);
 	glDrawElements(GL_TRIANGLES, vertexIndices.size(), GL_UNSIGNED_INT, 0);
 	glBindVertexArray(0);
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, 0);
 }
 
 void BuiltInCube::RenderModel(glm::mat4& model, glm::mat4& view, glm::mat4& projection, glm::mat4& location,

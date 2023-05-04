@@ -27,7 +27,7 @@ public:
 
 	Shadow() {
 		shadowType = 0;
-		isShadow = false;
+		isShadow = true;
 		shadowGLuint = 0;
 	}
 };

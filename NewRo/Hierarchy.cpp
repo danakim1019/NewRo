@@ -1,9 +1,11 @@
 #include"Hierarchy.h"
 
+#define LIGHT_ID 50000
+
 HierarchyWindow::HierarchyWindow() {
 	objectNum = 0;
-	for(int i=0;i<10;i++)
-		activeOBJList.push_back(new OBJect());
+	//for(int i=0;i<10;i++)
+	activeOBJList.push_back(new OBJect());
 	objectNum = activeOBJList.size();
 }
 
@@ -32,11 +34,14 @@ void HierarchyWindow::createOBJ(int type)
 		//Light 정보값 입력		
 	}
 
-	temp->id = objectNum+1;
-	activeOBJList.push_back(temp);
-	objectNum = activeOBJList.size();
 	if (type == 4) {
-		activeLightList.push_back(activeOBJList[objectNum-1]);		//Light information in activeOBJList Slot 1
+		temp->id = 1;
+		activeOBJList[0] = temp;
+	}
+	else {
+		temp->id = objectNum + 1;
+		activeOBJList.push_back(temp);
+		objectNum = temp->id;
 	}
 	
 
@@ -50,8 +55,8 @@ void HierarchyWindow::drawOutline() {
 
 void HierarchyWindow::drawList(glm::mat4* modelArray, glm::mat4& view, glm::mat4& projection, glm::mat4& location, 
 	glm::vec3 camPosition, glm::vec3 lightPosition,glm::mat4& lightSpace,Shadow* shadow) {
-	for (int i = 10; i < objectNum; i++) {
+	for (int i = 1; i < objectNum; i++) {
 		glm::mat4 origin = glm::mat4(1.0f);
-		activeOBJList[i]->RenderModel(modelArray[i], view, projection, origin, camPosition, activeLightList[0]->getPositon(), lightSpace, shadow);
+		activeOBJList[i]->RenderModel(modelArray[i], view, projection, origin, camPosition, activeOBJList[0]->getPositon(), lightSpace, shadow);
 	}
 }

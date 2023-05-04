@@ -8,7 +8,10 @@ GLFWwindow* window;
 
 class GUIInterface :public Callback{
 public:
+
+
     GUIInterface() {
+
     }
 
     static void ShowMenuBarOverlay(bool* p_open)
@@ -115,19 +118,21 @@ public:
                 selectedObj->setScale(scale[0], scale[1], scale[2]);
             }
 
+            static int shadowType_current = 0;
+            static bool isShadow = true;
+            const char* items[] = { "HARD_SHADOW","INTERPOLED_SHADOW" ,"PCF_SHADOW" ,"INTERPOLED_PCF_SHADOW","VSM_SHADOW","FILTERED_VSM_SHADOW" };
+            isShadow = win->getShadow(0)->isShadow;
+            shadowType_current = win->getShadow(0)->shadowType;
             if (selectedObj->objectType == "Light") {
                 if (ImGui::CollapsingHeader("Light", ImGuiTreeNodeFlags_DefaultOpen)) {
                     ImGui::Spacing();
-                    static bool isShadow = true;
                     ImGui::Checkbox("isShadow", &isShadow);
-                    const char* items[] = { "HARD_SHADOW","INTERPOLED_SHADOW" ,"PCF_SHADOW" ,"INTERPOLED_PCF_SHADOW","VSM_SHADOW","FILTERED_VSM_SHADOW" };
-                    static int shadowType_current = 0;
                     ImGui::Combo("Shadow Type", &shadowType_current, items, IM_ARRAYSIZE(items));
-                    win->setShadow(isShadow, shadowType_current);
                     static ImVec4 light_color = ImVec4(1, 1, 1, 1);
                     ImGui::ColorEdit4("Light Color", &light_color.x, ImGuiColorEditFlags_NoInputs);
                 }
             }
+            win->setShadow(isShadow, shadowType_current);
 
             if (selectedObj->m_mat!=NULL) {
                 if (ImGui::CollapsingHeader("Material", ImGuiTreeNodeFlags_DefaultOpen)) {
@@ -205,13 +210,14 @@ public:
 
         {
             char label[128];
-            for (int i = OBJectStartNum+1; i < win->getObjectNum() + 1; i++) {
+            for (int i = 1; i < win->getObjectNum() + 1; i++) {
                 std::string str = win->getObjectName(i);
                 objName = const_cast<char*>(str.c_str());
                 sprintf_s(label, "%s", objName);
                 if (ImGui::Selectable(label, selectedObjID == i)) {
                     selectedObjID = win->getObjectID(i);
                     selectedObj = win->getObject(i);
+                   
                 }
             }
         }
@@ -228,16 +234,11 @@ public:
 
         if (!ImGui::Begin("Backstage", NULL, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoCollapse))
         {
-
             ImGui::End();
             return;
         }
-        /*ImDrawList* draw_list;
-        draw_list = ImGui::GetWindowDrawList();
-        draw_list->AddCallback(backstage_draw_callback, NULL);*/
-        win->DrawBackstageWindow(screenWidth, screenHeight,selectedObjID);
 
-       
+        win->DrawBackstageWindow(screenWidth, screenHeight,selectedObjID);
 
         ImGui::End();
     }

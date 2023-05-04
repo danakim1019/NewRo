@@ -57,16 +57,15 @@ public:
 	
 	//Shadow
 	ShaderProgram* shadowShaderProgram;
-	void shadowPhase(Shadow* shadow);
 	GLuint m_shadowfbo;
 
-	ShaderProgram* sShaderProgram;
 	GLuint shadowMap;
 
 	glm::mat4 lightProjection;
 	glm::mat4 lightSpace;
+	glm::mat4 lightView;
 
-	void renderPhase(int selectedObjID);
+	void renderPhase(Shadow* shadow);
 
 	//Animation
 	void animationPhase(float animationTime, unsigned int st, unsigned int num, unsigned int shadow);
@@ -113,9 +112,13 @@ public:
 		Hierachy->activeOBJList[id-1]->name = name;
 	}
 
+	Shadow* getShadow(int lightOBJID) {
+		return ((Light*)Hierachy->activeOBJList[lightOBJID])->shadow;
+	}
+
 	void setShadow(bool isShadow, int shadowType) {
-		((Light*)Hierachy->activeLightList[0])->shadow->isShadow = isShadow;
-		((Light*)Hierachy->activeLightList[0])->shadow->shadowType = shadowType;
+		((Light*)Hierachy->activeOBJList[0])->shadow->isShadow = isShadow;
+		((Light*)Hierachy->activeOBJList[0])->shadow->shadowType = shadowType;
 	}
 
 	bool initializeShadowMap();
