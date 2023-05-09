@@ -13,7 +13,7 @@ public:
 	void setup();
 	void RenderPicking();
 	virtual void RenderModel(glm::mat4& model, glm::mat4& view, glm::mat4& projection, glm::mat4& location,
-		glm::vec3 camPosition, glm::vec3 lightPosition, glm::mat4& lightSpace, Shadow* shadow) override;
+		glm::vec3 camPosition, glm::vec3 lightPosition, glm::mat4& lightSpace, Shadow* shadow, Animation* animation) override;
 	//void draw(glm::mat4& model, glm::mat4& view, glm::mat4& projection);
 private:
 

@@ -1,6 +1,6 @@
 #include"BackstageWindow.h"
 
-const unsigned int SHADOW_WIDTH = 2028, SHADOW_HEIGHT = 2028;
+const unsigned int SHADOW_WIDTH = 4056, SHADOW_HEIGHT = 4056;
 
 BackstageWindow::BackstageWindow(int m_width, int m_height,int w_Width,int w_Height) :backstageWidth(m_width), backstageHeight(m_height) , windowWidth(w_Width),windowHeight(w_Height)
 { 
@@ -39,7 +39,9 @@ void BackstageWindow::setupPickingShader() {
 	shadowShaderProgram->initFromFiles("Shader/shadowMap.vert", "Shader/shadowMap.frag");
 	shadowShaderProgram->addUniform("lightSpaceMatrix");
 	shadowShaderProgram->addUniform("Model");
+
 	
+
 }
 
 BackstageWindow::PixelInfo BackstageWindow::ReadPixel(unsigned int x, unsigned int y) {
@@ -68,14 +70,7 @@ int BackstageWindow::selectObject(int cx, int cy,int selectedObjIndex) {
 	return result;
 }
 
-void BackstageWindow::DrawBackstageWindow(int m_width, int m_height, int selectedObjID) {
-
-	//std::cout << "***********************************************" << std::endl;
-	std::cout << "selectedObjID: " << selectedObjID << std::endl;
-	//std::cout << "***********************************************" << std::endl;
-	std::cout << "(Light*)Hierachy->activeOBJList[0])->shadow->isShadow:" << (
-		(Light*)Hierachy->activeOBJList[0])->shadow->isShadow << std::endl;
-
+void BackstageWindow::DrawBackstageWindow(int m_width, int m_height, int selectedObjID,float deltaTime) {
 
 	SetViewport(m_width,m_height);
    
@@ -93,7 +88,7 @@ void BackstageWindow::DrawBackstageWindow(int m_width, int m_height, int selecte
 	Hierachy->activeOBJList[0]->setPosition(x, 10, z);
 
 	Hierachy->activeOBJList[2]->setPosition(0, -3, 0);
-	Hierachy->activeOBJList[2]->setScale(10, 1, 10);
+	Hierachy->activeOBJList[2]->setScale(100, 1, 100);
 	
 	glm::mat4 model;
 	lightView = glm::lookAt(Hierachy->activeOBJList[0]->getPositon(), glm::vec3(0, 0, 0),
@@ -114,7 +109,10 @@ void BackstageWindow::DrawBackstageWindow(int m_width, int m_height, int selecte
 	//그리드 그리기
 	grid->draw(origin, viewMat, projectionMat);
 
-	renderPhase(((Light*)Hierachy->activeOBJList[0])->shadow);
+	Animation* anim = new Animation();
+	anim->animationTime = deltaTime;
+
+	renderPhase(((Light*)Hierachy->activeOBJList[0])->shadow,anim,deltaTime);
 
 }
 
@@ -148,7 +146,6 @@ void BackstageWindow::pickingPhase() {
 			glm::mat4 mMVP = projectionMat * viewMat * modelMat;
 
 			glUniform1ui(pickingShaderProgram->uniform("gModelIndex"), getObjectID(i+1));
-			//std::cout << "getObjectID(i):" << getObjectID(i+1) << std::endl;
 			glUniformMatrix4fv(pickingShaderProgram->uniform("MVP"),1,GL_FALSE,glm::value_ptr(mMVP));
 			Hierachy->activeOBJList[i]->RenderPicking();
 
@@ -186,7 +183,6 @@ void BackstageWindow::guizmoPhase(int selectedObjID) {
 		ImGuizmo::SetRect(ImGui::GetWindowPos().x, ImGui::GetWindowPos().y, windowWidth, windowHeight);
 		viewManipulateRight = ImGui::GetWindowPos().x + windowWidth;
 		viewManipulateTop = ImGui::GetWindowPos().y;
-		//std::cout << "viewManipulateTop: " << viewManipulateTop << std::endl;
 		gizmoWindowFlags = ImGui::IsWindowHovered() && ImGui::IsMouseHoveringRect(ImVec2(backstageXPos, backstageYPos)
 			, ImVec2(backstageXPos + backstageWidth, backstageYPos)) ? ImGuiWindowFlags_NoMove : 0;
 
@@ -248,53 +244,10 @@ void BackstageWindow::outlinePhase(int selectedObjID) {
 }
 
 
-void BackstageWindow::renderPhase(Shadow* shadow) {
+void BackstageWindow::renderPhase(Shadow* shadow,Animation* animation,float deltaTime) {
 
 	glm::mat4 origin = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, 0.0f));
-	Hierachy->drawList(modelViewArray, viewMat, projectionMat, origin, cam.Position, glm::vec3(0, 30, 0), lightSpace, shadow);
-}
-
-void BackstageWindow::animationPhase(float animationTime, unsigned int st, unsigned int num, unsigned int shadow)
-{
-	animShaderProgram->use();
-		//반복하도록 설정
-		float TimeInTicks = animationTime * 30.0f;
-
-		int type = ((LoadedModelObj*)Hierachy->activeOBJList[0])->BoneTransform(TimeInTicks, Transforms, dualQuaternions);
-		type = 0;
-		float rate = 0.5;
-
-		vector<glm::fdualquat> dualQuaternions3;
-		for (unsigned int i = 0; i < Transforms.size(); i++) {
-			glm::fdualquat a = dualQuaternions[i];
-			//glm::fdualquat b = dualQuaternions2[i];
-			//glm::fdualquat c = glm::lerp(a,b,rate);
-
-			Transforms3[i] = Transforms[i];
-			dualQuaternions3.push_back(a);
-		}
-
-		glUniformMatrix4fv(animShaderProgram->uniform("gBones[0]"), Transforms3.size(), GL_FALSE, glm::value_ptr(Transforms3[0]));
-	
-		DQs.resize(dualQuaternions.size());
-
-		for (unsigned int i = 0; i < dualQuaternions.size(); i++) {
-			DQs[i] = glm::mat2x4_cast(dualQuaternions3[i]);		//blended result
-		}
-		glUniformMatrix2x4fv(animShaderProgram->uniform("dqs[0]"),dualQuaternions.size(),GL_FALSE,glm::value_ptr(DQs[0]));
-
-		unsigned int startIndex = st;
-		glUniform1uiv(animShaderProgram->uniform("startIndex"), 1, &startIndex);
-		glUniform1ui(animShaderProgram->uniform("character"), 1);
-
-		if (shadow)
-			glUniform1ui(animShaderProgram->uniform("shadow"), 1);
-		else
-			glUniform1ui(animShaderProgram->uniform("shadow"), 0);
-
-
-
-	animShaderProgram->disable();
+	Hierachy->drawList(modelViewArray, viewMat, projectionMat, origin, cam.Position, glm::vec3(0, 30, 0), lightSpace, shadow,animation);
 }
 
 void BackstageWindow::createBuiltInOBJ(int BuiltInType) {

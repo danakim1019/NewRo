@@ -65,7 +65,7 @@ public:
 	glm::mat4 lightSpace;
 	glm::mat4 lightView;
 
-	void renderPhase(Shadow* shadow);
+	void renderPhase(Shadow* shadow, Animation* animation, float deltaTime);
 
 	//Animation
 	void animationPhase(float animationTime, unsigned int st, unsigned int num, unsigned int shadow);
@@ -87,7 +87,7 @@ public:
 	BackstageWindow(int m_width, int m_height, int windowWidth, int windowHeight);
 	void SetWindowSize(int m_width, int m_height, int xPos, int yPos, int m_windowWidth, int m_windowHeight);
 	void SetViewport(int m_width, int m_height);
-	void DrawBackstageWindow(int m_width, int m_height, int selectedObjID);
+	void DrawBackstageWindow(int m_width, int m_height, int selectedObjID, float deltaTime);
 
 	//create BuiltIn Object
 	void createBuiltInOBJ(int BuiltInType);

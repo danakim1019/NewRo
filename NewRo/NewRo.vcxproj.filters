@@ -232,5 +232,11 @@
     <None Include="Shader\shadowNT.vert">
       <Filter>소스 파일\Shader</Filter>
     </None>
+    <None Include="Shader\animationModel.frag">
+      <Filter>소스 파일\Shader</Filter>
+    </None>
+    <None Include="Shader\animationModel.vert">
+      <Filter>소스 파일\Shader</Filter>
+    </None>
   </ItemGroup>
 </Project>

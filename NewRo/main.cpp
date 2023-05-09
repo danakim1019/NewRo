@@ -45,7 +45,7 @@ public:
         show_project_window = true;
         show_backstage_window = true;
     }
-    void GUIRender() {
+    void GUIRender(float deltaTime) {
         ShowMenuBarOverlay(&show_menubar_window);
 
         if (show_hierachy_window) {
@@ -59,7 +59,7 @@ public:
         }
 
         if (show_backstage_window) {
-            ShowBackstageOverlay(&show_backstage_window);
+            ShowBackstageOverlay(&show_backstage_window,deltaTime);
         }
 
         //if (show_demo_window)
@@ -132,12 +132,13 @@ int main(int, char**)
     screenHeight = windowHeight - projectWindowHeight;
     win->SetWindowSize(screenWidth, screenHeight - ((ImGui::GetStyle().FramePadding.y * 2) + 18), hierachyWidth, projectWindowHeight, windowWidth, windowHeight);
 
-
+    _window_start_time = glfwGetTime();
     // Main loop
     while (!glfwWindowShouldClose(window))
     {
         _delta_time = glfwGetTime() - _frame_start_time;
         _frame_start_time = glfwGetTime();
+        _animation_time = (glfwGetTime() - _window_start_time) / 50.0f;
         // Poll and handle events (inputs, window resize, etc.)
         // You can read the io.WantCaptureMouse, io.WantCaptureKeyboard flags to tell if dear imgui wants to use your inputs.
         // - When io.WantCaptureMouse is true, do not dispatch mouse input data to your main application, or clear/overwrite your copy of the mouse data.
@@ -151,7 +152,7 @@ int main(int, char**)
         ImGui::NewFrame();
         
 
-        core.GUIRender();
+        core.GUIRender(_animation_time);
 
         // Rendering
         ImGui::Render();

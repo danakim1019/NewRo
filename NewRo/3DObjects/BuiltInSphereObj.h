@@ -48,7 +48,7 @@ public:
 	BuiltInSphere(float rad, GLuint sl, GLuint st, int type);
 	virtual void RenderPicking() override;
 	virtual void RenderModel(glm::mat4& model, glm::mat4& view, glm::mat4& projection, glm::mat4& location,
-		glm::vec3 camPosition, glm::vec3 lightPosition, glm::mat4& lightSpace, Shadow* shadow) override;
+		glm::vec3 camPosition, glm::vec3 lightPosition, glm::mat4& lightSpace, Shadow* shadow, Animation* animation) override;
 	void generateVerts(float* verts, float* norms, float* tex, unsigned int* el);
 
 	int getVertexArrayHandle();

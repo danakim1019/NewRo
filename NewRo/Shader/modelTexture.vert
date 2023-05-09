@@ -54,7 +54,6 @@ void main() {
 	TexCoord = aTexCoords;
 	f_color = ambient + diffuse + spec;
 
-	//gl_Position = projection*view*aInstanceMatrix[gl_InstanceID+numChar] *model* vec4(coord3d, 1.0f);
 	gl_Position = projection* P;
 
 }

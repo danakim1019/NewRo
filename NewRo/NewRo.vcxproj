@@ -195,6 +195,8 @@
     <ClInclude Include="ModelView.h" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="Shader\animationModel.frag" />
+    <None Include="Shader\animationModel.vert" />
     <None Include="Shader\black.frag" />
     <None Include="Shader\black.vert" />
     <None Include="Shader\Diffuse.frag" />

@@ -26,5 +26,4 @@ void main()
 
 
 	FragColor = vec4(mix(objectDiffuse,vec4(f_color,1.0),0.1));	 
-	//FragColor = mix(texture(texture_diffuse1,TexCoord),vec4(color,1.0),0.1);
 }

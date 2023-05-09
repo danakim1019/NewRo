@@ -2,6 +2,143 @@
 #include"stb_image.h"
 
 #include "LoadedModelObj.h"
+#include"meshoptimizer.h"
+
+struct VertexData {
+	float px, py, pz;
+	float nx, ny, nz;
+	float tx, ty;
+};
+
+struct PackedVertex {
+	unsigned short px, py, pz;
+	unsigned short pw;
+	signed char nx, ny, nz, nw;
+	unsigned short tx, ty;
+};
+
+struct PackedVertexOct {
+	unsigned short px, py, pz;
+	signed char nu, nv;
+	unsigned short tx, ty;
+};
+
+struct MeshData {
+	std::vector<VertexData> vertices;
+	std::vector<unsigned int> indices;
+};
+
+static const size_t lod_count = 5;
+
+size_t lod_index_offsets[lod_count] = {};
+size_t lod_index_counts[lod_count] = {};
+
+std::vector<VertexData> verticesNew;
+
+void packMesh(std::vector<PackedVertexOct>& pv, const std::vector<VertexData>& v) {
+	for (size_t i = 0; i < v.size(); i++) {
+		const VertexData& vi = v[i];
+		PackedVertexOct& pvi = pv[i];
+
+		pvi.px = meshopt_quantizeHalf(vi.px);
+		pvi.py = meshopt_quantizeHalf(vi.py);
+		pvi.pz = meshopt_quantizeHalf(vi.pz);
+
+		float nsum = fabsf(vi.nx) + fabsf(vi.ny) + fabsf(vi.nz);
+		float nx = vi.nx / nsum;
+		float ny = vi.ny / nsum;
+		float nz = vi.nz;
+
+		float nu = nz >= 0 ? nx : (1 - fabsf(ny)) * (nx >= 0 ? 1 : -1);
+		float nv = nz >= 0 ? ny : (1 - fabsf(nx)) * (ny >= 0 ? 1 : -1);
+
+		pvi.nu = char(meshopt_quantizeSnorm(nu, 8));
+		pvi.nv = char(meshopt_quantizeSnorm(nv, 8));
+
+		pvi.tx = meshopt_quantizeHalf(vi.tx);
+		pvi.ty = meshopt_quantizeHalf(vi.ty);
+
+	}
+}
+
+void simplifyComplete(const MeshData& mesh, std::vector<unsigned int>lods[], std::vector<unsigned int>& indices) {
+	lods[0] = mesh.indices;
+	for (size_t i = 1; i < lod_count; i++) {
+		std::vector<unsigned int>& lod = lods[i];
+
+		float threshold = powf(0.4f, float(i));
+		size_t target_index_count = size_t(mesh.indices.size() * threshold) / 3 * 3;
+		float target_error = 1e-2f;
+
+		const std::vector<unsigned int>& source = lods[i - 1];
+
+		if (source.size() < target_index_count)
+			target_index_count = source.size();
+
+		lod.resize(source.size());
+		size_t reduce = meshopt_simplify(&lod[0], &source[0], source.size(), &mesh.vertices[0].px, mesh.vertices.size(), sizeof(VertexData), target_index_count, target_error);
+
+		lod.resize(reduce);
+	}
+
+	for (size_t i = 0; i < lod_count; i++) {
+		std::vector<unsigned int>& lod = lods[i];
+
+		meshopt_optimizeVertexCache(&lod[0], &lod[0], lod.size(), mesh.vertices.size());
+		meshopt_optimizeOverdraw(&lod[0], &lod[0], lod.size(), &mesh.vertices[0].px, mesh.vertices.size(), sizeof(VertexData), 1.0f);
+	}
+
+	size_t total_index_count = 0;
+
+	for (int i = 2 - 1; i >= 0; --i) {
+		lod_index_offsets[i] = total_index_count;
+		lod_index_counts[i] = lods[i].size();
+
+		total_index_count += lods[i].size();
+	}
+
+	indices.resize(total_index_count);
+
+	for (size_t i = 0; i < 2; i++) {
+		memcpy(&indices[lod_index_offsets[i]], &lods[i][0], lods[i].size() * sizeof(lods[i][0]));
+	}
+
+	std::vector <VertexData> vertices = (mesh.vertices);
+
+	meshopt_optimizeVertexFetch(&vertices[0], &indices[0], indices.size(), &vertices[0], vertices.size(), sizeof(VertexData));
+
+	printf("%-9s: %d triangles => %d LOD levels down to %d triangle \n", "SimplifyC", int(lod_index_counts[0]) / 3, int(lod_count), int(lod_index_counts[lod_count - 1]) / 3);
+
+	{
+		const size_t kCacheSize = 16;
+		meshopt_VertexCacheStatistics vcs0 = meshopt_analyzeVertexCache(&indices[lod_index_offsets[0]], lod_index_counts[0], vertices.size(), kCacheSize, 0, 0);
+		meshopt_VertexFetchStatistics vfs0 = meshopt_analyzeVertexFetch(&indices[lod_index_offsets[0]], lod_index_counts[0], vertices.size(), sizeof(VertexData));
+		meshopt_VertexCacheStatistics vcsN = meshopt_analyzeVertexCache(&indices[lod_index_offsets[lod_count-1]], lod_index_counts[lod_count-1], vertices.size(), kCacheSize, 0, 0);
+		meshopt_VertexFetchStatistics vfsN = meshopt_analyzeVertexFetch(&indices[lod_index_offsets[lod_count-1]], lod_index_counts[lod_count-1], vertices.size(), sizeof(VertexData));
+
+		typedef PackedVertexOct PV;
+
+		std::vector<PV> pv(vertices.size());
+		packMesh(pv, vertices);
+
+		std::vector<unsigned char> vbuf(meshopt_encodeVertexBufferBound(vertices.size(),sizeof(PV)));
+		vbuf.resize(meshopt_encodeVertexBuffer(&vbuf[0], vbuf.size(), &pv[0], vertices.size(), sizeof(PV)));
+
+		std::vector<unsigned char> ibuf(meshopt_encodeIndexBufferBound(indices.size(), vertices.size()));
+		ibuf.resize(meshopt_encodeIndexBuffer(&ibuf[0], ibuf.size(), &indices[0], indices.size()));
+
+		printf(" % -9s ACMR %f..%f Overfetch %f...%f Codec VB %.1f bits/vertex IB %.1f bits/triangle\n",
+			"",
+			vcs0.acmr, vcsN.acmr, vfs0.overfetch, vfsN.overfetch,
+			double(vbuf.size())/double(vertices.size())*8,
+			double(ibuf.size())/double(indices.size()/3)*8);
+
+	}
+
+	verticesNew = vertices;
+
+}
+
 
 /*  Functions   */
 // constructor, expects a filepath to a 3D model.
@@ -10,68 +147,15 @@ LoadedModelObj::LoadedModelObj(const string& path, std::string sType, bool gamma
 	loadModel(path, sType);
 }
 
-int LoadedModelObj::BoneTransform(float TimeInSeconds, vector<glm::mat4>& Transforms, vector<glm::fdualquat>& dqs) {
-	glm::mat4 Identity = glm::mat4(1.0f);
-
-	//initialization
-	if (scene->mNumAnimations == 0) {
-		Transforms.resize(m_NumBones);
-		dqs.resize(m_NumBones);
-		for (unsigned int i = 0; i < m_NumBones; i++) {
-			Transforms[i] = glm::mat4(1.0f);
-			dqs[i] = IdentityDQ;
-		}
-		return 0;
-	}
-
-	unsigned int numPosKeys = scene->mAnimations[0]->mChannels[0]->mNumPositionKeys;
-	float TicksPerSecond = scene->mAnimations[0]->mTicksPerSecond != 0 ? scene->mAnimations[0]->mTicksPerSecond : 25.0f;
-	float TimeInTicks = TimeInSeconds * TicksPerSecond;
-
-	float startTime = scene->mAnimations[0]->mChannels[0]->mPositionKeys[0].mTime;
-	float duration = scene->mAnimations[0]->mChannels[0]->mPositionKeys[numPosKeys - 1].mTime - startTime;
-	float AnimationTime = fmod(TimeInTicks, duration);
-
-	//
-	ReadNodeHeirarchy(scene, AnimationTime, scene->mRootNode, Identity, IdentityDQ, glm::vec3(0.0f, 0.0f, 0.0f));
-
-	Transforms.resize(m_NumBones);
-	dqs.resize(m_NumBones);
-
-	for (unsigned int i = 0; i < m_NumBones; i++) {
-		Transforms[i] = glm::mat4(1.0f);
-		Transforms[i] = m_BoneInfo[i].FinalTransformation;
-	}
-
-	for (unsigned int i = 0; i < dqs.size(); i++) {
-		dqs[i] = IdentityDQ;
-		dqs[i] = m_BoneInfo[i].FinalTransDQ;
-	}
-
-	return 0;
-
-}
-
-void LoadedModelObj::RenderPicking()
-{
-	for (GLuint i = 0; i < meshes.size(); i++)
-		meshes[i].RenderPicking();
-}
-
-void LoadedModelObj::RenderModel(glm::mat4& model, glm::mat4& view, glm::mat4& projection, glm::mat4& location, 
-	glm::vec3 camPosition, glm::vec3 lightPosition, glm::mat4& lightSpace, Shadow* shadow)
-{
-	for (GLuint i = 0; i < meshes.size(); i++)
-		meshes[i].RenderModel(model, view, projection,location, camPosition, lightPosition,lightSpace, shadow,shaderType, m_mat);
-}
-
 /*  Functions   */
 // loads a model with supported ASSIMP extensions from file and stores the resulting meshes in the meshes vector.
-void LoadedModelObj::loadModel(string const& path,std::string sType)
+void LoadedModelObj::loadModel(string const& path, std::string sType)
 {
 	// read file via ASSIMP
-	Assimp::Importer importer;
-	scene = importer.ReadFile(path, aiProcess_Triangulate | aiProcess_FlipUVs | aiProcess_OptimizeMeshes);
+	//unsigned int pFlags = aiProcess_Triangulate | aiProcess_FlipUVs | aiProcess_OptimizeMeshes | aiProcess_ValidateDataStructure | aiProcess_CalcTangentSpace | aiProcess_GenSmoothNormals;
+	//unsigned int pFlags = aiProcess_Triangulate | aiProcess_FlipUVs | aiProcess_ValidateDataStructure | aiProcess_GenNormals | aiProcess_FixInfacingNormals;
+	unsigned int pFlags=aiProcess_Triangulate | aiProcess_GenNormals | aiProcess_JoinIdenticalVertices;
+	scene = importer.ReadFile(path, pFlags);
 
 	if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode) // if is Zero
 	{
@@ -80,8 +164,8 @@ void LoadedModelObj::loadModel(string const& path,std::string sType)
 	}
 
 	// retrieve the directory path of the filepath
-	directory = path.substr(0, path.find_last_of('/'));	
-	name = path.substr(path.find_last_of('/')+1, path.size());
+	directory = path.substr(0, path.find_last_of('/'));
+	name = path.substr(path.find_last_of('/') + 1, path.size());
 	std::size_t pos = name.rfind('.');
 	name = name.substr(0, pos);
 
@@ -96,6 +180,56 @@ void LoadedModelObj::loadModel(string const& path,std::string sType)
 	processNode(scene->mRootNode, scene);
 }
 
+
+int LoadedModelObj::BoneTransform(float TimeInSeconds, vector<glm::mat4>& Transforms) {
+	glm::mat4 Identity = glm::mat4(1.0f);
+	
+	float TicksPerSecond = scene->mAnimations[0]->mTicksPerSecond != 0 ?scene->mAnimations[0]->mTicksPerSecond : 25.0f;
+	float TimeInTicks = TimeInSeconds * TicksPerSecond;
+	float AnimationTime = fmod(TimeInTicks, scene->mAnimations[0]->mDuration);
+
+	//
+	ReadNodeHeirarchy(scene, AnimationTime, scene->mRootNode, Identity, glm::vec3(0.0f, 0.0f, 0.0f));
+
+	Transforms.resize(m_BoneInfo.size());
+
+	for (unsigned int i = 0; i < m_BoneInfo.size(); i++) {
+		//Transforms[i] = glm::mat4(1.0f);
+		Transforms[i] = m_BoneInfo[i].FinalTransformation;
+	}
+
+	return 0;
+
+}
+
+void LoadedModelObj::RenderPicking()
+{
+	for (GLuint i = 0; i < meshes.size(); i++)
+		meshes[i].RenderPicking();
+}
+
+void LoadedModelObj::RenderModel(glm::mat4& model, glm::mat4& view, glm::mat4& projection, glm::mat4& location, 
+	glm::vec3 camPosition, glm::vec3 lightPosition, glm::mat4& lightSpace, Shadow* shadow, Animation* animation)
+{
+	for (GLuint i = 0; i < meshes.size(); i++) {
+		meshes[i].shaderProgram->use();
+		
+		if (hasAnimatoins) {
+			//animation parameter
+			float TicksPersecond = scene->mAnimations[0]->mTicksPerSecond != 0 ? scene->mAnimations[0]->mTicksPerSecond : 25.0f;
+			float TimeInTicks = animation->animationTime * TicksPersecond;
+			int type = BoneTransform(TimeInTicks, Transforms);
+
+			glUniformMatrix4fv(meshes[i].shaderProgram->uniform("gBones[0]"), Transforms.size(), GL_FALSE, glm::value_ptr(Transforms[0]));
+		}
+
+		meshes[i].RenderModel(model, view, projection, location, camPosition, lightPosition, lightSpace, shadow, shaderType, m_mat);
+
+		meshes[i].shaderProgram->disable();
+	}
+}
+
+
 // processes a node in a recursive fashion. Processes each individual mesh located at the node and repeats this process on its children nodes (if any).
 void LoadedModelObj::processNode(aiNode* node, const aiScene* scene)
 {
@@ -105,6 +239,7 @@ void LoadedModelObj::processNode(aiNode* node, const aiScene* scene)
 		// the node object only contains indices to index the actual objects in the scene. 
 		// the scene contains all the data, node is just to keep stuff organized (like relations between nodes).
 		aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
+		total_vertices += mesh->mNumVertices;
 		meshes.push_back(processMesh(mesh, scene));
 	}
 	// after we've processed all of the meshes (if any) we then recursively process each of the children nodes
@@ -121,11 +256,14 @@ Mesh LoadedModelObj::processMesh(aiMesh* mesh, const aiScene* scene)
 	vector<GLuint> indices;
 	vector<Texture> textures;
 
+	Bones.resize(total_vertices);
+
 	// Walk through each of the mesh's vertices
 	for (GLuint i = 0; i < mesh->mNumVertices; i++)
 	{
 		Vertex vertex;
 		glm::vec3 vector; // we declare a placeholder vector since assimp uses its own vector class that doesn't directly convert to glm's vec3 class so we transfer the data to this placeholder glm::vec3 first.
+		glm::vec3 normal;
 		// positions
 		vector.x = mesh->mVertices[i].x;
 		vector.y = mesh->mVertices[i].y;
@@ -134,10 +272,10 @@ Mesh LoadedModelObj::processMesh(aiMesh* mesh, const aiScene* scene)
 
 		if (mesh->HasNormals())
 		{
-			vector.x = mesh->mNormals[i].x;
-			vector.y = mesh->mNormals[i].y;
-			vector.z = mesh->mNormals[i].z;
-			vertex.Normal = vector;
+			normal.x = mesh->mNormals[i].x;
+			normal.y = mesh->mNormals[i].y;
+			normal.z = mesh->mNormals[i].z;
+			vertex.Normal = normal;
 		}
 
 		if (mesh->mTextureCoords[0]) // does the mesh contain texture coordinates?
@@ -147,9 +285,9 @@ Mesh LoadedModelObj::processMesh(aiMesh* mesh, const aiScene* scene)
 			vec.y = mesh->mTextureCoords[0][i].y;
 			vertex.TexCoord = vec;
 		}
-		else
+		else {
 			vertex.TexCoord = glm::vec2(0.0f, 0.0f);
-
+		}
 		vertices.push_back(vertex);
 	}
 	// now wak through each of the mesh's faces (a face is a mesh its triangle) and retrieve the corresponding vertex indices.
@@ -179,12 +317,40 @@ Mesh LoadedModelObj::processMesh(aiMesh* mesh, const aiScene* scene)
 		textures.insert(textures.end(), heightMaps.begin(), heightMaps.end());
 	}
 
+	////////for simplification////////
+	/*MeshData data;
+	for (int i = 0; i < mesh->mNumVertices; i++) {
+		VertexData v;
+		v.px = mesh->mVertices[i].x;
+		v.py = mesh->mVertices[i].y;
+		v.pz = mesh->mVertices[i].z;
+
+		v.nx = mesh->mVertices[i].x;
+		v.ny = mesh->mVertices[i].y;
+		v.nz = mesh->mVertices[i].z;
+
+		v.tx = 0;
+		v.ty = 0;
+
+		data.vertices.push_back(v);
+
+	}
+	for (int i = 0; i < mesh->mNumFaces; i++) {
+		data.indices.push_back(mesh->mFaces[i].mIndices[0]);
+		data.indices.push_back(mesh->mFaces[i].mIndices[1]);
+		data.indices.push_back(mesh->mFaces[i].mIndices[2]);
+	}
+
+	std::vector<unsigned int> lods[5];
+	std::vector<unsigned int> indicesCombined;
+	simplifyComplete(data, lods, indicesCombined);*/
+	
 
 	// retreive bone information
 	loadMeshBones(mesh, Bones);
 
 	// return a mesh object created from the extracted mesh data
-	return Mesh(vertices, indices, textures,shaderType);
+	return Mesh(vertices, indices, textures,m_BoneInfo,Bones,shaderType,hasAnimatoins);
 }
 
 // checks all material textures of a given type and loads the textures if they're not loaded yet.
@@ -273,7 +439,7 @@ void LoadedModelObj::loadBones(aiNode* node, const aiScene* scene) {
 		if (NodeName.find(":") != string::npos) {
 			string BoneName = NodeName;
 			unsigned int BoneIndex = 0;
-
+			
 			if (Bone_Mapping.find(BoneName) == Bone_Mapping.end()) {
 				BoneIndex = m_NumBones;
 				m_NumBones++;
@@ -312,6 +478,8 @@ void LoadedModelObj::loadMeshBones(aiMesh* mesh, vector<VertexBoneData>& VertexB
 		}
 		//from the scene, for the boneName, find the position, orientation and scale
 		loadAnimations(scene, BoneName, Animations);
+		//if Animations size > 0  this model has Animaitons
+		(Animations.size() > 0) ? hasAnimatoins = true : hasAnimatoins = false;
 	}
 	NumVertices += mesh->mNumVertices;
 }
@@ -341,55 +509,45 @@ void LoadedModelObj::loadAnimations(const aiScene* scene, string BoneName, map<s
 }
 
 void LoadedModelObj::ReadNodeHeirarchy(const aiScene* scene, float AnimationTime, const aiNode* pNode,
-	const glm::mat4& ParentTransform, const glm::fdualquat& parentDQ, glm::vec3 startpos)
+	const glm::mat4& ParentTransform, glm::vec3 startpos)
 {
 	string NodeName(pNode->mName.data);
-	const aiAnimation* pAnimation = scene->mAnimations[0];
+	const aiAnimation* pAnimation = scene->mAnimations[0];	
 
 	glm::mat4 NodeTransformation = glm::mat4(1.0f);
-	glm::fdualquat NodeTransformationDQ = IdentityDQ;
-
 	aiMatrix4x4 tp1 = pNode->mTransformation;
 	NodeTransformation = glm::transpose(glm::make_mat4(&tp1.a1));
 
-	const aiNodeAnim* pNodeAnim = nullptr;
-	pNodeAnim = Animations[pAnimation->mName.data][NodeName];
+	const aiNodeAnim* pNodeAnim = FindNodeAnim(pAnimation, NodeName);
 
 	if (pNodeAnim) {
 		//Interpolate rotation and generate rotation transformation matrix
 		aiQuaternion RotationQ;
 		CalcInterpolatedRotation(RotationQ, AnimationTime, pNodeAnim);
-
 		aiMatrix3x3 tp = RotationQ.GetMatrix();
 		//convert to glm 4x4 matrix
 		glm::mat4 RotationM = glm::transpose(glm::make_mat3(&tp.a1));
+		RotationM[3][3] = 1;
 
 		//Interpolate translation and generate translation transformation matrix
 		aiVector3D Translation;
 		CalcInterpolatedPosition(Translation, AnimationTime, pNodeAnim);
-
-		aiVector3D Scale;
-		CalcInterpolatedScaling(Scale, AnimationTime, pNodeAnim);
-
 		glm::mat4 TranslationM = glm::mat4(1.0f);
 		//get the 4x4 translation matrix
 		TranslationM = glm::translate(TranslationM, glm::vec3(Translation.x, Translation.y, Translation.z));
 
-		glm::mat4 ScaleM = glm::scale(ScaleM, glm::vec3(Scale.x, Scale.y, Scale.z));
-
+		// Interpolate scaling and generate scaling transformation matrix
+		aiVector3D Scale;
+		CalcInterpolatedScaling(Scale, AnimationTime, pNodeAnim);
+		glm::mat4 ScaleM = glm::mat4(1.0f);
+		ScaleM = glm::scale(ScaleM, glm::vec3(Scale.x, Scale.y, Scale.z));
+		
 		//combine rotation and translation matrix
-		NodeTransformation = TranslationM * RotationM;
-
-		//full dual quaternion
-		NodeTransformationDQ = glm::normalize(glm::fdualquat(glm::normalize(glm::quat_cast(NodeTransformation)),
-			glm::vec3(NodeTransformation[3][0], NodeTransformation[3][1], NodeTransformation[3][2])));
+		NodeTransformation = TranslationM * RotationM* ScaleM;
 	}
 
 	//world transform in matrix
 	glm::mat4 GlobalTransformation = ParentTransform * NodeTransformation;
-
-	//world dual quaternion
-	glm::fdualquat GlobalDQ = glm::normalize(parentDQ * NodeTransformationDQ);
 
 	unsigned int ID = 0;
 	
@@ -405,15 +563,11 @@ void LoadedModelObj::ReadNodeHeirarchy(const aiScene* scene, float AnimationTime
 		unsigned int NodeIndex = Bone_Mapping[NodeName];
 
 		m_BoneInfo[NodeIndex].FinalTransformation = GlobalTransformation * m_BoneInfo[NodeIndex].offset;
-		glm::fdualquat offsetDQ = glm::normalize(glm::fdualquat(glm::normalize(glm::quat_cast(m_BoneInfo[NodeIndex].offset)),
-			glm::vec3(m_BoneInfo[NodeIndex].offset[3][0], m_BoneInfo[NodeIndex].offset[3][1], m_BoneInfo[NodeIndex].offset[3][2])));
-		m_BoneInfo[NodeIndex].FinalTransDQ = glm::normalize(GlobalDQ * offsetDQ);
 	}
 
 	for (unsigned int i = 0; i < pNode->mNumChildren; i++) {
-		ReadNodeHeirarchy(scene, AnimationTime, pNode->mChildren[i], GlobalTransformation, GlobalDQ, startpos);
+		ReadNodeHeirarchy(scene, AnimationTime, pNode->mChildren[i], GlobalTransformation, startpos);
 	}
-
 }
 
 void LoadedModelObj::CalcInterpolatedScaling(aiVector3D& Out, float AnimationTime, const aiNodeAnim* pNodeAnim)
@@ -446,8 +600,8 @@ void LoadedModelObj::CalcInterpolatedRotation(aiQuaternion& Out, float Animation
 	unsigned int RotationIndex = FindRotation(AnimationTime, pNodeAnim);
 	unsigned int NextRotationIndex = (RotationIndex + 1);
 	assert(NextRotationIndex < pNodeAnim->mNumRotationKeys);
-	float DeltaTime = (float)pNodeAnim->mScalingKeys[NextRotationIndex].mTime - pNodeAnim->mScalingKeys[RotationIndex].mTime;
-	float Factor = (AnimationTime - (float)pNodeAnim->mScalingKeys[RotationIndex].mTime) / DeltaTime;
+	float DeltaTime = (float)pNodeAnim->mRotationKeys[NextRotationIndex].mTime - pNodeAnim->mRotationKeys[RotationIndex].mTime;
+	float Factor = (AnimationTime - (float)pNodeAnim->mRotationKeys[RotationIndex].mTime) / DeltaTime;
 	assert(Factor >= 0.0f && Factor <= 1.0f);
 	const aiQuaternion& StartRotationQ = pNodeAnim->mRotationKeys[RotationIndex].mValue;
 	const aiQuaternion& EndRotationQ = pNodeAnim->mRotationKeys[NextRotationIndex].mValue;
@@ -482,7 +636,7 @@ unsigned int LoadedModelObj::FindScaling(float AnimationTime, const aiNodeAnim* 
 			return i;
 		}
 	}
-	assert(0);
+	//	assert(0);
 	return 0;
 }
 
@@ -494,7 +648,7 @@ unsigned int LoadedModelObj::FindRotation(float AnimationTime, const aiNodeAnim*
 			return i;
 		}
 	}
-	assert(0);
+	//assert(0);
 	return 0;
 }
 
@@ -505,6 +659,18 @@ unsigned int LoadedModelObj::FindPosition(float AnimationTime, const aiNodeAnim*
 			return i;
 		}
 	}
-	assert(0);
+	//assert(0);
 	return 0;
+}
+
+const aiNodeAnim* LoadedModelObj::FindNodeAnim(const aiAnimation* pAnimation, const string& NodeName) {
+	for (unsigned int i = 0; i < pAnimation->mNumChannels; i++) {
+		const aiNodeAnim* pNodeAnim = pAnimation->mChannels[i];
+
+		if (string(pNodeAnim->mNodeName.data) == NodeName) {
+			return pNodeAnim;
+		}
+	}
+
+	return NULL;
 }

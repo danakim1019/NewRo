@@ -4,28 +4,30 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
-
 #include <string>
 #include <sstream>
 #include <vector>
 
-
-
 #include "Mesh.h"
-//#include "clickableObject.h"
-
 
 using namespace std;
 
 class LoadedModelObj : public OBJect
 {
 public:
-	glm::vec3 DiffuseColor;
 	/*  Model Data */
+	glm::vec3 DiffuseColor;
 	vector<Texture> textures_loaded;	// stores all the textures loaded so far, optimization to make sure textures aren't loaded more than once.
 	vector<Mesh> meshes;
 	string directory;
 	bool gammaCorrection;
+	bool hasAnimatoins = false;
+
+	unsigned int total_vertices = 0;
+
+	/*  Functions   */
+	// constructor, expects a filepath to a 3D model.
+	LoadedModelObj(const string& path, std::string sType, bool gamma=false,glm::vec3 Ka=glm::vec3(1,1,1));
 
 	/*Bone Data*/
 	unsigned int m_NumBones = 0;
@@ -38,21 +40,22 @@ public:
 	unsigned int NumVertices = 0;
 	glm::fdualquat IdentityDQ = glm::fdualquat(glm::quat(1.f, 0.f, 0.f, 0.f), glm::quat(0.f, 0.f, 0.f, 0.f));
 
-	
+	/*Animations*/
+	int BoneTransform(float TimeInSeconds, vector<glm::mat4>& Transforms);
+
+	vector<glm::mat4> Transforms;
+	vector<glm::fdualquat> dualQuaternions;
+	//vector<glm::mat2x4> DQs;
 
 
-	/*  Functions   */
-	// constructor, expects a filepath to a 3D model.
-	LoadedModelObj(const string& path, std::string sType, bool gamma=false,glm::vec3 Ka=glm::vec3(1,1,1));
-
-	int BoneTransform(float TimeInSeconds, vector<glm::mat4>& Transforms, vector<glm::fdualquat>& dqs);
-
+	/*Model Rendering*/
 	virtual void RenderPicking() override;
 	virtual void RenderModel(glm::mat4& model, glm::mat4& view, glm::mat4& projection, glm::mat4& location, 
-		glm::vec3 camPosition, glm::vec3 lightPosition, glm::mat4& lightSpace, Shadow* shadow) override;
+		glm::vec3 camPosition, glm::vec3 lightPosition, glm::mat4& lightSpace, Shadow* shadow, Animation* animation) override;
 
 private:
 	const aiScene* scene;
+	Assimp::Importer importer;
 	/*  Functions  */
 	// loads a model with supported ASSIMP extensions from file and stores the resulting meshes in the meshes vector.
 	void loadModel(string const& path, std::string sType);
@@ -66,12 +69,12 @@ private:
 	vector<Texture> loadMaterialTextures(aiMaterial* mat, aiTextureType type, string typeName);
 	unsigned int TextureFromFile(const char* path, const string& directory, bool gamma = false);
 
-	//Animations
+	/*Animations*/
 	void loadBones(aiNode* node, const aiScene* scene);
 	void loadMeshBones(aiMesh* mesh, vector<VertexBoneData>& VertexBoneData);
 	void loadAnimations(const aiScene* scene, string BoneName, map<string, map<string, const aiNodeAnim*>>& animations);
 	void ReadNodeHeirarchy(const aiScene* scene, float AnimationTime, const aiNode* pNode,
-		const glm::mat4& ParentTransform, const glm::fdualquat& parentDQ, glm::vec3 startpos);
+		const glm::mat4& ParentTransform, glm::vec3 startpos);
 
 	void CalcInterpolatedScaling(aiVector3D& Out, float AnimationTime, const aiNodeAnim* pNodeAnim);
 	void CalcInterpolatedRotation(aiQuaternion& Out, float AnimationTime, const aiNodeAnim* pNodeAnim);
@@ -80,7 +83,7 @@ private:
 	unsigned int FindScaling(float AnimationTime, const aiNodeAnim* pNodeAnim);
 	unsigned int FindRotation(float AnimationTime, const aiNodeAnim* pNodeAnim);
 	unsigned int FindPosition(float AnimationTime, const aiNodeAnim* pNodeAnim);
-
+	const aiNodeAnim* FindNodeAnim(const aiAnimation* pAnimation, const string& NodeName);
 };
 
 #endif

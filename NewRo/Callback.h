@@ -37,6 +37,8 @@ int yPos;
 
 static double _frame_start_time;
 static double _delta_time;
+static double _animation_time;
+static double _window_start_time;
 
 
 static const char* objName;
@@ -210,7 +212,7 @@ public:
 
     //ImDrawCallback
     static void backstage_draw_callback(const ImDrawList* parent_list, const ImDrawCmd* cmd) {
-        win->DrawBackstageWindow(screenWidth, screenHeight,selectedObjID);
+        //win->DrawBackstageWindow(screenWidth, screenHeight,selectedObjID);
     }
 
     static void glfw_error_callback(int error, const char* description)

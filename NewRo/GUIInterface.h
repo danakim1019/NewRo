@@ -225,7 +225,7 @@ public:
         ImGui::End();
     }
 
-    static void ShowBackstageOverlay(bool* p_open)
+    static void ShowBackstageOverlay(bool* p_open,float deltaTime)
     {
         ImVec2 backstageSize = ImVec2(windowWidth - hierachyWidth - inspectorWidth, screenHeight - ((ImGui::GetStyle().FramePadding.y * 2) + 18));
         ImGui::SetNextWindowPos(ImVec2(hierachyWidth, 22));
@@ -238,7 +238,7 @@ public:
             return;
         }
 
-        win->DrawBackstageWindow(screenWidth, screenHeight,selectedObjID);
+        win->DrawBackstageWindow(screenWidth, screenHeight,selectedObjID, deltaTime);
 
         ImGui::End();
     }

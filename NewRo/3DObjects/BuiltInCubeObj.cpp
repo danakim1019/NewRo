@@ -115,7 +115,7 @@ void BuiltInCube::RenderPicking() {
 }
 
 void BuiltInCube::RenderModel(glm::mat4& model, glm::mat4& view, glm::mat4& projection, glm::mat4& location,
-	glm::vec3 camPosition, glm::vec3 lightPosition, glm::mat4& lightSpace, Shadow* shadow)
+	glm::vec3 camPosition, glm::vec3 lightPosition, glm::mat4& lightSpace, Shadow* shadow, Animation* animation)
 {
 	glm::mat4 mview = view * model;
 	glm::mat4 mvp = projection * view * model;
