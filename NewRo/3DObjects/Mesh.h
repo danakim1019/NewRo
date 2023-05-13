@@ -41,6 +41,10 @@ struct BoneInfo {
 		offset = glm::mat4(1.0f);
 		FinalTransformation = glm::mat4(1.0f);
 	}
+
+	BoneInfo(aiMatrix4x4 tp1) {
+		offset = glm::transpose(glm::make_mat4(&tp1.a1));
+	}
 };
 
 struct VertexBoneData {

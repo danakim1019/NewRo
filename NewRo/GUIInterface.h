@@ -182,11 +182,36 @@ public:
         ImGui::SetNextWindowPos(ImVec2(0, windowHeight - projectWindowHeight));
         ImGui::SetNextWindowBgAlpha(0.5f);
         ImGui::SetNextWindowSize(ImVec2(windowWidth, projectWindowHeight));
-        if (!ImGui::Begin("Project", NULL, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoCollapse))
+        //if (!ImGui::Begin("Project", NULL, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoCollapse))
+        if (!ImGui::Begin("Project", NULL, ImGuiWindowFlags_NoTitleBar))
         {
             ImGui::End();
             return;
         }
+
+        ImGuiTabBarFlags tab_bar_flags = ImGuiTabBarFlags_None;
+        //static ImGuiTabBarFlags tab_bar_flags = ImGuiTabBarFlags_Reorderable;
+        if (ImGui::BeginTabBar("MyTabBar", tab_bar_flags))
+        {
+            if (ImGui::BeginTabItem("Project"))
+            {
+                ImGui::Text("This is the Avocado tab!\nblah blah blah blah blah");
+                ImGui::EndTabItem();
+            }
+            if (ImGui::BeginTabItem("Debug"))
+            {
+                ImGui::Text("This is the Broccoli tab!\nblah blah blah blah blah");
+                ImGui::EndTabItem();
+            }
+            if (ImGui::BeginTabItem("Animation"))
+            {
+                ImGui::Text("This is the Cucumber tab!\nblah blah blah blah blah");
+                ImGui::EndTabItem();
+            }
+            ImGui::EndTabBar();
+        }
+        ImGui::Separator();
+
 
         ImGui::End();
     }

@@ -172,9 +172,7 @@ void LoadedModelObj::loadModel(string const& path, std::string sType)
 	objectType = "LoadedModel";
 	shaderType = sType;
 
-	//Animation load
-	loadBones(scene->mRootNode, scene);
-	m_BoneInfo.resize(Bone_Mapping.size());
+	animationNum = 0;
 
 	// process ASSIMP's root node recursively
 	processNode(scene->mRootNode, scene);
@@ -184,9 +182,9 @@ void LoadedModelObj::loadModel(string const& path, std::string sType)
 int LoadedModelObj::BoneTransform(float TimeInSeconds, vector<glm::mat4>& Transforms) {
 	glm::mat4 Identity = glm::mat4(1.0f);
 	
-	float TicksPerSecond = scene->mAnimations[0]->mTicksPerSecond != 0 ?scene->mAnimations[0]->mTicksPerSecond : 25.0f;
+	float TicksPerSecond = scene->mAnimations[animationNum]->mTicksPerSecond != 0 ?scene->mAnimations[animationNum]->mTicksPerSecond : 25.0f;
 	float TimeInTicks = TimeInSeconds * TicksPerSecond;
-	float AnimationTime = fmod(TimeInTicks, scene->mAnimations[0]->mDuration);
+	float AnimationTime = fmod(TimeInTicks, scene->mAnimations[animationNum]->mDuration);
 
 	//
 	ReadNodeHeirarchy(scene, AnimationTime, scene->mRootNode, Identity, glm::vec3(0.0f, 0.0f, 0.0f));
@@ -194,7 +192,6 @@ int LoadedModelObj::BoneTransform(float TimeInSeconds, vector<glm::mat4>& Transf
 	Transforms.resize(m_BoneInfo.size());
 
 	for (unsigned int i = 0; i < m_BoneInfo.size(); i++) {
-		//Transforms[i] = glm::mat4(1.0f);
 		Transforms[i] = m_BoneInfo[i].FinalTransformation;
 	}
 
@@ -216,7 +213,7 @@ void LoadedModelObj::RenderModel(glm::mat4& model, glm::mat4& view, glm::mat4& p
 		
 		if (hasAnimatoins) {
 			//animation parameter
-			float TicksPersecond = scene->mAnimations[0]->mTicksPerSecond != 0 ? scene->mAnimations[0]->mTicksPerSecond : 25.0f;
+			float TicksPersecond = scene->mAnimations[animationNum]->mTicksPerSecond != 0 ? scene->mAnimations[animationNum]->mTicksPerSecond : 25.0f;
 			float TimeInTicks = animation->animationTime * TicksPersecond;
 			int type = BoneTransform(TimeInTicks, Transforms);
 
@@ -234,18 +231,13 @@ void LoadedModelObj::RenderModel(glm::mat4& model, glm::mat4& view, glm::mat4& p
 void LoadedModelObj::processNode(aiNode* node, const aiScene* scene)
 {
 	// process each mesh located at the current node
-	for (GLuint i = 0; i < node->mNumMeshes; i++)
+	for (GLuint i = 0; i < scene->mNumMeshes; i++)
 	{
 		// the node object only contains indices to index the actual objects in the scene. 
 		// the scene contains all the data, node is just to keep stuff organized (like relations between nodes).
-		aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
+		aiMesh* mesh = scene->mMeshes[i];
 		total_vertices += mesh->mNumVertices;
 		meshes.push_back(processMesh(mesh, scene));
-	}
-	// after we've processed all of the meshes (if any) we then recursively process each of the children nodes
-	for (unsigned int i = 0; i < node->mNumChildren; i++)
-	{
-		processNode(node->mChildren[i], scene);
 	}
 }
 
@@ -459,14 +451,18 @@ void LoadedModelObj::loadMeshBones(aiMesh* mesh, vector<VertexBoneData>& VertexB
 		unsigned int BoneIndex = 0;
 		string BoneName(mesh->mBones[i]->mName.data);
 
-		if (Bone_Mapping.find(BoneName) != Bone_Mapping.end()) {
-			BoneIndex = Bone_Mapping[BoneName];		//assign name and index
-
-			aiMatrix4x4 tp1 = mesh->mBones[i]->mOffsetMatrix;
-			m_BoneInfo[BoneIndex].offset = glm::transpose(glm::make_mat4(&tp1.a1));
+		if (Bone_Mapping.find(BoneName) == Bone_Mapping.end()) {
+			// Allocate an index for a new bone
+			BoneIndex = (int)Bone_Mapping.size();
+			Bone_Mapping[BoneName] = BoneIndex;
 		}
 		else {
-			printf("load MeshBones Error\n");
+			BoneIndex = Bone_Mapping[BoneName];
+		}
+
+		if (BoneIndex == m_BoneInfo.size()) {
+			BoneInfo bi(mesh->mBones[i]->mOffsetMatrix);
+			m_BoneInfo.push_back(bi);
 		}
 
 		int nn = mesh->mBones[i]->mNumWeights;
@@ -479,7 +475,7 @@ void LoadedModelObj::loadMeshBones(aiMesh* mesh, vector<VertexBoneData>& VertexB
 		//from the scene, for the boneName, find the position, orientation and scale
 		loadAnimations(scene, BoneName, Animations);
 		//if Animations size > 0  this model has Animaitons
-		(Animations.size() > 0) ? hasAnimatoins = true : hasAnimatoins = false;
+		(scene->mNumAnimations > 0) ? hasAnimatoins = true : hasAnimatoins = false;
 	}
 	NumVertices += mesh->mNumVertices;
 }
@@ -527,7 +523,6 @@ void LoadedModelObj::ReadNodeHeirarchy(const aiScene* scene, float AnimationTime
 		aiMatrix3x3 tp = RotationQ.GetMatrix();
 		//convert to glm 4x4 matrix
 		glm::mat4 RotationM = glm::transpose(glm::make_mat3(&tp.a1));
-		RotationM[3][3] = 1;
 
 		//Interpolate translation and generate translation transformation matrix
 		aiVector3D Translation;

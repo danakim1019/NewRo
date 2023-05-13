@@ -46,7 +46,7 @@ public:
 	vector<glm::mat4> Transforms;
 	vector<glm::fdualquat> dualQuaternions;
 	//vector<glm::mat2x4> DQs;
-
+	int animationNum;
 
 	/*Model Rendering*/
 	virtual void RenderPicking() override;

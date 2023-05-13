@@ -1,6 +1,6 @@
 #include"BackstageWindow.h"
 
-const unsigned int SHADOW_WIDTH = 4056, SHADOW_HEIGHT = 4056;
+const unsigned int SHADOW_WIDTH = 1024, SHADOW_HEIGHT = 1024;
 
 BackstageWindow::BackstageWindow(int m_width, int m_height,int w_Width,int w_Height) :backstageWidth(m_width), backstageHeight(m_height) , windowWidth(w_Width),windowHeight(w_Height)
 { 
