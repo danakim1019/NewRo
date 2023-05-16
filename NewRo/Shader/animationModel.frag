@@ -29,6 +29,8 @@ uniform int shadowType;
 
 uniform sampler2D texture_diffuse1;
 
+uniform int diffuseNr;
+
 out vec4 FragColors;
 
 float ShadowCalculation(vec4 fragPosLightSpace){
@@ -220,7 +222,7 @@ void main()
 	 //change vertex position : 모든 light 계산은 camera좌표계에서 이루어짐
 	vec4 texColor;
 	if(hasColor){
-		texColor= texture(texture_diffuse1,Color);
+		texColor+= texture(texture_diffuse1,Color);
 	}
 
 	if(isShadow){

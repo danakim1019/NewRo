@@ -19,10 +19,7 @@ version : 0.3 - 15 / 01 / 2014
 #include <sstream>
 #include <map>
 
-
-
 #include"ImGUI/imgui_impl_opengl3_loader.h"
-//#include<GL/gl3w_stripped.h>
 #include <GLFW/glfw3.h> // Will drag system OpenGL headers
 
 #include<glm/glm.hpp>
@@ -399,7 +396,43 @@ public:
 		// Return the uniform location
 		return uniformMap[uniformName];
 	}
+   
 
+	std::string modelTextureUniform[17] = {"model","view","projection","NormalMatrix","viewPosition"
+		,"Light.Position","Light.La","Light.Ld","Light.Ls"
+		,"Material.Ka","Material.Kd","Material.Ks","Material.Shiness"
+		,"texture_diffuse1","texture_diffuse2","texture_normal1","texture_specular1"};
+
+	std::string DiffuseUniform[14] = { "model","view","projection","ModelViewMatrix","NormalMatrix","location"
+		,"Light.Position","Light.La","Light.Ld","Light.Ls"
+		,"Material.Ka","Material.Kd","Material.Ks","Material.Shiness" };
+
+	std::string ShadowUniform[15] = { "ModelViewMatrix","NormalMatrix","ModelMatrix","MVP","lightSpaceMatrix"
+	,"shadowMap","shadowType","isShadow"
+	,"Light.Position","Light.Intensity"
+	,"Material.Ka","Material.Kd","Material.Ks","Material.Shiness"
+	,"texture_diffuse1"};
+
+	void addUniformGroup(const std::string shaderType) {
+		if (shaderType == "modelTexture") {
+			int length = size(modelTextureUniform);
+			for (int i = 0; i < length; i++) {
+				addUniform(modelTextureUniform[i]);
+			}
+		}
+		else if (shaderType == "Diffuse") {
+			int length = size(DiffuseUniform);
+			for (int i = 0; i < length; i++) {
+				addUniform(DiffuseUniform[i]);
+			}
+		}
+		else if (shaderType == "Shadow") {
+			int length = size(ShadowUniform);
+			for (int i = 0; i < length; i++) {
+				addUniform(ShadowUniform[i]);
+			}
+		}
+	}
 
 }; // End of class
 

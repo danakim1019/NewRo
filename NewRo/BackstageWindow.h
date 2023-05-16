@@ -69,12 +69,12 @@ public:
 
 	//Animation
 	void animationPhase(float animationTime, unsigned int st, unsigned int num, unsigned int shadow);
-	vector<glm::mat4> Transforms;
-	vector<glm::fdualquat> dualQuaternions;
-	vector<glm::mat2x4> DQs;
+	std::vector<glm::mat4> Transforms;
+	std::vector<glm::fdualquat> dualQuaternions;
+	std::vector<glm::mat2x4> DQs;
 
-	vector<glm::mat4> Transforms2;
-	vector<glm::mat4> Transforms3;
+	std::vector<glm::mat4> Transforms2;
+	std::vector<glm::mat4> Transforms3;
 
 	ShaderProgram* animShaderProgram;
 
@@ -85,9 +85,9 @@ public:
 	camera cam;
 
 	BackstageWindow(int m_width, int m_height, int windowWidth, int windowHeight);
-	void SetWindowSize(int m_width, int m_height, int xPos, int yPos, int m_windowWidth, int m_windowHeight);
-	void SetViewport(int m_width, int m_height);
-	void DrawBackstageWindow(int m_width, int m_height, int selectedObjID, float deltaTime);
+	void SetWindowSize(int width, int height, int xPos, int yPos, int m_windowWidth, int m_windowHeight);
+	void SetViewport(int width, int height);
+	void DrawBackstageWindow(int width, int height, int selectedObjID, float deltaTime);
 
 	//create BuiltIn Object
 	void createBuiltInOBJ(int BuiltInType);
@@ -97,11 +97,11 @@ public:
 	}
 
 	std::string getObjectName(unsigned int id) {
-		return Hierachy->activeOBJList[id-1]->name;
+		return Hierachy->activeOBJList[id-1]->mName;
 	}
 
 	unsigned int getObjectID(unsigned int id) {
-		return Hierachy->activeOBJList[id-1]->id;
+		return Hierachy->activeOBJList[id-1]->mID;
 	}
 
 	OBJect* getObject(unsigned int id) {
@@ -109,7 +109,7 @@ public:
 	}
 
 	void setObjectName(char* name,unsigned int id) {
-		Hierachy->activeOBJList[id-1]->name = name;
+		Hierachy->activeOBJList[id-1]->mName = name;
 	}
 
 	Shadow* getShadow(int lightOBJID) {
@@ -117,8 +117,8 @@ public:
 	}
 
 	void setShadow(bool isShadow, int shadowType) {
-		((Light*)Hierachy->activeOBJList[0])->shadow->isShadow = isShadow;
-		((Light*)Hierachy->activeOBJList[0])->shadow->shadowType = shadowType;
+		((Light*)Hierachy->activeOBJList[0])->shadow->bIsShadow = isShadow;
+		((Light*)Hierachy->activeOBJList[0])->shadow->mShadowType = shadowType;
 	}
 
 	bool initializeShadowMap();

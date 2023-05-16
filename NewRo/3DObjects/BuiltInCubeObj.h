@@ -8,10 +8,6 @@
 
 class BuiltInCube : public OBJect
 {
-private:
-	GLuint VAO;
-	ShaderProgram* shaderProgram;
-
 public:
 	BuiltInCube(int type);
 	void setup();
@@ -24,25 +20,17 @@ public:
 
 	GLuint vaoHandle;
 	GLuint vbo_cube_vertices, vbo_cube_normals, ibo_cube_elements;
-	
 
-	void computeNormal(glm::vec3 p1, glm::vec3 p2, glm::vec3 p3, bool reverse);
 	void generateVertices();
 	void generateNormals(glm::vec3 positions[]);
 	void generateIndices();
 
-	std::vector<glm::vec3> vertexPositions;
-	std::vector<glm::vec3> vertexNormals;
-	std::vector<unsigned int> vertexIndices;
+private:
+	GLuint VAO;
+	ShaderProgram* mShaderProgram;
 
-	glm::vec3 Ka;
-	glm::vec3 Kd;
-	glm::vec3 Ks;
-	GLfloat shiness;
-
-	glm::vec3 La;
-	glm::vec3 Ld;
-	glm::vec3 Ls;
-
+	std::vector<glm::vec3> mVertexPositions;
+	std::vector<glm::vec3> mVertexNormals;
+	std::vector<unsigned int> mVertexIndices;
 };
 #endif

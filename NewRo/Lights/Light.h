@@ -22,8 +22,8 @@ public:
 	Light(float xPos,float yPos, float zPos)
 	{
 		setPosition(xPos, yPos, zPos);
-		name = "Light";
-		objectType = "Light";
+		mName = "Light";
+		mObjectType = "Light";
 
 		shadow = new Shadow();
 	}

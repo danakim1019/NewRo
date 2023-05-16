@@ -8,40 +8,9 @@
 
 class BuiltInSphere :public OBJect {
 
-private:
-	float radius;
-	GLuint slices;
-	GLuint stacks;
-
-	float nVerts, elements;
-
-	GLuint vbo_cube_vertices, vbo_cube_normals, ibo_cube_elements, vbo_cube_texture, instanceVBO;
-
-	GLuint VAO;
-
-	ShaderProgram* shaderProgram;
-
-	glm::vec3 Ka;
-	glm::vec3 Kd;
-	glm::vec3 Ks;
-	GLfloat shiness;
-
-	glm::vec3 La;
-	glm::vec3 Ld;
-	glm::vec3 Ls;
-
-	glm::vec4 lightPos;
-
-	void setup();
-
 public:
 
-	int R;
-	int G;
-	int B;
-
-
-	int index;
+	int mIndex;
 
 	BuiltInSphere();
 	~BuiltInSphere();
@@ -49,10 +18,28 @@ public:
 	virtual void RenderPicking() override;
 	virtual void RenderModel(glm::mat4& model, glm::mat4& view, glm::mat4& projection, glm::mat4& location,
 		glm::vec3 camPosition, glm::vec3 lightPosition, glm::mat4& lightSpace, Shadow* shadow, Animation* animation) override;
-	void generateVerts(float* verts, float* norms, float* tex, unsigned int* el);
 
 	int getVertexArrayHandle();
 
+private:
+	float mRadius;
+	GLuint mSlices;
+	GLuint mStacks;
+
+	float mNumVerts, mElements;
+
+	GLuint VAO;
+	GLuint vbo_cube_vertices;
+	GLuint vbo_cube_normals;
+	GLuint ibo_cube_elements;
+	GLuint vbo_cube_texture;
+	GLuint instanceVBO;
+
+
+	ShaderProgram* mShaderProgram;
+
+	void setup();
+	void generateVerts(float* verts, float* norms, float* tex, unsigned int* el);
 };
 
 

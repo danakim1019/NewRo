@@ -10,80 +10,76 @@
 
 #include "Mesh.h"
 
-using namespace std;
 
 class LoadedModelObj : public OBJect
 {
 public:
-	/*  Model Data */
-	glm::vec3 DiffuseColor;
-	vector<Texture> textures_loaded;	// stores all the textures loaded so far, optimization to make sure textures aren't loaded more than once.
-	vector<Mesh> meshes;
-	string directory;
-	bool gammaCorrection;
-	bool hasAnimatoins = false;
-
-	unsigned int total_vertices = 0;
-
 	/*  Functions   */
 	// constructor, expects a filepath to a 3D model.
-	LoadedModelObj(const string& path, std::string sType, bool gamma=false,glm::vec3 Ka=glm::vec3(1,1,1));
-
-	/*Bone Data*/
-	unsigned int m_NumBones = 0;
-	vector<VertexBoneData> Bones;
-	map<string, unsigned int> Bone_Mapping;
-	map<string, map<string, const aiNodeAnim*>> Animations;
-	map<unsigned int, glm::vec3> skeleton_pose;
-	map<string, unsigned int> Node_Mapping;
-	vector<BoneInfo> m_BoneInfo;
-	unsigned int NumVertices = 0;
-	glm::fdualquat IdentityDQ = glm::fdualquat(glm::quat(1.f, 0.f, 0.f, 0.f), glm::quat(0.f, 0.f, 0.f, 0.f));
-
+	LoadedModelObj(const std::string& path, std::string sType, bool gamma = false, glm::vec3 Ka = glm::vec3(1, 1, 1));
 	/*Animations*/
-	int BoneTransform(float TimeInSeconds, vector<glm::mat4>& Transforms);
-
-	vector<glm::mat4> Transforms;
-	vector<glm::fdualquat> dualQuaternions;
-	//vector<glm::mat2x4> DQs;
-	int animationNum;
+	int BoneTransform(float timeInSeconds, std::vector<glm::mat4>& transforms);
 
 	/*Model Rendering*/
 	virtual void RenderPicking() override;
-	virtual void RenderModel(glm::mat4& model, glm::mat4& view, glm::mat4& projection, glm::mat4& location, 
+	virtual void RenderModel(glm::mat4& model, glm::mat4& view, glm::mat4& projection, glm::mat4& location,
 		glm::vec3 camPosition, glm::vec3 lightPosition, glm::mat4& lightSpace, Shadow* shadow, Animation* animation) override;
 
 private:
-	const aiScene* scene;
-	Assimp::Importer importer;
+	/*  Model Data */
+	std::vector<Texture> mTexturesLoaded;	// stores all the textures loaded so far, optimization to make sure textures aren't loaded more than once.
+	std::vector<Mesh> mMeshes;
+	std::string mDirectory;
+	bool bGammaCorrection;
+	bool bHasAnimatoins;
+	unsigned int mTotalVertices = 0;
+
+	/*Bone Data*/
+	unsigned int mNumBones = 0;
+	std::vector<VertexBoneData> mBones;
+	std::map<std::string, unsigned int> mBoneMapping;
+	std::map<std::string, std::map<std::string, const aiNodeAnim*>> mAnimations;
+	std::map<unsigned int, glm::vec3> mSkeletonPose;
+	std::map<std::string, unsigned int> mNodeMapping;
+	std::vector<BoneInfo> mBoneInfo;
+	unsigned int mNumVertices = 0;
+	glm::fdualquat mIdentityDQ = glm::fdualquat(glm::quat(1.f, 0.f, 0.f, 0.f), glm::quat(0.f, 0.f, 0.f, 0.f));
+
+	std::vector<glm::mat4> mTransforms;
+	//std::vector<glm::fdualquat> mDualQuaternions;
+	int mAnimationNum;
+
+	/*Model Load*/
+	const aiScene* mScene;
+	Assimp::Importer mImporter;
 	/*  Functions  */
 	// loads a model with supported ASSIMP extensions from file and stores the resulting meshes in the meshes vector.
-	void loadModel(string const& path, std::string sType);
-	
+	void loadModel(std::string const& path, std::string sType);
+
 	// processes a node in a recursive fashion. Processes each individual mesh located at the node and repeats this process on its children nodes (if any).
 	void processNode(aiNode* node, const aiScene* scene);
 	Mesh processMesh(aiMesh* mesh, const aiScene* scene);
 
 	// checks all material textures of a given type and loads the textures if they're not loaded yet.
 	// the required info is returned as a Texture struct.
-	vector<Texture> loadMaterialTextures(aiMaterial* mat, aiTextureType type, string typeName);
-	unsigned int TextureFromFile(const char* path, const string& directory, bool gamma = false);
+	std::vector<Texture> loadMaterialTextures(aiMaterial* mat, aiTextureType type, std::string typeName);
+	unsigned int textureFromFile(const char* path, const std::string& directory, bool gamma = false);
 
 	/*Animations*/
 	void loadBones(aiNode* node, const aiScene* scene);
-	void loadMeshBones(aiMesh* mesh, vector<VertexBoneData>& VertexBoneData);
-	void loadAnimations(const aiScene* scene, string BoneName, map<string, map<string, const aiNodeAnim*>>& animations);
-	void ReadNodeHeirarchy(const aiScene* scene, float AnimationTime, const aiNode* pNode,
-		const glm::mat4& ParentTransform, glm::vec3 startpos);
+	void loadMeshBones(aiMesh* mesh, std::vector<VertexBoneData>& vertexBoneData);
+	void loadAnimations(const aiScene* scene, std::string boneName, std::map<std::string, std::map<std::string, const aiNodeAnim*>>& animations);
+	void readNodeHeirarchy(const aiScene* scene, float animationTime, const aiNode* pNode,
+		const glm::mat4& parentTransform, glm::vec3 startPos);
 
-	void CalcInterpolatedScaling(aiVector3D& Out, float AnimationTime, const aiNodeAnim* pNodeAnim);
-	void CalcInterpolatedRotation(aiQuaternion& Out, float AnimationTime, const aiNodeAnim* pNodeAnim);
-	void CalcInterpolatedPosition(aiVector3D& Out, float AnimationTime, const aiNodeAnim* pNodeAnim);
+	void calcInterpolatedScaling(aiVector3D& out, float animationTime, const aiNodeAnim* pNodeAnim);
+	void calcInterpolatedRotation(aiQuaternion& out, float animationTime, const aiNodeAnim* pNodeAnim);
+	void calcInterpolatedPosition(aiVector3D& out, float animationTime, const aiNodeAnim* pNodeAnim);
 
-	unsigned int FindScaling(float AnimationTime, const aiNodeAnim* pNodeAnim);
-	unsigned int FindRotation(float AnimationTime, const aiNodeAnim* pNodeAnim);
-	unsigned int FindPosition(float AnimationTime, const aiNodeAnim* pNodeAnim);
-	const aiNodeAnim* FindNodeAnim(const aiAnimation* pAnimation, const string& NodeName);
+	unsigned int findScaling(float animationTime, const aiNodeAnim* pNodeAnim);
+	unsigned int findRotation(float animationTime, const aiNodeAnim* pNodeAnim);
+	unsigned int findPosition(float animationTime, const aiNodeAnim* pNodeAnim);
+	const aiNodeAnim* findNodeAnim(const aiAnimation* pAnimation, const std::string& nodeName);
 };
 
 #endif

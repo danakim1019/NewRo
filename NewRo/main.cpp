@@ -23,154 +23,154 @@
 #endif
 
 
-
 class Core : public GUIInterface
 {
 public:
-    // Our state
-    bool show_demo_window = true;
-    bool show_another_window = false;
-    bool show_menubar_window = true;
-    bool show_hierachy_window = true;
-    bool show_inspector_window = true;
-    bool show_project_window = true;
-    bool show_backstage_window = true;
+	// Our state
+	bool bShowDemoWindow = true;
+	bool bShowAnotherWindow = false;
+	bool bShowMenubarWindow = true;
+	bool bShowHierachyWindow = true;
+	bool bShowInspectorWindow = true;
+	bool bShowProjectWindow = true;
+	bool bShowBackstageWindow = true;
 
-    Core(){
-        show_demo_window = true;
-        show_another_window = false;
-        show_menubar_window = true;
-        show_hierachy_window = true;
-        show_inspector_window = true;
-        show_project_window = true;
-        show_backstage_window = true;
-    }
-    void GUIRender(float deltaTime) {
-        ShowMenuBarOverlay(&show_menubar_window);
+	Core() {
+		bShowDemoWindow = true;
+		bShowAnotherWindow = false;
+		bShowMenubarWindow = true;
+		bShowHierachyWindow = true;
+		bShowInspectorWindow = true;
+		bShowProjectWindow = true;
+		bShowBackstageWindow = true;
+	}
 
-        if (show_hierachy_window) {
-            ShowHierachyOverlay(&show_hierachy_window);
-        }
-        if (show_inspector_window) {
-            ShowInspectorOverlay(&show_inspector_window);
-        }
-        if (show_project_window) {
-            ShowProjectOverlay(&show_project_window);
-        }
+	void GUIRender(float deltaTime) {
+		ShowMenuBarOverlay(&bShowMenubarWindow);
 
-        if (show_backstage_window) {
-            ShowBackstageOverlay(&show_backstage_window,deltaTime);
-        }
+		if (bShowHierachyWindow) {
+			ShowHierachyOverlay(&bShowHierachyWindow);
+		}
+		if (bShowInspectorWindow) {
+			ShowInspectorOverlay(&bShowInspectorWindow);
+		}
+		if (bShowProjectWindow) {
+			ShowProjectOverlay(&bShowProjectWindow);
+		}
 
-        //if (show_demo_window)
-        //     ImGui::ShowDemoWindow(&show_demo_window);
-    }
+		if (bShowBackstageWindow) {
+			ShowBackstageOverlay(&bShowBackstageWindow, deltaTime);
+		}
+
+		//if (show_demo_window)
+		//     ImGui::ShowDemoWindow(&show_demo_window);
+	}
 };
 
 
 
-int main(int, char**)           
+int main(int, char**)
 {
-    Core core;
+	Core core;
 
-    // Setup window
-    glfwSetErrorCallback(core.glfw_error_callback);
-    if (!glfwInit())
-        return 1;
+	// Setup window
+	glfwSetErrorCallback(core.glfw_error_callback);
+	if (!glfwInit())
+		return 1;
 
-    // GL 3.0 + GLSL 130
-    const char* glsl_version = "#version 130";
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
-    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);            // 3.0+ only
-    
-    // Create window with graphics context
-    window = glfwCreateWindow(windowWidth, windowHeight, "NewRo Engine", NULL, NULL);
-    GLFWimage images[1];
-    images[0].pixels = stbi_load("icon.png",&images[0].width,&images[0].height,0,4);
-    glfwSetWindowIcon(window, 1, images);
+	// GL 3.0 + GLSL 130
+	const char* glsl_version = "#version 130";
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
+	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);            // 3.0+ only
 
-    if (window == NULL)
-        return 1;
-    glfwMakeContextCurrent(window);  
-    glfwSwapInterval(1); // Enable vsync
+	// Create window with graphics context
+	window = glfwCreateWindow(windowWidth, windowHeight, "NewRo Engine", NULL, NULL);
+	GLFWimage images[1];
+	images[0].pixels = stbi_load("icon.png", &images[0].width, &images[0].height, 0, 4);
+	glfwSetWindowIcon(window, 1, images);
+
+	if (window == NULL)
+		return 1;
+	glfwMakeContextCurrent(window);
+	glfwSwapInterval(1); // Enable vsync
 
 
-    // Setup Dear ImGui context
-    IMGUI_CHECKVERSION();
-    ImGui::CreateContext();
-    ImGuiIO& io = ImGui::GetIO(); (void)io;
+	// Setup Dear ImGui context
+	IMGUI_CHECKVERSION();
+	ImGui::CreateContext();
+	ImGuiIO& io = ImGui::GetIO(); (void)io;
 
-    // Setup Dear ImGui style
-    ImGui::StyleColorsDark();
-    ImGuiStyle* style = &ImGui::GetStyle();
-    style->WindowTitleAlign=ImVec2(0.5f, 0.5f);
-    style->ItemSpacing = ImVec2(6, 8);
+	// Setup Dear ImGui style
+	ImGui::StyleColorsDark();
+	ImGuiStyle* style = &ImGui::GetStyle();
+	style->WindowTitleAlign = ImVec2(0.5f, 0.5f);
+	style->ItemSpacing = ImVec2(6, 8);
 
-    // Setup Platform/Renderer backends
-    ImGui_ImplGlfw_InitForOpenGL(window, true);
-    bool init = false;
+	// Setup Platform/Renderer backends
+	ImGui_ImplGlfw_InitForOpenGL(window, true);
+	bool init = false;
 
-    if (init = ImGui_ImplOpenGL3_Init(glsl_version) == false) {
-        printf("ImGui_ImplOpenGL3_Init return 0");
-        return -1;
-    }       
+	if (init = ImGui_ImplOpenGL3_Init(glsl_version) == false) {
+		printf("ImGui_ImplOpenGL3_Init return 0");
+		return -1;
+	}
 
-    glfwSetKeyCallback(window, core.key_callback);
-    //glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
-    glfwSetWindowSizeCallback(window, core.window_size_callback);
-    glfwSetScrollCallback(window, core.scroll_callback);
-    glfwSetCursorPosCallback(window, core.cursor_pos_callback);
-    glfwSetMouseButtonCallback(window, core.mouse_button_callback);
-    
+	glfwSetKeyCallback(window, core.key_callback);
+	//glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
+	glfwSetWindowSizeCallback(window, core.window_size_callback);
+	glfwSetScrollCallback(window, core.scroll_callback);
+	glfwSetCursorPosCallback(window, core.cursor_pos_callback);
+	glfwSetMouseButtonCallback(window, core.mouse_button_callback);
 
-    ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
 
-    ImVec2 backstageSize = ImVec2(windowWidth - hierachyWidth - inspectorWidth, screenHeight - ((ImGui::GetStyle().FramePadding.y * 2) + 18));
-    win = new BackstageWindow(backstageSize.x, backstageSize.y, windowWidth,windowHeight);
-    screenWidth = windowWidth - inspectorWidth - hierachyWidth;
-    screenHeight = windowHeight - projectWindowHeight;
-    win->SetWindowSize(screenWidth, screenHeight - ((ImGui::GetStyle().FramePadding.y * 2) + 18), hierachyWidth, projectWindowHeight, windowWidth, windowHeight);
+	ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
 
-    _window_start_time = glfwGetTime();
-    // Main loop
-    while (!glfwWindowShouldClose(window))
-    {
-        _delta_time = glfwGetTime() - _frame_start_time;
-        _frame_start_time = glfwGetTime();
-        _animation_time = (glfwGetTime() - _window_start_time) / 50.0f;
-        // Poll and handle events (inputs, window resize, etc.)
-        // You can read the io.WantCaptureMouse, io.WantCaptureKeyboard flags to tell if dear imgui wants to use your inputs.
-        // - When io.WantCaptureMouse is true, do not dispatch mouse input data to your main application, or clear/overwrite your copy of the mouse data.
-        // - When io.WantCaptureKeyboard is true, do not dispatch keyboard input data to your main application, or clear/overwrite your copy of the keyboard data.
-        // Generally you may always pass all inputs to dear imgui, and hide them from your application based on those two flags.
-        glfwPollEvents();
+	ImVec2 backstageSize = ImVec2(windowWidth - hierachyWidth - inspectorWidth, screenHeight - ((ImGui::GetStyle().FramePadding.y * 2) + 18));
+	win = new BackstageWindow(backstageSize.x, backstageSize.y, windowWidth, windowHeight);
+	screenWidth = windowWidth - inspectorWidth - hierachyWidth;
+	screenHeight = windowHeight - projectWindowHeight;
+	win->SetWindowSize(screenWidth, screenHeight - ((ImGui::GetStyle().FramePadding.y * 2) + 18), hierachyWidth, projectWindowHeight, windowWidth, windowHeight);
 
-        // Start the Dear ImGui frame
-        ImGui_ImplOpenGL3_NewFrame();
-        ImGui_ImplGlfw_NewFrame();
-        ImGui::NewFrame();
-        
+	_window_start_time = glfwGetTime();
+	// Main loop
+	while (!glfwWindowShouldClose(window))
+	{
+		_delta_time = glfwGetTime() - _frame_start_time;
+		_frame_start_time = glfwGetTime();
+		_animation_time = (glfwGetTime() - _window_start_time) / 50.0f;
+		// Poll and handle events (inputs, window resize, etc.)
+		// You can read the io.WantCaptureMouse, io.WantCaptureKeyboard flags to tell if dear imgui wants to use your inputs.
+		// - When io.WantCaptureMouse is true, do not dispatch mouse input data to your main application, or clear/overwrite your copy of the mouse data.
+		// - When io.WantCaptureKeyboard is true, do not dispatch keyboard input data to your main application, or clear/overwrite your copy of the keyboard data.
+		// Generally you may always pass all inputs to dear imgui, and hide them from your application based on those two flags.
+		glfwPollEvents();
 
-        core.GUIRender(_animation_time);
+		// Start the Dear ImGui frame
+		ImGui_ImplOpenGL3_NewFrame();
+		ImGui_ImplGlfw_NewFrame();
+		ImGui::NewFrame();
 
-        // Rendering
-        ImGui::Render();
-        int display_w, display_h;
-        glfwGetFramebufferSize(window, &display_w, &display_h);
 
-        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+		core.GUIRender(_animation_time);
 
-        glfwSwapBuffers(window);
-    }
+		// Rendering
+		ImGui::Render();
+		int displayWidth, displayHeight;
+		glfwGetFramebufferSize(window, &displayWidth, &displayHeight);
 
-    // Cleanup
-    ImGui_ImplOpenGL3_Shutdown();
-    ImGui_ImplGlfw_Shutdown();
-    ImGui::DestroyContext();
+		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
-    glfwDestroyWindow(window);
-    glfwTerminate();
+		glfwSwapBuffers(window);
+	}
 
-    return 0;
+	// Cleanup
+	ImGui_ImplOpenGL3_Shutdown();
+	ImGui_ImplGlfw_Shutdown();
+	ImGui::DestroyContext();
+
+	glfwDestroyWindow(window);
+	glfwTerminate();
+
+	return 0;
 }

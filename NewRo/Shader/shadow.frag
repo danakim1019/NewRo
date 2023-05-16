@@ -28,6 +28,8 @@ uniform sampler2D shadowMap;
 uniform int shadowType;
 
 uniform sampler2D texture_diffuse1;
+uniform sampler2D texture_normal1;
+uniform sampler2D texture_specular1;
 
 out vec4 FragColors;
 
@@ -222,6 +224,8 @@ void main()
 	vec4 texColor;
 	if(hasColor){
 		texColor= texture(texture_diffuse1,Color);
+		//texColor+=texture(texture_normal1,Color);
+		//texColor+=texture(texture_specular1,Color).rgba;
 	}
 
 	if(isShadow){

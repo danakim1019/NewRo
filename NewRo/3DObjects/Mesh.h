@@ -1,6 +1,5 @@
 #pragma once
 
-//#include "GL/glew.h"
 #include"../BasicComponent.h"
 #include "../Loader.h"
 
@@ -15,8 +14,6 @@
 
 //#include "Light.h"
 
-using namespace std;
-
 #define NUM_BONES_PER_VERTEX 4
 
 struct Vertex
@@ -29,7 +26,7 @@ struct Vertex
 struct Texture
 {
 	unsigned int id;
-	string type;
+	std::string type;
 	aiString path;
 };
 
@@ -79,29 +76,28 @@ class Mesh
 {
 public:
 	/*  Mesh Data  */
-	ShaderProgram* shaderProgram;
-	ShaderProgram* animShaderProgram;
-	vector<GLfloat> position, normal, texCoord;
+	ShaderProgram* mShaderProgram;
+	ShaderProgram* mAnimShaderProgram;
 
-	vector<Vertex> vertices;
-	vector<GLuint> indices;
-	vector<Texture> textures;
-	vector<BoneInfo> bones;
-	vector<VertexBoneData> vertexBoneData;
+	std::vector<Vertex> mVertices;
+	std::vector<GLuint> mIndices;
+	std::vector<Texture> mTextures;
+	std::vector<BoneInfo> mBones;
+	std::vector<VertexBoneData> mVertexBoneData;
 
 	unsigned int IBO, VBO_normal, VBO_texture, EBO;
 	unsigned int VBO_position, vertexBones_vbo;
 	/*Animation Data*/
-	bool hasAnimations;
+	bool bHasAnimations;
 
 	/*  Functions  */
-	Mesh(vector<Vertex> vertices, vector<GLuint> indices, vector<Texture> textures,
-		vector<BoneInfo> bones,vector<VertexBoneData> vertexBoneData, std::string shaderType,bool hasAnimations);
+	Mesh(std::vector<Vertex> vertices, std::vector<GLuint> indices, std::vector<Texture> textures,
+		std::vector<BoneInfo> bones, std::vector<VertexBoneData> vertexBoneData, std::string shaderType, bool hasAnimations);
 	void Draw(glm::mat4 view, glm::mat4 model, glm::mat4 projection, glm::vec3 lightPos);
 	void RenderPicking();
 	void RenderModel(glm::mat4& model, glm::mat4& view, glm::mat4& projection, glm::mat4& location,
 		glm::vec3 camPosition, glm::vec3 lightPosition, glm::mat4& lightSpace, Shadow* shadow, std::string shaderType, Material* m_mat);
- 
+
 private:
 	/*  Render data  */
 	GLuint VAO;

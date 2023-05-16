@@ -6,31 +6,31 @@
 
 class BuiltInCylinder : public OBJect {
 public:
-	float x, y, angle;
-	std::string tag;
 	BuiltInCylinder();
 	BuiltInCylinder(float radius, float length, int rings, int slices);
-	void setup();
+
 	void RenderPicking();
 	virtual void RenderModel(glm::mat4& model, glm::mat4& view, glm::mat4& projection, glm::mat4& location,
 		glm::vec3 camPosition, glm::vec3 lightPosition, glm::mat4& lightSpace, Shadow* shadow, Animation* animation) override;
 	//void draw(glm::mat4& model, glm::mat4& view, glm::mat4& projection);
 private:
 
-	float m_radius;
-	float m_length;
-	int m_rings;
-	int m_slices;
-	int faces;
-	int nVerts;
-	int index;
+	float mRadius;
+	float mLength;
+	int mRings;
+	int mSlices;
+	int mFaces;
+	int mNumVerts;
+	int mIndex;
+
+	void setup();
 	void generateVertexData();
 	void generateEndCapVertexData(float y, int& index, int& elIndex);
 
-	ShaderProgram* m_shaderProgram;
-	std::vector<float> vertexPositions;
-	std::vector<float> vertexNormals;
-	std::vector<unsigned int> vertexIndices;
+	ShaderProgram* mShaderProgram;
+	std::vector<float> mVertexPositions;
+	std::vector<float> mVertexNormals;
+	std::vector<unsigned int> mVertexIndices;
 	GLuint vaoHandle;
 	GLuint ssboHandle_t = 0;
 

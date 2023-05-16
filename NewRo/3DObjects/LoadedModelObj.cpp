@@ -4,6 +4,8 @@
 #include "LoadedModelObj.h"
 #include"meshoptimizer.h"
 
+using namespace std;
+
 struct VertexData {
 	float px, py, pz;
 	float nx, ny, nz;
@@ -113,15 +115,15 @@ void simplifyComplete(const MeshData& mesh, std::vector<unsigned int>lods[], std
 		const size_t kCacheSize = 16;
 		meshopt_VertexCacheStatistics vcs0 = meshopt_analyzeVertexCache(&indices[lod_index_offsets[0]], lod_index_counts[0], vertices.size(), kCacheSize, 0, 0);
 		meshopt_VertexFetchStatistics vfs0 = meshopt_analyzeVertexFetch(&indices[lod_index_offsets[0]], lod_index_counts[0], vertices.size(), sizeof(VertexData));
-		meshopt_VertexCacheStatistics vcsN = meshopt_analyzeVertexCache(&indices[lod_index_offsets[lod_count-1]], lod_index_counts[lod_count-1], vertices.size(), kCacheSize, 0, 0);
-		meshopt_VertexFetchStatistics vfsN = meshopt_analyzeVertexFetch(&indices[lod_index_offsets[lod_count-1]], lod_index_counts[lod_count-1], vertices.size(), sizeof(VertexData));
+		meshopt_VertexCacheStatistics vcsN = meshopt_analyzeVertexCache(&indices[lod_index_offsets[lod_count - 1]], lod_index_counts[lod_count - 1], vertices.size(), kCacheSize, 0, 0);
+		meshopt_VertexFetchStatistics vfsN = meshopt_analyzeVertexFetch(&indices[lod_index_offsets[lod_count - 1]], lod_index_counts[lod_count - 1], vertices.size(), sizeof(VertexData));
 
 		typedef PackedVertexOct PV;
 
 		std::vector<PV> pv(vertices.size());
 		packMesh(pv, vertices);
 
-		std::vector<unsigned char> vbuf(meshopt_encodeVertexBufferBound(vertices.size(),sizeof(PV)));
+		std::vector<unsigned char> vbuf(meshopt_encodeVertexBufferBound(vertices.size(), sizeof(PV)));
 		vbuf.resize(meshopt_encodeVertexBuffer(&vbuf[0], vbuf.size(), &pv[0], vertices.size(), sizeof(PV)));
 
 		std::vector<unsigned char> ibuf(meshopt_encodeIndexBufferBound(indices.size(), vertices.size()));
@@ -130,8 +132,8 @@ void simplifyComplete(const MeshData& mesh, std::vector<unsigned int>lods[], std
 		printf(" % -9s ACMR %f..%f Overfetch %f...%f Codec VB %.1f bits/vertex IB %.1f bits/triangle\n",
 			"",
 			vcs0.acmr, vcsN.acmr, vfs0.overfetch, vfsN.overfetch,
-			double(vbuf.size())/double(vertices.size())*8,
-			double(ibuf.size())/double(indices.size()/3)*8);
+			double(vbuf.size()) / double(vertices.size()) * 8,
+			double(ibuf.size()) / double(indices.size() / 3) * 8);
 
 	}
 
@@ -139,60 +141,59 @@ void simplifyComplete(const MeshData& mesh, std::vector<unsigned int>lods[], std
 
 }
 
-
 /*  Functions   */
 // constructor, expects a filepath to a 3D model.
-LoadedModelObj::LoadedModelObj(const string& path, std::string sType, bool gamma, glm::vec3 Ka) : gammaCorrection(gamma), DiffuseColor(Ka)
+LoadedModelObj::LoadedModelObj(const std::string& path, std::string sType, bool gamma, glm::vec3 Ka) : bGammaCorrection(gamma)
 {
 	loadModel(path, sType);
 }
 
 /*  Functions   */
 // loads a model with supported ASSIMP extensions from file and stores the resulting meshes in the meshes vector.
-void LoadedModelObj::loadModel(string const& path, std::string sType)
+void LoadedModelObj::loadModel(std::string const& path, std::string sType)
 {
 	// read file via ASSIMP
 	//unsigned int pFlags = aiProcess_Triangulate | aiProcess_FlipUVs | aiProcess_OptimizeMeshes | aiProcess_ValidateDataStructure | aiProcess_CalcTangentSpace | aiProcess_GenSmoothNormals;
 	//unsigned int pFlags = aiProcess_Triangulate | aiProcess_FlipUVs | aiProcess_ValidateDataStructure | aiProcess_GenNormals | aiProcess_FixInfacingNormals;
-	unsigned int pFlags=aiProcess_Triangulate | aiProcess_GenNormals | aiProcess_JoinIdenticalVertices;
-	scene = importer.ReadFile(path, pFlags);
+	unsigned int pFlags = aiProcess_Triangulate | aiProcess_GenNormals | aiProcess_JoinIdenticalVertices;
+	mScene = mImporter.ReadFile(path, pFlags);
 
-	if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode) // if is Zero
+	if (!mScene || mScene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !mScene->mRootNode) // if is Zero
 	{
-		cout << "ERROR::ASSIMP:: " << importer.GetErrorString() << endl;
+		cout << "ERROR::ASSIMP:: " << mImporter.GetErrorString() << endl;
 		return;
 	}
 
 	// retrieve the directory path of the filepath
-	directory = path.substr(0, path.find_last_of('/'));
-	name = path.substr(path.find_last_of('/') + 1, path.size());
-	std::size_t pos = name.rfind('.');
-	name = name.substr(0, pos);
+	mDirectory = path.substr(0, path.find_last_of('/'));
+	mName = path.substr(path.find_last_of('/') + 1, path.size());
+	std::size_t pos = mName.rfind('.');
+	mName = mName.substr(0, pos);
 
-	objectType = "LoadedModel";
-	shaderType = sType;
+	mObjectType = "LoadedModel";
+	mShaderType = sType;
 
-	animationNum = 0;
+	mAnimationNum = 0;
 
 	// process ASSIMP's root node recursively
-	processNode(scene->mRootNode, scene);
+	processNode(mScene->mRootNode, mScene);
 }
 
 
-int LoadedModelObj::BoneTransform(float TimeInSeconds, vector<glm::mat4>& Transforms) {
+int LoadedModelObj::BoneTransform(float timeInSeconds, vector<glm::mat4>& transforms) {
 	glm::mat4 Identity = glm::mat4(1.0f);
-	
-	float TicksPerSecond = scene->mAnimations[animationNum]->mTicksPerSecond != 0 ?scene->mAnimations[animationNum]->mTicksPerSecond : 25.0f;
-	float TimeInTicks = TimeInSeconds * TicksPerSecond;
-	float AnimationTime = fmod(TimeInTicks, scene->mAnimations[animationNum]->mDuration);
+
+	float ticksPerSecond = mScene->mAnimations[mAnimationNum]->mTicksPerSecond != 0 ? mScene->mAnimations[mAnimationNum]->mTicksPerSecond : 25.0f;
+	float TimeInTicks = timeInSeconds * ticksPerSecond;
+	float AnimationTime = fmod(TimeInTicks, mScene->mAnimations[mAnimationNum]->mDuration);
 
 	//
-	ReadNodeHeirarchy(scene, AnimationTime, scene->mRootNode, Identity, glm::vec3(0.0f, 0.0f, 0.0f));
+	readNodeHeirarchy(mScene, AnimationTime, mScene->mRootNode, Identity, glm::vec3(0.0f, 0.0f, 0.0f));
 
-	Transforms.resize(m_BoneInfo.size());
+	transforms.resize(mBoneInfo.size());
 
-	for (unsigned int i = 0; i < m_BoneInfo.size(); i++) {
-		Transforms[i] = m_BoneInfo[i].FinalTransformation;
+	for (unsigned int i = 0; i < mBoneInfo.size(); i++) {
+		transforms[i] = mBoneInfo[i].FinalTransformation;
 	}
 
 	return 0;
@@ -201,28 +202,28 @@ int LoadedModelObj::BoneTransform(float TimeInSeconds, vector<glm::mat4>& Transf
 
 void LoadedModelObj::RenderPicking()
 {
-	for (GLuint i = 0; i < meshes.size(); i++)
-		meshes[i].RenderPicking();
+	for (GLuint i = 0; i < mMeshes.size(); i++)
+		mMeshes[i].RenderPicking();
 }
 
-void LoadedModelObj::RenderModel(glm::mat4& model, glm::mat4& view, glm::mat4& projection, glm::mat4& location, 
+void LoadedModelObj::RenderModel(glm::mat4& model, glm::mat4& view, glm::mat4& projection, glm::mat4& location,
 	glm::vec3 camPosition, glm::vec3 lightPosition, glm::mat4& lightSpace, Shadow* shadow, Animation* animation)
 {
-	for (GLuint i = 0; i < meshes.size(); i++) {
-		meshes[i].shaderProgram->use();
-		
-		if (hasAnimatoins) {
-			//animation parameter
-			float TicksPersecond = scene->mAnimations[animationNum]->mTicksPerSecond != 0 ? scene->mAnimations[animationNum]->mTicksPerSecond : 25.0f;
-			float TimeInTicks = animation->animationTime * TicksPersecond;
-			int type = BoneTransform(TimeInTicks, Transforms);
+	for (GLuint i = 0; i < mMeshes.size(); i++) {
+		mMeshes[i].mShaderProgram->use();
 
-			glUniformMatrix4fv(meshes[i].shaderProgram->uniform("gBones[0]"), Transforms.size(), GL_FALSE, glm::value_ptr(Transforms[0]));
+		if (bHasAnimatoins) {
+			//animation parameter
+			float TicksPersecond = mScene->mAnimations[mAnimationNum]->mTicksPerSecond != 0 ? mScene->mAnimations[mAnimationNum]->mTicksPerSecond : 25.0f;
+			float TimeInTicks = animation->mAnimationTime * TicksPersecond;
+			int type = BoneTransform(TimeInTicks, mTransforms);
+
+			glUniformMatrix4fv(mMeshes[i].mShaderProgram->uniform("gBones[0]"), mTransforms.size(), GL_FALSE, glm::value_ptr(mTransforms[0]));
 		}
 
-		meshes[i].RenderModel(model, view, projection, location, camPosition, lightPosition, lightSpace, shadow, shaderType, m_mat);
+		mMeshes[i].RenderModel(model, view, projection, location, camPosition, lightPosition, lightSpace, shadow, mShaderType, mMat);
 
-		meshes[i].shaderProgram->disable();
+		mMeshes[i].mShaderProgram->disable();
 	}
 }
 
@@ -236,8 +237,8 @@ void LoadedModelObj::processNode(aiNode* node, const aiScene* scene)
 		// the node object only contains indices to index the actual objects in the scene. 
 		// the scene contains all the data, node is just to keep stuff organized (like relations between nodes).
 		aiMesh* mesh = scene->mMeshes[i];
-		total_vertices += mesh->mNumVertices;
-		meshes.push_back(processMesh(mesh, scene));
+		mTotalVertices += mesh->mNumVertices;
+		mMeshes.push_back(processMesh(mesh, scene));
 	}
 }
 
@@ -248,7 +249,7 @@ Mesh LoadedModelObj::processMesh(aiMesh* mesh, const aiScene* scene)
 	vector<GLuint> indices;
 	vector<Texture> textures;
 
-	Bones.resize(total_vertices);
+	mBones.resize(mTotalVertices);
 
 	// Walk through each of the mesh's vertices
 	for (GLuint i = 0; i < mesh->mNumVertices; i++)
@@ -336,13 +337,13 @@ Mesh LoadedModelObj::processMesh(aiMesh* mesh, const aiScene* scene)
 	std::vector<unsigned int> lods[5];
 	std::vector<unsigned int> indicesCombined;
 	simplifyComplete(data, lods, indicesCombined);*/
-	
+
 
 	// retreive bone information
-	loadMeshBones(mesh, Bones);
+	loadMeshBones(mesh, mBones);
 
 	// return a mesh object created from the extracted mesh data
-	return Mesh(vertices, indices, textures,m_BoneInfo,Bones,shaderType,hasAnimatoins);
+	return Mesh(vertices, indices, textures, mBoneInfo, mBones, mShaderType, bHasAnimatoins);
 }
 
 // checks all material textures of a given type and loads the textures if they're not loaded yet.
@@ -350,7 +351,7 @@ Mesh LoadedModelObj::processMesh(aiMesh* mesh, const aiScene* scene)
 vector<Texture> LoadedModelObj::loadMaterialTextures(aiMaterial* mat, aiTextureType type, std::string typeName)
 {
 	vector<Texture> textures;
-	aiString path = aiString(directory);
+	aiString path = aiString(mDirectory);
 
 	bool value = mat->GetTexture(aiTextureType_DIFFUSE, 0, &path, 0, 0, 0, 0, 0);
 	for (unsigned int i = 0; i < mat->GetTextureCount(type); i++)
@@ -359,11 +360,11 @@ vector<Texture> LoadedModelObj::loadMaterialTextures(aiMaterial* mat, aiTextureT
 		mat->GetTexture(type, i, &str);
 		// check if texture was loaded before and if so, continue to next iteration: skip loading a new texture
 		bool skip = false;
-		for (unsigned int j = 0; j < textures_loaded.size(); j++)
+		for (unsigned int j = 0; j < mTexturesLoaded.size(); j++)
 		{
-			if (std::strcmp(textures_loaded[j].path.C_Str(), str.C_Str()) == 0)
+			if (std::strcmp(mTexturesLoaded[j].path.C_Str(), str.C_Str()) == 0)
 			{
-				textures.push_back(textures_loaded[j]);
+				textures.push_back(mTexturesLoaded[j]);
 				skip = true; // a texture with the same filepath has already been loaded, continue to next one. (optimization)
 				break;
 			}
@@ -371,17 +372,17 @@ vector<Texture> LoadedModelObj::loadMaterialTextures(aiMaterial* mat, aiTextureT
 		if (!skip)
 		{   // if texture hasn't been loaded already, load it
 			Texture texture;
-			texture.id = TextureFromFile(str.C_Str(), this->directory);
+			texture.id = textureFromFile(str.C_Str(), this->mDirectory);
 			texture.type = typeName;
 			texture.path = str;
 			textures.push_back(texture);
-			textures_loaded.push_back(texture);  // store it as texture loaded for entire model, to ensure we won't unnecesery load duplicate textures.
+			mTexturesLoaded.push_back(texture);  // store it as texture loaded for entire model, to ensure we won't unnecesery load duplicate textures.
 		}
 	}
 	return textures;
 }
 
-unsigned int LoadedModelObj::TextureFromFile(const char* path, const string& directory, bool gamma)
+unsigned int LoadedModelObj::textureFromFile(const char* path, const string& directory, bool gamma)
 {
 	string filename = string(path);
 	filename = directory + '/' + filename;
@@ -431,11 +432,11 @@ void LoadedModelObj::loadBones(aiNode* node, const aiScene* scene) {
 		if (NodeName.find(":") != string::npos) {
 			string BoneName = NodeName;
 			unsigned int BoneIndex = 0;
-			
-			if (Bone_Mapping.find(BoneName) == Bone_Mapping.end()) {
-				BoneIndex = m_NumBones;
-				m_NumBones++;
-				Bone_Mapping[BoneName] = BoneIndex;
+
+			if (mBoneMapping.find(BoneName) == mBoneMapping.end()) {
+				BoneIndex = mNumBones;
+				mNumBones++;
+				mBoneMapping[BoneName] = BoneIndex;
 			}
 		}
 	}
@@ -445,45 +446,45 @@ void LoadedModelObj::loadBones(aiNode* node, const aiScene* scene) {
 	}
 }
 
-void LoadedModelObj::loadMeshBones(aiMesh* mesh, vector<VertexBoneData>& VertexBoneData)
+void LoadedModelObj::loadMeshBones(aiMesh* mesh, vector<VertexBoneData>& vertexBoneData)
 {
 	for (unsigned int i = 0; i < mesh->mNumBones; i++) {
 		unsigned int BoneIndex = 0;
 		string BoneName(mesh->mBones[i]->mName.data);
 
-		if (Bone_Mapping.find(BoneName) == Bone_Mapping.end()) {
+		if (mBoneMapping.find(BoneName) == mBoneMapping.end()) {
 			// Allocate an index for a new bone
-			BoneIndex = (int)Bone_Mapping.size();
-			Bone_Mapping[BoneName] = BoneIndex;
+			BoneIndex = (int)mBoneMapping.size();
+			mBoneMapping[BoneName] = BoneIndex;
 		}
 		else {
-			BoneIndex = Bone_Mapping[BoneName];
+			BoneIndex = mBoneMapping[BoneName];
 		}
 
-		if (BoneIndex == m_BoneInfo.size()) {
+		if (BoneIndex == mBoneInfo.size()) {
 			BoneInfo bi(mesh->mBones[i]->mOffsetMatrix);
-			m_BoneInfo.push_back(bi);
+			mBoneInfo.push_back(bi);
 		}
 
 		int nn = mesh->mBones[i]->mNumWeights;
 
 		for (unsigned int n = 0; n < nn; n++) {
-			unsigned int vid = mesh->mBones[i]->mWeights[n].mVertexId + NumVertices;		//absolute index
+			unsigned int vid = mesh->mBones[i]->mWeights[n].mVertexId + mNumVertices;		//absolute index
 			float weight = mesh->mBones[i]->mWeights[n].mWeight;
-			VertexBoneData[vid].AddBoneData(BoneIndex, weight);		//for a particular vertex, which bones affect it ans its weight
+			vertexBoneData[vid].AddBoneData(BoneIndex, weight);		//for a particular vertex, which bones affect it ans its weight
 		}
 		//from the scene, for the boneName, find the position, orientation and scale
-		loadAnimations(scene, BoneName, Animations);
+		loadAnimations(mScene, BoneName, mAnimations);
 		//if Animations size > 0  this model has Animaitons
-		(scene->mNumAnimations > 0) ? hasAnimatoins = true : hasAnimatoins = false;
+		(mScene->mNumAnimations > 0) ? bHasAnimatoins = true : bHasAnimatoins = false;
 	}
-	NumVertices += mesh->mNumVertices;
+	mNumVertices += mesh->mNumVertices;
 }
 
 
 //get animation from the bone
 //populate the animation map : animation_map[animation_name][bone_name] -> animation
-void LoadedModelObj::loadAnimations(const aiScene* scene, string BoneName, map<string, map<string, const aiNodeAnim*>>& animations)
+void LoadedModelObj::loadAnimations(const aiScene* scene, string boneName, map<string, map<string, const aiNodeAnim*>>& animations)
 {
 	for (unsigned int i = 0; i < scene->mNumAnimations; i++) {
 		const aiAnimation* pAnimation = scene->mAnimations[i];
@@ -493,141 +494,141 @@ void LoadedModelObj::loadAnimations(const aiScene* scene, string BoneName, map<s
 		for (unsigned int j = 0; j < pAnimation->mNumChannels; j++) {
 			string name = pAnimation->mChannels[j]->mNodeName.data;
 
-			if (name == BoneName) {
-				animations[animName][BoneName] = pAnimation->mChannels[j];
+			if (name == boneName) {
+				animations[animName][boneName] = pAnimation->mChannels[j];
 				found = true;
 				break;
 			}
 		}
 		if (!found)
-			std::cout << "Error:nofind animation for" << BoneName << std::endl;
+			std::cout << "Error:nofind animation for" << boneName << std::endl;
 	}
 }
 
-void LoadedModelObj::ReadNodeHeirarchy(const aiScene* scene, float AnimationTime, const aiNode* pNode,
-	const glm::mat4& ParentTransform, glm::vec3 startpos)
+void LoadedModelObj::readNodeHeirarchy(const aiScene* scene, float animationTime, const aiNode* pNode,
+	const glm::mat4& parentTransform, glm::vec3 startpos)
 {
 	string NodeName(pNode->mName.data);
-	const aiAnimation* pAnimation = scene->mAnimations[0];	
+	const aiAnimation* pAnimation = scene->mAnimations[0];
 
 	glm::mat4 NodeTransformation = glm::mat4(1.0f);
 	aiMatrix4x4 tp1 = pNode->mTransformation;
 	NodeTransformation = glm::transpose(glm::make_mat4(&tp1.a1));
 
-	const aiNodeAnim* pNodeAnim = FindNodeAnim(pAnimation, NodeName);
+	const aiNodeAnim* pNodeAnim = findNodeAnim(pAnimation, NodeName);
 
 	if (pNodeAnim) {
 		//Interpolate rotation and generate rotation transformation matrix
 		aiQuaternion RotationQ;
-		CalcInterpolatedRotation(RotationQ, AnimationTime, pNodeAnim);
+		calcInterpolatedRotation(RotationQ, animationTime, pNodeAnim);
 		aiMatrix3x3 tp = RotationQ.GetMatrix();
 		//convert to glm 4x4 matrix
 		glm::mat4 RotationM = glm::transpose(glm::make_mat3(&tp.a1));
 
 		//Interpolate translation and generate translation transformation matrix
 		aiVector3D Translation;
-		CalcInterpolatedPosition(Translation, AnimationTime, pNodeAnim);
+		calcInterpolatedPosition(Translation, animationTime, pNodeAnim);
 		glm::mat4 TranslationM = glm::mat4(1.0f);
 		//get the 4x4 translation matrix
 		TranslationM = glm::translate(TranslationM, glm::vec3(Translation.x, Translation.y, Translation.z));
 
 		// Interpolate scaling and generate scaling transformation matrix
 		aiVector3D Scale;
-		CalcInterpolatedScaling(Scale, AnimationTime, pNodeAnim);
+		calcInterpolatedScaling(Scale, animationTime, pNodeAnim);
 		glm::mat4 ScaleM = glm::mat4(1.0f);
 		ScaleM = glm::scale(ScaleM, glm::vec3(Scale.x, Scale.y, Scale.z));
-		
+
 		//combine rotation and translation matrix
-		NodeTransformation = TranslationM * RotationM* ScaleM;
+		NodeTransformation = TranslationM * RotationM * ScaleM;
 	}
 
 	//world transform in matrix
-	glm::mat4 GlobalTransformation = ParentTransform * NodeTransformation;
+	glm::mat4 GlobalTransformation = parentTransform * NodeTransformation;
 
 	unsigned int ID = 0;
-	
-	if (Bone_Mapping.find(NodeName) != Bone_Mapping.end()) {
+
+	if (mBoneMapping.find(NodeName) != mBoneMapping.end()) {
 		startpos.x = GlobalTransformation[3][0];
 		startpos.y = GlobalTransformation[3][1];
 		startpos.z = GlobalTransformation[3][2];
-		ID = Bone_Mapping[NodeName];
-		skeleton_pose[ID] = startpos;
+		ID = mBoneMapping[NodeName];
+		mSkeletonPose[ID] = startpos;
 	}
 
-	if (Bone_Mapping.find(NodeName) != Bone_Mapping.end()) {
-		unsigned int NodeIndex = Bone_Mapping[NodeName];
+	if (mBoneMapping.find(NodeName) != mBoneMapping.end()) {
+		unsigned int NodeIndex = mBoneMapping[NodeName];
 
-		m_BoneInfo[NodeIndex].FinalTransformation = GlobalTransformation * m_BoneInfo[NodeIndex].offset;
+		mBoneInfo[NodeIndex].FinalTransformation = GlobalTransformation * mBoneInfo[NodeIndex].offset;
 	}
 
 	for (unsigned int i = 0; i < pNode->mNumChildren; i++) {
-		ReadNodeHeirarchy(scene, AnimationTime, pNode->mChildren[i], GlobalTransformation, startpos);
+		readNodeHeirarchy(scene, animationTime, pNode->mChildren[i], GlobalTransformation, startpos);
 	}
 }
 
-void LoadedModelObj::CalcInterpolatedScaling(aiVector3D& Out, float AnimationTime, const aiNodeAnim* pNodeAnim)
+void LoadedModelObj::calcInterpolatedScaling(aiVector3D& out, float animationTime, const aiNodeAnim* pNodeAnim)
 {
 	if (pNodeAnim->mNumScalingKeys == 1) {
-		Out = pNodeAnim->mScalingKeys[0].mValue;
+		out = pNodeAnim->mScalingKeys[0].mValue;
 		return;
 	}
 
-	unsigned int ScalingIndex = FindScaling(AnimationTime, pNodeAnim);
+	unsigned int ScalingIndex = findScaling(animationTime, pNodeAnim);
 	unsigned int NextScalingIndex = (ScalingIndex + 1);
 	assert(NextScalingIndex < pNodeAnim->mNumScalingKeys);
 	float DeltaTime = (float)pNodeAnim->mScalingKeys[NextScalingIndex].mTime - pNodeAnim->mScalingKeys[ScalingIndex].mTime;
-	float Factor = (AnimationTime - (float)pNodeAnim->mScalingKeys[ScalingIndex].mTime) / DeltaTime;
+	float Factor = (animationTime - (float)pNodeAnim->mScalingKeys[ScalingIndex].mTime) / DeltaTime;
 	assert(Factor >= 0.0f && Factor <= 1.0f);
 	const aiVector3D& Start = pNodeAnim->mScalingKeys[ScalingIndex].mValue;
 	const aiVector3D& End = pNodeAnim->mScalingKeys[NextScalingIndex].mValue;
 	aiVector3D Delta = End - Start;
-	Out = Start + Factor * Delta;
+	out = Start + Factor * Delta;
 }
 
-void LoadedModelObj::CalcInterpolatedRotation(aiQuaternion& Out, float AnimationTime, const aiNodeAnim* pNodeAnim)
+void LoadedModelObj::calcInterpolatedRotation(aiQuaternion& out, float animationTime, const aiNodeAnim* pNodeAnim)
 {
 	//we need at least two values to interpolate...
 	if (pNodeAnim->mNumRotationKeys == 1) {
-		Out = pNodeAnim->mRotationKeys[0].mValue;
+		out = pNodeAnim->mRotationKeys[0].mValue;
 		return;
 	}
 
-	unsigned int RotationIndex = FindRotation(AnimationTime, pNodeAnim);
+	unsigned int RotationIndex = findRotation(animationTime, pNodeAnim);
 	unsigned int NextRotationIndex = (RotationIndex + 1);
 	assert(NextRotationIndex < pNodeAnim->mNumRotationKeys);
 	float DeltaTime = (float)pNodeAnim->mRotationKeys[NextRotationIndex].mTime - pNodeAnim->mRotationKeys[RotationIndex].mTime;
-	float Factor = (AnimationTime - (float)pNodeAnim->mRotationKeys[RotationIndex].mTime) / DeltaTime;
+	float Factor = (animationTime - (float)pNodeAnim->mRotationKeys[RotationIndex].mTime) / DeltaTime;
 	assert(Factor >= 0.0f && Factor <= 1.0f);
 	const aiQuaternion& StartRotationQ = pNodeAnim->mRotationKeys[RotationIndex].mValue;
 	const aiQuaternion& EndRotationQ = pNodeAnim->mRotationKeys[NextRotationIndex].mValue;
-	aiQuaternion::Interpolate(Out, StartRotationQ, EndRotationQ, Factor);
-	Out = Out.Normalize();
+	aiQuaternion::Interpolate(out, StartRotationQ, EndRotationQ, Factor);
+	out = out.Normalize();
 }
 
-void LoadedModelObj::CalcInterpolatedPosition(aiVector3D& Out, float AnimationTime, const aiNodeAnim* pNodeAnim)
+void LoadedModelObj::calcInterpolatedPosition(aiVector3D& out, float animationTime, const aiNodeAnim* pNodeAnim)
 {
 	if (pNodeAnim->mNumPositionKeys == 1) {
-		Out = pNodeAnim->mPositionKeys[0].mValue;
+		out = pNodeAnim->mPositionKeys[0].mValue;
 		return;
 	}
 
-	unsigned int PositionIndex = FindPosition(AnimationTime, pNodeAnim);
+	unsigned int PositionIndex = findPosition(animationTime, pNodeAnim);
 	unsigned int NextPositionIndex = (PositionIndex + 1);
 	assert(NextPositionIndex < pNodeAnim->mNumPositionKeys);
 	float DeltaTime = (float)pNodeAnim->mPositionKeys[NextPositionIndex].mTime - pNodeAnim->mPositionKeys[PositionIndex].mTime;
-	float Factor = (AnimationTime - (float)pNodeAnim->mPositionKeys[PositionIndex].mTime) / DeltaTime;
+	float Factor = (animationTime - (float)pNodeAnim->mPositionKeys[PositionIndex].mTime) / DeltaTime;
 	assert(Factor >= 0.0f && Factor <= 1.0f);
 	const aiVector3D& Start = pNodeAnim->mPositionKeys[PositionIndex].mValue;
 	const aiVector3D& End = pNodeAnim->mPositionKeys[NextPositionIndex].mValue;
 	aiVector3D Delta = End - Start;
-	Out = Start + Factor * Delta;
+	out = Start + Factor * Delta;
 }
 
-unsigned int LoadedModelObj::FindScaling(float AnimationTime, const aiNodeAnim* pNodeAnim)
+unsigned int LoadedModelObj::findScaling(float animationTime, const aiNodeAnim* pNodeAnim)
 {
 	assert(pNodeAnim->mNumScalingKeys > 0);
 	for (unsigned int i = 0; i < pNodeAnim->mNumScalingKeys - 1; i++) {
-		if (AnimationTime < (float)pNodeAnim->mScalingKeys[i + 1].mTime) {
+		if (animationTime < (float)pNodeAnim->mScalingKeys[i + 1].mTime) {
 			return i;
 		}
 	}
@@ -635,11 +636,11 @@ unsigned int LoadedModelObj::FindScaling(float AnimationTime, const aiNodeAnim* 
 	return 0;
 }
 
-unsigned int LoadedModelObj::FindRotation(float AnimationTime, const aiNodeAnim* pNodeAnim)
+unsigned int LoadedModelObj::findRotation(float animationTime, const aiNodeAnim* pNodeAnim)
 {
 	assert(pNodeAnim->mNumRotationKeys > 0);
 	for (unsigned int i = 0; i < pNodeAnim->mNumRotationKeys - 1; i++) {
-		if (AnimationTime < (float)pNodeAnim->mRotationKeys[i + 1].mTime) {
+		if (animationTime < (float)pNodeAnim->mRotationKeys[i + 1].mTime) {
 			return i;
 		}
 	}
@@ -647,10 +648,10 @@ unsigned int LoadedModelObj::FindRotation(float AnimationTime, const aiNodeAnim*
 	return 0;
 }
 
-unsigned int LoadedModelObj::FindPosition(float AnimationTime, const aiNodeAnim* pNodeAnim)
+unsigned int LoadedModelObj::findPosition(float animationTime, const aiNodeAnim* pNodeAnim)
 {
 	for (unsigned int i = 0; i < pNodeAnim->mNumPositionKeys - 1; i++) {
-		if (AnimationTime < (float)pNodeAnim->mPositionKeys[i + 1].mTime) {
+		if (animationTime < (float)pNodeAnim->mPositionKeys[i + 1].mTime) {
 			return i;
 		}
 	}
@@ -658,7 +659,7 @@ unsigned int LoadedModelObj::FindPosition(float AnimationTime, const aiNodeAnim*
 	return 0;
 }
 
-const aiNodeAnim* LoadedModelObj::FindNodeAnim(const aiAnimation* pAnimation, const string& NodeName) {
+const aiNodeAnim* LoadedModelObj::findNodeAnim(const aiAnimation* pAnimation, const string& NodeName) {
 	for (unsigned int i = 0; i < pAnimation->mNumChannels; i++) {
 		const aiNodeAnim* pNodeAnim = pAnimation->mChannels[i];
 

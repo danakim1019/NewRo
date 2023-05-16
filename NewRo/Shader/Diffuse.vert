@@ -1,6 +1,6 @@
 #version 400
-layout(location=0) in vec3 coord3d;
-layout(location=1) in vec3 v_normal;
+layout(location=0) in vec3 VertexPosition;
+layout(location=1) in vec3 VertexNormal;
 
 struct LightInfo {
   vec4 Position; // Light position in eye coords.
@@ -31,9 +31,9 @@ out vec3 outColor;
 void main()
 {
 	//change vertex position : 모든 light 계산은 camera좌표계에서 이루어짐
-	vec4 P= view*location*model * vec4(coord3d,1.0); //camera좌표계에서의 vertex위치값
+	vec4 P= view*location*model * vec4(VertexPosition,1.0); //camera좌표계에서의 vertex위치값
 	//normal 변경
-	vec3 N = normalize(NormalMatrix * v_normal); //local 좌표계에서의 normal을 변경
+	vec3 N = normalize(NormalMatrix * VertexNormal); //local 좌표계에서의 normal을 변경
 	
 	vec3 L = normalize(vec3(Light.Position - P));	//내적계산을 위해 vec3로 변경
 
@@ -48,6 +48,6 @@ void main()
 	//outColor = ambient+diffuse;
 	//outColor = ambient;
 
-	gl_Position = projection* view *location* model * vec4(coord3d,1.0);
+	gl_Position = projection* view *location* model * vec4(VertexPosition,1.0);
 
 }

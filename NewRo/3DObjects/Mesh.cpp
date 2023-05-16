@@ -1,141 +1,85 @@
 #include "Mesh.h"
 
+using namespace std;
+
+
 Mesh::Mesh(vector<Vertex> vertices, vector<GLuint> indices, vector<Texture> textures,
 	vector<BoneInfo> bones, vector<VertexBoneData> vertexBoneData, std::string shaderType, bool hasAnimations)
 {
-	this->vertices = vertices;
-	this->indices = indices;
-	this->textures = textures;
-	this->bones = bones;
-	this->vertexBoneData = vertexBoneData;
-	this->hasAnimations = hasAnimations;
+	this->mVertices = vertices;
+	this->mIndices = indices;
+	this->mTextures = textures;
+	this->mBones = bones;
+	this->mVertexBoneData = vertexBoneData;
+	this->bHasAnimations = hasAnimations;
 
-	setupMesh(shaderType,hasAnimations);
+	setupMesh(shaderType, hasAnimations);
 }
 
-void Mesh::setupMesh(std::string shaderType,bool hasAnimations)
+void Mesh::setupMesh(std::string shaderType, bool hasAnimations)
 {
-	shaderProgram = new ShaderProgram();
-	if (hasAnimations == false) {
+	mShaderProgram = new ShaderProgram();
+	if (bHasAnimations == false) {
 		if (shaderType == "modelTexture") {
-			shaderProgram->initFromFiles("Shader/modelTexture.vert", "Shader/modelTexture.frag");
+			mShaderProgram->initFromFiles("Shader/modelTexture.vert", "Shader/modelTexture.frag");
 
 			//add attributes and uniform vars
-			shaderProgram->addAttribute("coord3d");
-			shaderProgram->addAttribute("v_normal");
-			shaderProgram->addAttribute("aTexCoords");
+			mShaderProgram->addAttribute("coord3d");
+			mShaderProgram->addAttribute("v_normal");
+			mShaderProgram->addAttribute("aTexCoords");
 
-			shaderProgram->addUniform("model");
-			shaderProgram->addUniform("view");
-			shaderProgram->addUniform("projection");
-
-			shaderProgram->addUniform("NormalMatrix");
-			//shaderProgram->addUniform("ModelViewMatrix");
-			//shaderProgram->addUniform("location");
-
-			shaderProgram->addUniform("viewPosition");
-
-			shaderProgram->addUniform("Light.Position");
-			shaderProgram->addUniform("Light.La");
-			shaderProgram->addUniform("Light.Ld");
-			shaderProgram->addUniform("Light.Ls");
-
-			shaderProgram->addUniform("Material.Ka");
-			shaderProgram->addUniform("Material.Kd");
-			shaderProgram->addUniform("Material.Ks");
-			shaderProgram->addUniform("Material.Shiness");
-
-			shaderProgram->addUniform("texture_diffuse1");
-			shaderProgram->addUniform("texture_diffuse2");
-			shaderProgram->addUniform("texture_normal1");
-			shaderProgram->addUniform("texture_specular1");
 		}
 		else if (shaderType == "Diffuse") {
 			//load shaders
-			shaderProgram->initFromFiles("Shader/Diffuse.vert", "Shader/Diffuse.frag");
+			mShaderProgram->initFromFiles("Shader/Diffuse.vert", "Shader/Diffuse.frag");
 
 			//add attributes and uniform vars
-			shaderProgram->addAttribute("coord3d");
-			shaderProgram->addAttribute("v_normal");
+			mShaderProgram->addAttribute("coord3d");
+			mShaderProgram->addAttribute("v_normal");
 
-			shaderProgram->addUniform("Light.Position");
-			shaderProgram->addUniform("Light.La");
-			shaderProgram->addUniform("Light.Ld");
-			shaderProgram->addUniform("Light.Ls");
-			shaderProgram->addUniform("Material.Ka");
-			shaderProgram->addUniform("Material.Kd");
-			shaderProgram->addUniform("Material.Ks");
-			shaderProgram->addUniform("Material.Shiness");
-
-			shaderProgram->addUniform("ModelViewMatrix");
-			shaderProgram->addUniform("NormalMatrix");
-			shaderProgram->addUniform("location");
-
-			shaderProgram->addUniform("model");
-			shaderProgram->addUniform("view");
-			shaderProgram->addUniform("projection");
 		}
 		else if (shaderType == "Shadow") {
-			shaderProgram->initFromFiles("Shader/shadow.vert", "Shader/shadow.frag");
+			mShaderProgram->initFromFiles("Shader/shadow.vert", "Shader/shadow.frag");
 
-			shaderProgram->addAttribute("VertexPosition");
-			shaderProgram->addAttribute("VertexNormal");
-			shaderProgram->addAttribute("VertexColor");
+			mShaderProgram->addAttribute("VertexPosition");
+			mShaderProgram->addAttribute("VertexNormal");
+			mShaderProgram->addAttribute("VertexColor");
 
-			shaderProgram->addUniform("Light.Position");
-			shaderProgram->addUniform("Light.Intensity");
-			shaderProgram->addUniform("hasColor");
-			shaderProgram->addUniform("isShadow");
-
-			shaderProgram->addUniform("Material.Ka");
-			shaderProgram->addUniform("Material.Kd");
-			shaderProgram->addUniform("Material.Ks");
-			shaderProgram->addUniform("Material.Shiness");
-
-			shaderProgram->addUniform("ModelViewMatrix");
-			//shaderProgram->addUniform("ProjectionMatrix");
-			shaderProgram->addUniform("NormalMatrix");
-			shaderProgram->addUniform("ModelMatrix");
-			shaderProgram->addUniform("MVP");
-
-			shaderProgram->addUniform("lightSpaceMatrix");
-			shaderProgram->addUniform("shadowMap");
-			shaderProgram->addUniform("shadowType");
-
-			shaderProgram->addUniform("texture_diffuse1");
 		}
+
+		mShaderProgram->addUniformGroup(shaderType);
 	}
 	else {
-		shaderProgram->initFromFiles("Shader/animationModel.vert", "Shader/animationModel.frag");
+		mShaderProgram->initFromFiles("Shader/animationModel.vert", "Shader/animationModel.frag");
 
-		shaderProgram->addUniform("lightSpaceMatrix");
+		mShaderProgram->addUniform("lightSpaceMatrix");
 
-		shaderProgram->addUniform("Light.Position");
-		shaderProgram->addUniform("Light.Intensity");
-		shaderProgram->addUniform("isShadow");
-		shaderProgram->addUniform("shadowMap");
+		mShaderProgram->addUniform("Light.Position");
+		mShaderProgram->addUniform("Light.Intensity");
+		mShaderProgram->addUniform("isShadow");
+		mShaderProgram->addUniform("shadowMap");
 
-		shaderProgram->addUniform("hasColor");
-		shaderProgram->addUniform("shadowType");
+		mShaderProgram->addUniform("hasColor");
+		mShaderProgram->addUniform("shadowType");
 
-		shaderProgram->addUniform("ModelViewMatrix");
-		shaderProgram->addUniform("ModelMatrix");
-		shaderProgram->addUniform("MVP");
-		shaderProgram->addUniform("NormalMatrix");
+		mShaderProgram->addUniform("ModelViewMatrix");
+		mShaderProgram->addUniform("ModelMatrix");
+		mShaderProgram->addUniform("MVP");
+		mShaderProgram->addUniform("NormalMatrix");
 
-		for (unsigned int i = 0; i < bones.size();i++) {
+		for (unsigned int i = 0; i < mBones.size(); i++) {
 			std::string name = "gBones[" + std::to_string(i) + "]";
-			shaderProgram->addUniform(name.c_str());
+			mShaderProgram->addUniform(name.c_str());
 		}
-		shaderProgram->addUniform("Material.Ka");
-		shaderProgram->addUniform("Material.Kd");
-		shaderProgram->addUniform("Material.Ks");
-		shaderProgram->addUniform("Material.Shiness");
+		mShaderProgram->addUniform("Material.Ka");
+		mShaderProgram->addUniform("Material.Kd");
+		mShaderProgram->addUniform("Material.Ks");
+		mShaderProgram->addUniform("Material.Shiness");
 
-		shaderProgram->addUniform("texture_diffuse1");
+		mShaderProgram->addUniform("texture_diffuse1");
 	}
 
-	
+
 	glGenVertexArrays(1, &VAO);
 	glGenBuffers(1, &VBO_position);
 	glGenBuffers(1, &IBO);
@@ -144,10 +88,10 @@ void Mesh::setupMesh(std::string shaderType,bool hasAnimations)
 	glBindVertexArray(VAO);
 	// vertex positions
 	glBindBuffer(GL_ARRAY_BUFFER, VBO_position);
-	glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(Vertex), vertices.data(), GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, mVertices.size() * sizeof(Vertex), mVertices.data(), GL_STATIC_DRAW);
 
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, IBO);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(GLuint), indices.data(), GL_STATIC_DRAW);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, mIndices.size() * sizeof(GLuint), mIndices.data(), GL_STATIC_DRAW);
 
 
 	//vertex positions
@@ -156,16 +100,16 @@ void Mesh::setupMesh(std::string shaderType,bool hasAnimations)
 
 	// vertex normals
 	glEnableVertexAttribArray(1);
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex,Normal));
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, Normal));
 
 	// vertex texture coords
 	glEnableVertexAttribArray(2);
-	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex,TexCoord));
+	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, TexCoord));
 
 	if (hasAnimations) {
 		glGenBuffers(1, &vertexBones_vbo);
 		glBindBuffer(GL_ARRAY_BUFFER, vertexBones_vbo);
-		glBufferData(GL_ARRAY_BUFFER, sizeof(VertexBoneData) * vertexBoneData.size(), vertexBoneData.data(), GL_STATIC_DRAW);
+		glBufferData(GL_ARRAY_BUFFER, sizeof(VertexBoneData) * mVertexBoneData.size(), mVertexBoneData.data(), GL_STATIC_DRAW);
 
 		glEnableVertexAttribArray(3);
 		glVertexAttribIPointer(3, 4, GL_INT, sizeof(VertexBoneData), (const GLvoid*)0);		//Int values only
@@ -179,66 +123,55 @@ void Mesh::setupMesh(std::string shaderType,bool hasAnimations)
 
 void Mesh::RenderPicking()
 {
-	glBindVertexArray(VAO);    
-	glDrawElements(GL_TRIANGLES, indices.size() * sizeof(GLuint), GL_UNSIGNED_INT, 0);
+	glBindVertexArray(VAO);
+	glDrawElements(GL_TRIANGLES, mIndices.size() * sizeof(GLuint), GL_UNSIGNED_INT, 0);
 	glBindVertexArray(0);
 }
 
 void Mesh::RenderModel(glm::mat4& model, glm::mat4& view, glm::mat4& projection, glm::mat4& location,
-	glm::vec3 camPosition, glm::vec3 lightPosition,glm::mat4& lightSpace, Shadow* shadow, std::string shaderType,Material* m_mat) {
+	glm::vec3 camPosition, glm::vec3 lightPosition, glm::mat4& lightSpace, Shadow* shadow, std::string shaderType, Material* m_mat) {
 	glm::mat4 mview = view * model;
 	glm::mat4 mvp = projection * view * model;
 
 	glm::mat4 imvp = glm::inverse(mview);
 	glm::mat3 nmat = glm::mat3(glm::transpose(imvp));
-	
+
 	glm::vec3 objectColor(1.0f, 1.0f, 1.0f);
 	float shininess = m_mat->getShiness();
 
-	//shaderProgram->use();
-
-	if (hasAnimations == false) {
+	if (bHasAnimations == false) {
 
 		if (shaderType == "modelTexture") {
-			glUniformMatrix4fv(shaderProgram->uniform("model"), 1, GL_FALSE, glm::value_ptr(model));
-				glUniformMatrix4fv(shaderProgram->uniform("view"), 1, GL_FALSE, glm::value_ptr(view));
-				glUniformMatrix4fv(shaderProgram->uniform("projection"), 1, GL_FALSE, glm::value_ptr(projection));
+			glUniformMatrix4fv(mShaderProgram->uniform("model"), 1, GL_FALSE, glm::value_ptr(model));
+			glUniformMatrix4fv(mShaderProgram->uniform("view"), 1, GL_FALSE, glm::value_ptr(view));
+			glUniformMatrix4fv(mShaderProgram->uniform("projection"), 1, GL_FALSE, glm::value_ptr(projection));
 
-				glUniformMatrix3fv(shaderProgram->uniform("NormalMatrix"), 1, GL_FALSE, glm::value_ptr(nmat));
-				//glUniformMatrix4fv(shaderProgram->uniform("ModelViewMatrix"), 1, GL_FALSE, glm::value_ptr(mView));
-				//glUniformMatrix3fv(shaderProgram->uniform("location"), 1, GL_FALSE, glm::value_ptr(location));
+			glUniformMatrix3fv(mShaderProgram->uniform("NormalMatrix"), 1, GL_FALSE, glm::value_ptr(nmat));
 
+			glUniform4fv(mShaderProgram->uniform("viewPosition"), 1, glm::value_ptr(view * glm::vec4(camPosition, 1.0)));
 
-				glUniform4fv(shaderProgram->uniform("viewPosition"), 1, glm::value_ptr(view * glm::vec4(camPosition, 1.0)));
+			glUniform4fv(mShaderProgram->uniform("Light.Position"), 1, glm::value_ptr(glm::vec4(lightPosition, 1.0)));
+			glUniform3fv(mShaderProgram->uniform("Light.La"), 1, glm::value_ptr(objectColor));
+			glUniform3fv(mShaderProgram->uniform("Light.Ld"), 1, glm::value_ptr(objectColor));
+			glUniform3fv(mShaderProgram->uniform("Light.Ls"), 1, glm::value_ptr(objectColor));
 
-			glUniform4fv(shaderProgram->uniform("Light.Position"), 1, glm::value_ptr(glm::vec4(lightPosition, 1.0)));
-			glUniform3fv(shaderProgram->uniform("Light.La"), 1, glm::value_ptr(objectColor));
-			glUniform3fv(shaderProgram->uniform("Light.Ld"), 1, glm::value_ptr(objectColor));
-			glUniform3fv(shaderProgram->uniform("Light.Ls"), 1, glm::value_ptr(objectColor));
-
-			glUniform3fv(shaderProgram->uniform("Material.Ka"), 1, glm::value_ptr(objectColor));
-			glUniform3fv(shaderProgram->uniform("Material.Kd"), 1, glm::value_ptr(objectColor));
-			glUniform3fv(shaderProgram->uniform("Material.Ks"), 1, glm::value_ptr(objectColor));
-			glUniform1fv(shaderProgram->uniform("Material.Shiness"), 1, &shininess);
-			//glUniform4fv(shaderProgram->uniform("viewPosition"), 1, glm::value_ptr(view * camPosition));\
-
-			//glUniform4fv(shaderProgram->uniform("light.position"), 1, glm::value_ptr(view * lightPos));
-			//glUniform3fv(shaderProgram->uniform("light.ambient"), 1, glm::value_ptr(light.ambient));
-			//glUniform3fv(shaderProgram->uniform("light.diffuse"), 1, glm::value_ptr(light.diffuse));
-			//glUniform3fv(shaderProgram->uniform("light.specular"), 1, glm::value_ptr(light.specular));
+			glUniform3fv(mShaderProgram->uniform("Material.Ka"), 1, glm::value_ptr(objectColor));
+			glUniform3fv(mShaderProgram->uniform("Material.Kd"), 1, glm::value_ptr(objectColor));
+			glUniform3fv(mShaderProgram->uniform("Material.Ks"), 1, glm::value_ptr(objectColor));
+			glUniform1fv(mShaderProgram->uniform("Material.Shiness"), 1, &shininess);
 
 			unsigned int diffuseNr = 1;
 			unsigned int specularNr = 1;
 			unsigned int normalNr = 1;
 			unsigned int heightNr = 1;
 
-			for (unsigned int i = 0; i < textures.size(); i++)
+			for (unsigned int i = 0; i < mTextures.size(); i++)
 			{
 				glActiveTexture(GL_TEXTURE0 + i); // activate proper texture unit before binding
 				// retrieve texture number (the N in diffuse_textureN)
 				std::stringstream ss;
 				std::string number;
-				std::string name = textures[i].type;
+				std::string name = mTextures[i].type;
 
 				if (name == "texture_diffuse")
 					ss << diffuseNr++; // transfer unsigned int to stream
@@ -251,70 +184,70 @@ void Mesh::RenderModel(glm::mat4& model, glm::mat4& view, glm::mat4& projection,
 				number = ss.str();
 
 				std::string uniformName = name + number;
-				glUniform1i(shaderProgram->uniform(uniformName), i);
+				glUniform1i(mShaderProgram->uniform(uniformName), i);
 
-				glBindTexture(GL_TEXTURE_2D, textures[i].id);
+				glBindTexture(GL_TEXTURE_2D, mTextures[i].id);
 
 			}
 		}
 		else if (shaderType == "Diffuse") {
-			glUniform4fv(shaderProgram->uniform("Light.Position"), 1, glm::value_ptr(lightPosition));
-			glUniform3fv(shaderProgram->uniform("Light.La"), 1, glm::value_ptr(objectColor));
-			glUniform3fv(shaderProgram->uniform("Light.Ld"), 1, glm::value_ptr(objectColor));
-			glUniform3fv(shaderProgram->uniform("Light.Ls"), 1, glm::value_ptr(objectColor));
+			glUniform4fv(mShaderProgram->uniform("Light.Position"), 1, glm::value_ptr(lightPosition));
+			glUniform3fv(mShaderProgram->uniform("Light.La"), 1, glm::value_ptr(objectColor));
+			glUniform3fv(mShaderProgram->uniform("Light.Ld"), 1, glm::value_ptr(objectColor));
+			glUniform3fv(mShaderProgram->uniform("Light.Ls"), 1, glm::value_ptr(objectColor));
 
-			glUniform3fv(shaderProgram->uniform("Material.Ka"), 1, m_mat->getKa());
-			glUniform3fv(shaderProgram->uniform("Material.Kd"), 1, m_mat->getKd());
-			glUniform3fv(shaderProgram->uniform("Material.Ks"), 1, m_mat->getKs());
-			glUniform1fv(shaderProgram->uniform("Material.Shiness"), 1, &shininess);
+			glUniform3fv(mShaderProgram->uniform("Material.Ka"), 1, m_mat->getKa());
+			glUniform3fv(mShaderProgram->uniform("Material.Kd"), 1, m_mat->getKd());
+			glUniform3fv(mShaderProgram->uniform("Material.Ks"), 1, m_mat->getKs());
+			glUniform1fv(mShaderProgram->uniform("Material.Shiness"), 1, &shininess);
 
-			glUniformMatrix4fv(shaderProgram->uniform("ModelViewMatrix"), 1, GL_FALSE, glm::value_ptr(mview));
-			glUniformMatrix3fv(shaderProgram->uniform("NormalMatrix"), 1, GL_FALSE, glm::value_ptr(nmat));
-			glUniformMatrix4fv(shaderProgram->uniform("location"), 1, GL_FALSE, glm::value_ptr(location));
+			glUniformMatrix4fv(mShaderProgram->uniform("ModelViewMatrix"), 1, GL_FALSE, glm::value_ptr(mview));
+			glUniformMatrix3fv(mShaderProgram->uniform("NormalMatrix"), 1, GL_FALSE, glm::value_ptr(nmat));
+			glUniformMatrix4fv(mShaderProgram->uniform("location"), 1, GL_FALSE, glm::value_ptr(location));
 
-			glUniformMatrix4fv(shaderProgram->uniform("model"), 1, GL_FALSE, glm::value_ptr(model));
-			glUniformMatrix4fv(shaderProgram->uniform("view"), 1, GL_FALSE, glm::value_ptr(view));
-			glUniformMatrix4fv(shaderProgram->uniform("projection"), 1, GL_FALSE, glm::value_ptr(projection));
+			glUniformMatrix4fv(mShaderProgram->uniform("model"), 1, GL_FALSE, glm::value_ptr(model));
+			glUniformMatrix4fv(mShaderProgram->uniform("view"), 1, GL_FALSE, glm::value_ptr(view));
+			glUniformMatrix4fv(mShaderProgram->uniform("projection"), 1, GL_FALSE, glm::value_ptr(projection));
 		}
 		else if (shaderType == "Shadow") {
-			glUniformMatrix4fv(shaderProgram->uniform("ModelViewMatrix"), 1, GL_FALSE, glm::value_ptr(mview));
-			glUniformMatrix4fv(shaderProgram->uniform("ModelMatrix"), 1, GL_FALSE, glm::value_ptr(model));
-			glUniformMatrix4fv(shaderProgram->uniform("MVP"), 1, GL_FALSE, glm::value_ptr(mvp));
-			glUniformMatrix3fv(shaderProgram->uniform("NormalMatrix"), 1, GL_FALSE, glm::value_ptr(nmat));
+			glUniformMatrix4fv(mShaderProgram->uniform("ModelViewMatrix"), 1, GL_FALSE, glm::value_ptr(mview));
+			glUniformMatrix4fv(mShaderProgram->uniform("ModelMatrix"), 1, GL_FALSE, glm::value_ptr(model));
+			glUniformMatrix4fv(mShaderProgram->uniform("MVP"), 1, GL_FALSE, glm::value_ptr(mvp));
+			glUniformMatrix3fv(mShaderProgram->uniform("NormalMatrix"), 1, GL_FALSE, glm::value_ptr(nmat));
 
-			glUniform3fv(shaderProgram->uniform("Material.Ka"), 1, m_mat->getKa());
-			glUniform3fv(shaderProgram->uniform("Material.Kd"), 1, m_mat->getKd());
-			glUniform3fv(shaderProgram->uniform("Material.Ks"), 1, m_mat->getKs());
-			glUniform1fv(shaderProgram->uniform("Material.Shiness"), 1, &shininess);
+			glUniform3fv(mShaderProgram->uniform("Material.Ka"), 1, m_mat->getKa());
+			glUniform3fv(mShaderProgram->uniform("Material.Kd"), 1, m_mat->getKd());
+			glUniform3fv(mShaderProgram->uniform("Material.Ks"), 1, m_mat->getKs());
+			glUniform1fv(mShaderProgram->uniform("Material.Shiness"), 1, &shininess);
 
-			glUniform4fv(shaderProgram->uniform("Light.Position"), 1, glm::value_ptr(view * glm::vec4(lightPosition, 1.0)));
-			glUniform3fv(shaderProgram->uniform("Light.Intensity"), 1, glm::value_ptr(glm::vec3(1, 1, 1)));
+			glUniform4fv(mShaderProgram->uniform("Light.Position"), 1, glm::value_ptr(view * glm::vec4(lightPosition, 1.0)));
+			glUniform3fv(mShaderProgram->uniform("Light.Intensity"), 1, glm::value_ptr(glm::vec3(1, 1, 1)));
 
-			glUniformMatrix4fv(shaderProgram->uniform("lightSpaceMatrix"), 1, GL_FALSE, glm::value_ptr(lightSpace));
+			glUniformMatrix4fv(mShaderProgram->uniform("lightSpaceMatrix"), 1, GL_FALSE, glm::value_ptr(lightSpace));
 
-			glUniform1i(shaderProgram->uniform("shadowMap"), 0);
+			glUniform1i(mShaderProgram->uniform("shadowMap"), 0);
 
-			glUniform1i(shaderProgram->uniform("hasColor"), true);
-			//glUniform1i(shaderProgram->uniform("isShadow"), isShadowDraw);
-			glUniform1i(shaderProgram->uniform("isShadow"), shadow->isShadow);
-			glUniform1i(shaderProgram->uniform("shadowType"), shadow->shadowType);
+			glUniform1i(mShaderProgram->uniform("hasColor"), true);
+			//glUniform1i(mShaderProgram->uniform("isShadow"), isShadowDraw);
+			glUniform1i(mShaderProgram->uniform("isShadow"), shadow->bIsShadow);
+			glUniform1i(mShaderProgram->uniform("shadowType"), shadow->mShadowType);
 
 
 			glActiveTexture(GL_TEXTURE0);
-			glBindTexture(GL_TEXTURE_2D, shadow->shadowGLuint);
+			glBindTexture(GL_TEXTURE_2D, shadow->mShadowGLuint);
 
 			unsigned int diffuseNr = 1;
 			unsigned int specularNr = 1;
 			unsigned int normalNr = 1;
 			unsigned int heightNr = 1;
 
-			for (unsigned int i = 0; i < textures.size(); i++)
+			for (unsigned int i = 0; i < mTextures.size(); i++)
 			{
 				glActiveTexture(GL_TEXTURE1 + i); // activate proper texture unit before binding
 				// retrieve texture number (the N in diffuse_textureN)
 				std::stringstream ss;
 				std::string number;
-				std::string name = textures[i].type;
+				std::string name = mTextures[i].type;
 
 				if (name == "texture_diffuse")
 					ss << diffuseNr++; // transfer unsigned int to stream
@@ -327,54 +260,52 @@ void Mesh::RenderModel(glm::mat4& model, glm::mat4& view, glm::mat4& projection,
 				number = ss.str();
 
 				std::string uniformName = name + number;
-				glUniform1i(shaderProgram->uniform(uniformName), i + 1);
+				glUniform1i(mShaderProgram->uniform(uniformName), i + 1);
 
-				glBindTexture(GL_TEXTURE_2D, textures[i].id);
+				glBindTexture(GL_TEXTURE_2D, mTextures[i].id);
 
 			}
 		}
 	}
 	else {
 
-		
-		glUniformMatrix4fv(shaderProgram->uniform("ModelViewMatrix"), 1, GL_FALSE, glm::value_ptr(mview));
-		glUniformMatrix4fv(shaderProgram->uniform("ModelMatrix"), 1, GL_FALSE, glm::value_ptr(model));
-		glUniformMatrix4fv(shaderProgram->uniform("MVP"), 1, GL_FALSE, glm::value_ptr(mvp));
-		glUniformMatrix3fv(shaderProgram->uniform("NormalMatrix"), 1, GL_FALSE, glm::value_ptr(nmat));
+		glUniformMatrix4fv(mShaderProgram->uniform("ModelViewMatrix"), 1, GL_FALSE, glm::value_ptr(mview));
+		glUniformMatrix4fv(mShaderProgram->uniform("ModelMatrix"), 1, GL_FALSE, glm::value_ptr(model));
+		glUniformMatrix4fv(mShaderProgram->uniform("MVP"), 1, GL_FALSE, glm::value_ptr(mvp));
+		glUniformMatrix3fv(mShaderProgram->uniform("NormalMatrix"), 1, GL_FALSE, glm::value_ptr(nmat));
 
-		glUniform3fv(shaderProgram->uniform("Material.Ka"), 1, m_mat->getKa());
-		glUniform3fv(shaderProgram->uniform("Material.Kd"), 1, m_mat->getKd());
-		glUniform3fv(shaderProgram->uniform("Material.Ks"), 1, m_mat->getKs());
-		glUniform1fv(shaderProgram->uniform("Material.Shiness"), 1, &shininess);
+		glUniform3fv(mShaderProgram->uniform("Material.Ka"), 1, m_mat->getKa());
+		glUniform3fv(mShaderProgram->uniform("Material.Kd"), 1, m_mat->getKd());
+		glUniform3fv(mShaderProgram->uniform("Material.Ks"), 1, m_mat->getKs());
+		glUniform1fv(mShaderProgram->uniform("Material.Shiness"), 1, &shininess);
 
-		glUniform4fv(shaderProgram->uniform("Light.Position"), 1, glm::value_ptr(view* glm::vec4(lightPosition, 1.0)));
-		glUniform3fv(shaderProgram->uniform("Light.Intensity"), 1, glm::value_ptr(glm::vec3(1, 1, 1)));
+		glUniform4fv(mShaderProgram->uniform("Light.Position"), 1, glm::value_ptr(view * glm::vec4(lightPosition, 1.0)));
+		glUniform3fv(mShaderProgram->uniform("Light.Intensity"), 1, glm::value_ptr(glm::vec3(1, 1, 1)));
 
-		glUniformMatrix4fv(shaderProgram->uniform("lightSpaceMatrix"), 1, GL_FALSE, glm::value_ptr(lightSpace));
+		glUniformMatrix4fv(mShaderProgram->uniform("lightSpaceMatrix"), 1, GL_FALSE, glm::value_ptr(lightSpace));
 
-		glUniform1i(shaderProgram->uniform("shadowMap"), 0);
+		glUniform1i(mShaderProgram->uniform("shadowMap"), 0);
 
-		glUniform1i(shaderProgram->uniform("hasColor"), false);
-		//glUniform1i(shaderProgram->uniform("isShadow"), isShadowDraw);
-		glUniform1i(shaderProgram->uniform("isShadow"), shadow->isShadow);
-		glUniform1i(shaderProgram->uniform("shadowType"), shadow->shadowType);
+		glUniform1i(mShaderProgram->uniform("hasColor"), false);
+		glUniform1i(mShaderProgram->uniform("isShadow"), shadow->bIsShadow);
+		glUniform1i(mShaderProgram->uniform("shadowType"), shadow->mShadowType);
 
 
 		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, shadow->shadowGLuint);
+		glBindTexture(GL_TEXTURE_2D, shadow->mShadowGLuint);
 
 		unsigned int diffuseNr = 1;
 		unsigned int specularNr = 1;
 		unsigned int normalNr = 1;
 		unsigned int heightNr = 1;
 
-		for (unsigned int i = 0; i < textures.size(); i++)
+		for (unsigned int i = 0; i < mTextures.size(); i++)
 		{
 			glActiveTexture(GL_TEXTURE1 + i); // activate proper texture unit before binding
 			// retrieve texture number (the N in diffuse_textureN)
 			std::stringstream ss;
 			std::string number;
-			std::string name = textures[i].type;
+			std::string name = mTextures[i].type;
 
 			if (name == "texture_diffuse")
 				ss << diffuseNr++; // transfer unsigned int to stream
@@ -387,17 +318,16 @@ void Mesh::RenderModel(glm::mat4& model, glm::mat4& view, glm::mat4& projection,
 			number = ss.str();
 
 			std::string uniformName = name + number;
-			glUniform1i(shaderProgram->uniform(uniformName), i + 1);
+			glUniform1i(mShaderProgram->uniform(uniformName), i + 1);
 
-			glBindTexture(GL_TEXTURE_2D, textures[i].id);
+			glBindTexture(GL_TEXTURE_2D, mTextures[i].id);
 
 		}
 	}
 
 	glBindVertexArray(VAO);
-	glDrawElements(GL_TRIANGLES, indices.size() * sizeof(GLuint), GL_UNSIGNED_INT, 0);
+	glDrawElements(GL_TRIANGLES, mIndices.size() * sizeof(GLuint), GL_UNSIGNED_INT, 0);
 	glBindVertexArray(0);
 
-	//shaderProgram->disable();
 }
 

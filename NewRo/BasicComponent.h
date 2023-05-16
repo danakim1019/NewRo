@@ -21,36 +21,36 @@
 
 class Shadow {
 public:
-	bool isShadow;
-	int shadowType;
-	GLuint shadowGLuint;
+	bool bIsShadow;
+	int mShadowType;
+	GLuint mShadowGLuint;
 
 	Shadow() {
-		shadowType = 0;
-		isShadow = true;
-		shadowGLuint = 0;
+		mShadowType = 0;
+		bIsShadow = true;
+		mShadowGLuint = 0;
 	}
 };
 
 class Animation {
 public:
-	bool hasAnimation;
-	float animationTime;
-	int animationNum;
+	bool bHasAnimation;
+	float mAnimationTime;
+	int mAnimationNum;
 
 	Animation() {
-		hasAnimation = false;
-		animationTime = 0;
-		animationNum = 0;
+		bHasAnimation = false;
+		mAnimationTime = 0;
+		mAnimationNum = 0;
 	}
 };
 
 class OBJTransform {
 public:
 	OBJTransform() {
-		pos = { 0,0,0 };
-		rot = { 0, 0, 0 };
-		scale = { 1, 1, 1 };
+		mPos = { 0,0,0 };
+		mRot = { 0, 0, 0 };
+		mScale = { 1, 1, 1 };
 	}
 
 	struct Position {
@@ -58,50 +58,50 @@ public:
 		float y;
 		float z;
 	};
-	Position pos;
+	Position mPos;
 
 	struct Rotation {
 		float x;
 		float y;
 		float z;
 	};
-	Rotation rot;
+	Rotation mRot;
 
 	struct Scale {
 		float x;
 		float y;
 		float z;
 	};
-	Scale scale;
+	Scale mScale;
 
 	glm::vec3 getPositon() {
-		return glm::vec3(pos.x, pos.y, pos.z);
+		return glm::vec3(mPos.x, mPos.y, mPos.z);
 	}
 
 	void setPosition(float x, float y, float z) {
-		pos.x = x;
-		pos.y = y;
-		pos.z = z;
+		mPos.x = x;
+		mPos.y = y;
+		mPos.z = z;
 	}
 
 	glm::vec3 getRotation() {
-		return glm::vec3(rot.x, rot.y, rot.z);
+		return glm::vec3(mRot.x, mRot.y, mRot.z);
 	}
 
 	void setRotation(float x, float y, float z) {
-		rot.x = x;
-		rot.y = y;
-		rot.z = z;
+		mRot.x = x;
+		mRot.y = y;
+		mRot.z = z;
 	}
 
 	glm::vec3 getScale() {
-		return glm::vec3(scale.x, scale.y, scale.z);
+		return glm::vec3(mScale.x, mScale.y, mScale.z);
 	}
 
 	void setScale(float x, float y, float z) {
-		scale.x = x;
-		scale.y = y;
-		scale.z = z;
+		mScale.x = x;
+		mScale.y = y;
+		mScale.z = z;
 	}
 
 };
@@ -112,12 +112,12 @@ public:
 		glm::vec3 camPosition, glm::vec3 lightPosition, glm::mat4& lightSpace,Shadow* shadowType, Animation* animation) {}
 	virtual void RenderPicking(){}
 
-	std::string name;
-	unsigned int id = 0;
-	std::string objectType;
-	std::string shaderType;
+	std::string mName;
+	unsigned int mID = 0;
+	std::string mObjectType;
+	std::string mShaderType;
 
-	Material* m_mat;
+	Material* mMat;
 };
 
 #endif
