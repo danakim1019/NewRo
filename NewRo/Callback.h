@@ -1,3 +1,30 @@
+// https://github.com/danakim1019/NewRo
+// The MIT License(MIT)
+//
+//Copyright (C) 2023 by danakim1019
+// 
+// Permission is hereby granted, free of charge, to any person
+// obtaining a copy of this software and associated documentation
+// files (the "Software"), to deal in the Software without
+// restriction, including without limitation the rights to use,
+// copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the
+// Software is furnished to do so, subject to the following
+// conditions:
+// 
+// The above copyright notice and this permission notice shall be
+// included in all copies or substantial portions of the Software.
+// 
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+// EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+// OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+// NONINFRINGEMENT.IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+// HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+// WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+// OTHER DEALINGS IN THE SOFTWARE.
+// 
+
 #pragma once
 
 #include "ImGUI/imgui.h"
@@ -79,19 +106,19 @@ public:
 					win->mCurrentGizmoMode = ImGuizmo::LOCAL;
 				}
 				else {
-					win->cam.ProcessKeyboard(FORWARD, _delta_time);
+					win->mCam.ProcessKeyboard(FORWARD, _delta_time);
 				}
 			}
 			if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-				win->cam.ProcessKeyboard(BACKWARD, _delta_time);
+				win->mCam.ProcessKeyboard(BACKWARD, _delta_time);
 			if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-				win->cam.ProcessKeyboard(LEFT, _delta_time);
+				win->mCam.ProcessKeyboard(LEFT, _delta_time);
 			if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-				win->cam.ProcessKeyboard(RIGHT, _delta_time);
+				win->mCam.ProcessKeyboard(RIGHT, _delta_time);
 			if (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS)
-				win->cam.ProcessKeyboard(UPPER, _delta_time);
+				win->mCam.ProcessKeyboard(UPPER, _delta_time);
 			if (glfwGetKey(window, GLFW_KEY_F) == GLFW_PRESS)
-				win->cam.ProcessKeyboard(DOWN, _delta_time);
+				win->mCam.ProcessKeyboard(DOWN, _delta_time);
 		}
 	}
 
@@ -99,7 +126,7 @@ public:
 	// ----------------------------------------------------------------------
 	static void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
 	{
-		win->cam.ProcessMouseScroll(yoffset, _delta_time);
+		win->mCam.ProcessMouseScroll(yoffset, _delta_time);
 	}
 
 	//cujrsor_pos_callback
@@ -118,13 +145,13 @@ public:
 			float xoffset = xPos - lastX;
 			float yoffset = lastY - yPos; // reversed since y-coordinates go from bottom to to
 
-			win->cam.ProcessMouseMovement(xoffset, yoffset, _delta_time);
+			win->mCam.ProcessMouseMovement(xoffset, yoffset, _delta_time);
 		}
 		if (isMiddleMouseClicked) {
 			float xoffset = xPos - lastPosX;
 			float yoffset = yPos - lastPosY; // reversed since y-coordinates go from bottom to top
 
-			win->cam.cameraPositionMove(xoffset, yoffset, _delta_time);
+			win->mCam.cameraPositionMove(xoffset, yoffset, _delta_time);
 		}
 	}
 
@@ -149,7 +176,7 @@ public:
 				{
 					if (xPos < hierachyWidth + screenWidth - 128 && yPos>128)
 					{
-						unsigned int select = win->selectObject(xPos, yPos, selectedObjID);
+						unsigned int select = win->SelectObject(xPos, yPos, selectedObjID);
 
 						if ((ImGuizmo::IsOver() == true))
 						{

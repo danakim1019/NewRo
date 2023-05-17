@@ -1,15 +1,42 @@
 
-/*author: r3dux
-version : 0.3 - 15 / 01 / 2014
-	  description : Gets GLSL source code either provided as strings or can load from filenames,
-					compiles the shaders, creates a shader program which the shaders are linked
-					to, then the program is validated and is ready for use via myProgram.use(),
-					<draw - stuff - here> then calling myProgram.disable();
-		Attributes and uniforms are stored in <string, int> maps and can be added
-			via calls to addAttribute(<name - of - attribute>) and then the attribute
-			index can be obtained via myProgram.attribute(<name - of - attribute>) - Uniforms
-			work in the exact same way.
-*/
+// https://github.com/danakim1019/NewRo
+// The MIT License(MIT)
+//
+//Copyright (C) 2023 by danakim1019
+// 
+// Permission is hereby granted, free of charge, to any person
+// obtaining a copy of this software and associated documentation
+// files (the "Software"), to deal in the Software without
+// restriction, including without limitation the rights to use,
+// copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the
+// Software is furnished to do so, subject to the following
+// conditions:
+// 
+// The above copyright notice and this permission notice shall be
+// included in all copies or substantial portions of the Software.
+// 
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+// EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+// OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+// NONINFRINGEMENT.IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+// HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+// WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+// OTHER DEALINGS IN THE SOFTWARE.
+// 
+// author: r3dux
+// version : 0.3 - 15 / 01 / 2014
+//	  description : Gets GLSL source code either provided as strings or can load from filenames,
+//					compiles the shaders, creates a shader program which the shaders are linked
+//					to, then the program is validated and is ready for use via myProgram.use(),
+//					<draw - stuff - here> then calling myProgram.disable();
+//		Attributes and uniforms are stored in <string, int> maps and can be added
+//			via calls to addAttribute(<name - of - attribute>) and then the attribute
+//			index can be obtained via myProgram.attribute(<name - of - attribute>) - Uniforms
+//			work in the exact same way.
+//
+
 #ifndef SHADER_PROGRAM_HPP
 #define SHADER_PROGRAM_HPP
 

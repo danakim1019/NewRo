@@ -1,3 +1,30 @@
+// https://github.com/danakim1019/NewRo
+// The MIT License(MIT)
+//
+//Copyright (C) 2023 by danakim1019
+// 
+// Permission is hereby granted, free of charge, to any person
+// obtaining a copy of this software and associated documentation
+// files (the "Software"), to deal in the Software without
+// restriction, including without limitation the rights to use,
+// copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the
+// Software is furnished to do so, subject to the following
+// conditions:
+// 
+// The above copyright notice and this permission notice shall be
+// included in all copies or substantial portions of the Software.
+// 
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+// EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+// OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+// NONINFRINGEMENT.IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+// HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+// WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+// OTHER DEALINGS IN THE SOFTWARE.
+// 
+
 #ifndef _BACKSTAGE_WINDOW_H_
 #define _BACKSTAGE_WINDOW_H_
 
@@ -26,6 +53,9 @@ static bool boundSizingSnap = false;
 
 class BackstageWindow {
 public:
+
+	camera mCam;
+
 	ImGuizmo::OPERATION mCurrentGizmoOperation;
 	ImGuizmo::MODE mCurrentGizmoMode;
 
@@ -41,119 +71,124 @@ public:
 		}
 	};
 
-	void setupPickingShader();
-	GLuint m_fbo,m_pickingTexture,m_depthTexture;
-	PixelInfo ReadPixel(unsigned int x, unsigned int y);
-	int selectObject(int cx, int cy,int selectedObjIndex);
-	ShaderProgram* pickingShaderProgram;
-	void pickingPhase();
-
-	void guizmoPhase(int selectedObjID);
-
-	//Outline
-	ShaderProgram* outlineShaderProgram;
-	GLuint m_outfbo;
-	void outlinePhase(int selectedObjID);
 	
-	//Shadow
-	ShaderProgram* shadowShaderProgram;
-	GLuint m_shadowfbo;
-
-	GLuint shadowMap;
-
-	glm::mat4 lightProjection;
-	glm::mat4 lightSpace;
-	glm::mat4 lightView;
-
-	void renderPhase(Shadow* shadow, Animation* animation, float deltaTime);
-
-	//Animation
-	void animationPhase(float animationTime, unsigned int st, unsigned int num, unsigned int shadow);
-	std::vector<glm::mat4> Transforms;
-	std::vector<glm::fdualquat> dualQuaternions;
-	std::vector<glm::mat2x4> DQs;
-
-	std::vector<glm::mat4> Transforms2;
-	std::vector<glm::mat4> Transforms3;
-
-	ShaderProgram* animShaderProgram;
-
-	//vector<glm::fdualquat> dualQuaternions2;
-	//vector<glm::mat2x4> DQs2;
-
-
-	camera cam;
-
 	BackstageWindow(int m_width, int m_height, int windowWidth, int windowHeight);
+	~BackstageWindow() {}
+
 	void SetWindowSize(int width, int height, int xPos, int yPos, int m_windowWidth, int m_windowHeight);
 	void SetViewport(int width, int height);
 	void DrawBackstageWindow(int width, int height, int selectedObjID, float deltaTime);
 
-	//create BuiltIn Object
-	void createBuiltInOBJ(int BuiltInType);
+	int SelectObject(int cx, int cy, int selectedObjIndex);
 
+	//Create BuiltIn Object
+	void CreateBuiltInOBJ(int builtInType);
+
+	//Getter Setter
 	unsigned int getObjectNum() {
-		return Hierachy->objectNum;
+		return mHierachy->objectNum;
 	}
 
 	std::string getObjectName(unsigned int id) {
-		return Hierachy->activeOBJList[id-1]->mName;
+		return mHierachy->activeOBJList[id-1]->mName;
 	}
 
 	unsigned int getObjectID(unsigned int id) {
-		return Hierachy->activeOBJList[id-1]->mID;
+		return mHierachy->activeOBJList[id-1]->mID;
 	}
 
 	OBJect* getObject(unsigned int id) {
-		return Hierachy->activeOBJList[id-1];
+		return mHierachy->activeOBJList[id-1];
 	}
 
 	void setObjectName(char* name,unsigned int id) {
-		Hierachy->activeOBJList[id-1]->mName = name;
+		mHierachy->activeOBJList[id-1]->mName = name;
 	}
 
 	Shadow* getShadow(int lightOBJID) {
-		return ((Light*)Hierachy->activeOBJList[lightOBJID])->shadow;
+		return ((Light*)mHierachy->activeOBJList[lightOBJID])->shadow;
 	}
 
 	void setShadow(bool isShadow, int shadowType) {
-		((Light*)Hierachy->activeOBJList[0])->shadow->bIsShadow = isShadow;
-		((Light*)Hierachy->activeOBJList[0])->shadow->mShadowType = shadowType;
+		((Light*)mHierachy->activeOBJList[0])->shadow->bIsShadow = isShadow;
+		((Light*)mHierachy->activeOBJList[0])->shadow->mShadowType = shadowType;
 	}
+
+
+
+protected:
+	HierarchyWindow* mHierachy;
+	GLFWwindow* mWindow;
+	glm::mat4* mModelViewArray;
+private:
+	void setupPickingShader();
+	GLuint m_fbo, mPickingTexture, mDepthTexture;
+	PixelInfo ReadPixel(unsigned int x, unsigned int y);
+	ShaderProgram* mPickingShaderProgram;
+
+	// Note : Order of Phase function restrictly. Please check before change
+	void pickingPhase();
+
+	// Note : Order of Phase function restrictly. Please check before change
+	void guizmoPhase(int selectedObjID);
+
+	//Outline
+	ShaderProgram* mOutlineShaderProgram;
+	GLuint mOutfbo;
+
+	// Note : Order of Phase function restrictly. Please check before change
+	void outlinePhase(int selectedObjID);
+
+	//Shadow
+	ShaderProgram* mShadowShaderProgram;
+	GLuint mShadowfbo;
+	GLuint mShadowMap;
+
+	glm::mat4 mLightProjection;
+	glm::mat4 mLightSpace;
+	glm::mat4 mLightView;
+
+	// Note : Order of Phase function restrictly. Please check before change
+	void renderPhase(Shadow* shadow, Animation* animation, float deltaTime);
+
+	std::vector<glm::mat4> mTransforms;
+	std::vector<glm::fdualquat> mDualQuaternions;
+	std::vector<glm::mat2x4> mDQs;
+
+	ShaderProgram* mAnimShaderProgram;
+
 
 	bool initializeShadowMap();
 
-protected:
-	HierarchyWindow* Hierachy;
-	GLFWwindow* window;
-	glm::mat4* modelViewArray;
-private:
-	~BackstageWindow() {}
-
+	// initialize basic objects
 	void setupBuffer();
+
+	// Note : Order of generate shadowmap function restrictly. Please check before use
 	void generateShadowMap(glm::mat4 lightSpace, Shadow* shadow);
 	bool generateOutlineMap();
 
+	// Change when windowsizecallback called
+	int mBackstageWidth, mBackstageHeight;
+	int mBackstageXPos, mBackstageYPos;
+	int mWindowWidth, mWindowHeight;
 
-	int backstageWidth, backstageHeight;
-	int backstageXPos, backstageYPos;
-	int windowWidth, windowHeight;
+	float mRatio;
+	float mFovy;
 
-	float m_ratio;
-	float fovy;
-	ModelView m_model;
+	ModelView mModel;
 
-	glm::mat4 viewMat;
-	glm::mat4 projectionMat;
-	glm::mat4 modelMat;
+	glm::mat4 mViewMat;
+	glm::mat4 mProjectionMat;
+	glm::mat4 mModelMat;
 
-	Grid* grid;
+	Grid* mGrid;
 
-	BuiltInCylinder* m_cylinder;
-	BuiltInCube* m_cube;
-	BuiltInSphere* m_sphere;
+	// Basic Objects for test
+	BuiltInCylinder* mCylinder;
+	BuiltInCube* mCube;
+	BuiltInSphere* mSphere;
 
-	float angle;
+	float mAngle;
 };
 
 #endif
