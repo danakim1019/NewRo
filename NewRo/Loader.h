@@ -424,6 +424,7 @@ public:
 		return uniformMap[uniformName];
 	}
    
+	std::string pickingUniform[3] = { "MVP","gModelIndex","gDrawIndex"};
 
 	std::string modelTextureUniform[17] = {"model","view","projection","NormalMatrix","viewPosition"
 		,"Light.Position","Light.La","Light.Ld","Light.Ls"
@@ -434,11 +435,13 @@ public:
 		,"Light.Position","Light.La","Light.Ld","Light.Ls"
 		,"Material.Ka","Material.Kd","Material.Ks","Material.Shiness" };
 
-	std::string ShadowUniform[15] = { "ModelViewMatrix","NormalMatrix","ModelMatrix","MVP","lightSpaceMatrix"
-	,"shadowMap","shadowType","isShadow"
+	std::string ShadowUniform[16] = { "ModelViewMatrix","NormalMatrix","ModelMatrix","MVP","lightSpaceMatrix"
+	,"shadowMap","shadowType","isShadow","hasColor"
 	,"Light.Position","Light.Intensity"
 	,"Material.Ka","Material.Kd","Material.Ks","Material.Shiness"
 	,"texture_diffuse1"};
+
+	std::string shadowMapUniform[2] = {"lightSpaceMatrix","Model"};
 
 	void addUniformGroup(const std::string shaderType) {
 		if (shaderType == "modelTexture") {
@@ -457,6 +460,24 @@ public:
 			int length = size(ShadowUniform);
 			for (int i = 0; i < length; i++) {
 				addUniform(ShadowUniform[i]);
+			}
+		}
+		else if (shaderType == "shadowMap") {
+			int length = size(shadowMapUniform);
+			for (int i = 0; i < length; i++) {
+				addUniform(shadowMapUniform[i]);
+			}
+		}
+		else if (shaderType == "RTshadowMap") {
+			int length = size(shadowMapUniform);
+			for (int i = 0; i < length; i++) {
+				addUniform(shadowMapUniform[i]);
+			}
+		}
+		else if (shaderType == "picking") {
+			int length = size(pickingUniform);
+			for (int i = 0; i < length; i++) {
+				addUniform(pickingUniform[i]);
 			}
 		}
 	}

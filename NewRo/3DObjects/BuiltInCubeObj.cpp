@@ -3,7 +3,7 @@
 
 BuiltInCube::BuiltInCube(int type)
 {
-	this->type = type;
+	this->mType = type;
 
 	mName = "Cube";
 	mObjectType = "Cube";
@@ -124,9 +124,8 @@ void BuiltInCube::RenderModel(glm::mat4& model, glm::mat4& view, glm::mat4& proj
 
 		glUniform1i(mShaderProgram->uniform("isShadow"), shadow->bIsShadow);
 		glUniform1i(mShaderProgram->uniform("shadowType"), shadow->mShadowType);
+		glUniform1i(mShaderProgram->uniform("hasColor"), false);
 
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, shadow->mShadowGLuint);
 	}
 
 	glBindVertexArray(vaoHandle);
@@ -138,99 +137,97 @@ void BuiltInCube::RenderModel(glm::mat4& model, glm::mat4& view, glm::mat4& proj
 }
 
 void BuiltInCube::generateVertices() {
-	glm::vec3 positions[8] = {
-		//front
-		glm::vec3(1.0f, 1.0f, 1.0f),  //top right
-		glm::vec3(1.0f, -1.0f, 1.0f), //bottom right
-		glm::vec3(-1.0f, -1.0f, 1.0f), //bottom left
-		glm::vec3(-1.0f, 1.0f, 1.0f), //top left
-		//back
-		glm::vec3(1.0f, 1.0f, -1.0f), //top right
-		glm::vec3(1.0f, -1.0f, -1.0f), //bottom right
-		glm::vec3(-1.0f, -1.0f, -1.0f), //bottom left
-		glm::vec3(-1.0f, 1.0f, -1.0f) //top left
-	};
-
-	mVertexPositions.push_back(positions[0]);
-	mVertexPositions.push_back(positions[1]);
-	mVertexPositions.push_back(positions[2]);
-	mVertexPositions.push_back(positions[3]);
-
-	mVertexPositions.push_back(positions[4]);
-	mVertexPositions.push_back(positions[5]);
-	mVertexPositions.push_back(positions[6]);
-	mVertexPositions.push_back(positions[7]);
-
-	generateNormals(positions);
+	//dir +z
+	mVertexPositions.push_back(glm::vec3(-1,-1,1));
+	mVertexPositions.push_back(glm::vec3(1, -1, 1));
+	mVertexPositions.push_back(glm::vec3(1, 1, 1));
+	mVertexPositions.push_back(glm::vec3(-1, 1, 1));
+	//dir -z
+	mVertexPositions.push_back(glm::vec3(-1, -1, -1));
+	mVertexPositions.push_back(glm::vec3(1, -1, -1));
+	mVertexPositions.push_back(glm::vec3(1, 1, -1));
+	mVertexPositions.push_back(glm::vec3(-1, 1, -1));
 }
 
-void BuiltInCube::generateNormals(glm::vec3 positions[]) {
 
-	for (int i = 0; i < 2; i++)
-		mVertexNormals.push_back(glm::vec3(1, 0, 0)); // right Side
-	for (int i = 0; i < 2; i++)
-		mVertexNormals.push_back(glm::vec3(-1, 0, 0)); // Left Side
-	for (int i = 0; i < 2; i++)
-		mVertexNormals.push_back(glm::vec3(0, 0, -1)); // Back Side
-	for (int i = 0; i < 2; i++)
-		mVertexNormals.push_back(glm::vec3(0, 0, 1)); // front Side
-	for (int i = 0; i < 2; i++)
-		mVertexNormals.push_back(glm::vec3(0, 1, 0)); // top Side
-	for (int i = 0; i < 2; i++)
-		mVertexNormals.push_back(glm::vec3(0, -1, 0)); // Bottom Side
+void BuiltInCube::generateQuadNormals(int pA, int pB, int pC,int pD) {
 
+	glm::vec3 vecAB = mVertexPositions[pB] - mVertexPositions[pA];
+	glm::vec3 vecAC = mVertexPositions[pC] - mVertexPositions[pA];
+	glm::vec3 normalV = glm::cross(vecAB, vecAC);
+	normalV = glm::normalize(normalV);
 
+	for(int i=0;i<3;i++) mVertexNormals.push_back(normalV);
+
+	//glm::vec3 vecAC = mVertexPositions[pC] - mVertexPositions[pA];
+	glm::vec3 vecAD = mVertexPositions[pD] - mVertexPositions[pA];
+	glm::vec3 normalV2 = glm::cross(vecAC, vecAD);
+	normalV2 = glm::normalize(normalV2);
+
+	for (int i = 0; i < 3; i++) mVertexNormals.push_back(normalV2);
 }
 
 void BuiltInCube::generateIndices() {
 
-	// front
-	mVertexIndices.push_back(0);	//013 123
+	mVertexIndices.push_back(0);	
 	mVertexIndices.push_back(1);
-	mVertexIndices.push_back(3);
+	mVertexIndices.push_back(2);
 
 	mVertexIndices.push_back(2);
 	mVertexIndices.push_back(3);
-	mVertexIndices.push_back(1);
-	// back 
-	mVertexIndices.push_back(4);  //457 567
-	mVertexIndices.push_back(5);
-	mVertexIndices.push_back(7);
+	mVertexIndices.push_back(0);
 
+	generateQuadNormals(0,1,2,3);
+
+	mVertexIndices.push_back(1); 
+	mVertexIndices.push_back(5);
 	mVertexIndices.push_back(6);
-	mVertexIndices.push_back(7);
-	mVertexIndices.push_back(5);
-	// right
-	mVertexIndices.push_back(0);  //014 145
-	mVertexIndices.push_back(1);
-	mVertexIndices.push_back(4);
-
-	mVertexIndices.push_back(5);
-	mVertexIndices.push_back(4);
-	mVertexIndices.push_back(1);
-	// left
-	mVertexIndices.push_back(3);  //237 267
-	mVertexIndices.push_back(2);
-	mVertexIndices.push_back(7);
 
 	mVertexIndices.push_back(6);
 	mVertexIndices.push_back(2);
-	mVertexIndices.push_back(7);
-	// top
-	mVertexIndices.push_back(0);  //034 347
-	mVertexIndices.push_back(3);
-	mVertexIndices.push_back(4);
+	mVertexIndices.push_back(1);
 
-	mVertexIndices.push_back(7);
-	mVertexIndices.push_back(4);
-	mVertexIndices.push_back(3);
-	// bottom
-	mVertexIndices.push_back(1);  //125 256
-	mVertexIndices.push_back(2);
-	mVertexIndices.push_back(5);
+	generateQuadNormals(1,5,6,2);
 
+	mVertexIndices.push_back(7); 
 	mVertexIndices.push_back(6);
 	mVertexIndices.push_back(5);
+
+	mVertexIndices.push_back(5);
+	mVertexIndices.push_back(4);
+	mVertexIndices.push_back(7);
+
+	generateQuadNormals(7,6,5,4);
+
+	mVertexIndices.push_back(4); 
+	mVertexIndices.push_back(0);
+	mVertexIndices.push_back(3);
+
+	mVertexIndices.push_back(3);
+	mVertexIndices.push_back(7);
+	mVertexIndices.push_back(4);
+
+	generateQuadNormals(4,0,3,7);
+
+	mVertexIndices.push_back(4); 
+	mVertexIndices.push_back(5);
+	mVertexIndices.push_back(1);
+
+	mVertexIndices.push_back(1);
+	mVertexIndices.push_back(0);
+	mVertexIndices.push_back(4);
+
+	generateQuadNormals(4,5,1,0);
+
+
+	mVertexIndices.push_back(3);  
 	mVertexIndices.push_back(2);
+	mVertexIndices.push_back(6);
+
+	mVertexIndices.push_back(6);
+	mVertexIndices.push_back(7);
+	mVertexIndices.push_back(3);
+
+	generateQuadNormals(3,2,6,7);
 
 }

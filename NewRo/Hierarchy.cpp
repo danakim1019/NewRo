@@ -24,26 +24,25 @@ void HierarchyWindow::createOBJ(int type)
 		temp = new BuiltInCylinder();
 		temp->mMat = new Material();
 	}
-	else if (type == 3) {		//obj loader
-		temp = new LoadedModelObj("../Asset/nanosuit/nanosuit.obj","modelTexture",true);
-		//temp = new LoadedModelObj("../Asset/nanosuit/nanosuit.obj", "Shadow", true);
-		//temp = new LoadedModelObj("../Asset/ancientModel/source/AncientFightingIdle.fbx", "Shadow", true);
-		//temp = new LoadedModelObj("../Asset/fast.fbx", "Shadow", true);
-		//temp = new LoadedModelObj("../Asset/VictoryMonster.fbx", "Shadow", true);
-		//temp = new LoadedModelObj("../Asset/man-business_Running.fbx", "Shadow", true);
-		//temp = new LoadedModelObj("../Asset/groo.fbx", "Shadow", true); 
-		//temp = new LoadedModelObj("../Asset/sponza/sponza.obj", "Shadow", true);
-		//temp = new LoadedModelObj("../Asset/sponza_1.obj", "Shadow", true);
-		//temp = new LoadedModelObj("../Asset/toon-cat-free/source/toon-cat.fbx", "Shadow", true);	//No Bone
-		//temp = new LoadedModelObj("../Asset/chicken-free/source/Chicken-Free.fbx", "Shadow", true);
+	else if (type == 3) {		//obj load
+		std::string path = "../Asset/nanosuit/nanosuit.obj";
+		temp = new LoadedModelObj(path, "Shadow", true);
 		temp->mMat = new Material();
 	}
-	else if (type == 4) {		//Light
+	else if (type == 4)		//fbx load
+	{
+		std::string path = "../Asset/fast.fbx";
+		temp = new LoadedModelObj(path, "Shadow", true);
+		temp->isAnim = true;
+		temp->setScale(0.1, 0.1, 0.1);
+		temp->mMat = new Material();
+	}
+	else if (type == 5) {		//Light
 		temp = new Light(10, 10, 0);
 		//Light 정보값 입력		
 	}
 
-	if (type == 4) {
+	if (type == 5) {
 		temp->mID = 1;
 		activeOBJList[0] = temp;
 	}
@@ -53,12 +52,7 @@ void HierarchyWindow::createOBJ(int type)
 		objectNum = temp->mID;
 	}
 
-
 	std::cout << "add:" << temp->mName << ", id:" << temp->mID << std::endl;
-
-}
-
-void HierarchyWindow::drawOutline() {
 
 }
 

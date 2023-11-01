@@ -141,9 +141,7 @@ void BuiltInSphere::RenderModel(glm::mat4& model, glm::mat4& view, glm::mat4& pr
 
 		glUniform1i(mShaderProgram->uniform("isShadow"), shadow->bIsShadow);
 		glUniform1i(mShaderProgram->uniform("shadowType"), shadow->mShadowType);
-
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, shadow->mShadowGLuint);
+		glUniform1i(mShaderProgram->uniform("hasColor"), false);
 
 	}
 

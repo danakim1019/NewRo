@@ -202,8 +202,20 @@ int LoadedModelObj::BoneTransform(float timeInSeconds, vector<glm::mat4>& transf
 
 void LoadedModelObj::RenderPicking()
 {
-	for (GLuint i = 0; i < mMeshes.size(); i++)
+	for (GLuint i = 0; i < mMeshes.size(); i++) {
 		mMeshes[i].RenderPicking();
+	}
+}
+
+void LoadedModelObj::RenderRTShadow(ShaderProgram* shader)
+{
+	for (GLuint i = 0; i < mMeshes.size(); i++) {
+		float TicksPersecond = mScene->mAnimations[mAnimationNum]->mTicksPerSecond != 0 ? mScene->mAnimations[mAnimationNum]->mTicksPerSecond : 25.0f;
+		if (animation != NULL) {
+			glUniformMatrix4fv(shader->uniform("gBones[0]"), mTransforms.size(), GL_FALSE, glm::value_ptr(mTransforms[0]));
+		}
+		mMeshes[i].RenderPicking();
+	}
 }
 
 void LoadedModelObj::RenderModel(glm::mat4& model, glm::mat4& view, glm::mat4& projection, glm::mat4& location,
@@ -217,6 +229,8 @@ void LoadedModelObj::RenderModel(glm::mat4& model, glm::mat4& view, glm::mat4& p
 			float TicksPersecond = mScene->mAnimations[mAnimationNum]->mTicksPerSecond != 0 ? mScene->mAnimations[mAnimationNum]->mTicksPerSecond : 25.0f;
 			float TimeInTicks = animation->mAnimationTime * TicksPersecond;
 			int type = BoneTransform(TimeInTicks, mTransforms);
+
+			this->animation = animation;
 
 			glUniformMatrix4fv(mMeshes[i].mShaderProgram->uniform("gBones[0]"), mTransforms.size(), GL_FALSE, glm::value_ptr(mTransforms[0]));
 		}
@@ -468,7 +482,7 @@ void LoadedModelObj::loadMeshBones(aiMesh* mesh, vector<VertexBoneData>& vertexB
 
 		int nn = mesh->mBones[i]->mNumWeights;
 
-		for (unsigned int n = 0; n < nn; n++) {
+		for (int n = 0; n < nn; n++) {
 			unsigned int vid = mesh->mBones[i]->mWeights[n].mVertexId + mNumVertices;		//absolute index
 			float weight = mesh->mBones[i]->mWeights[n].mWeight;
 			vertexBoneData[vid].AddBoneData(BoneIndex, weight);		//for a particular vertex, which bones affect it ans its weight

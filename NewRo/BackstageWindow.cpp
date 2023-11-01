@@ -1,13 +1,13 @@
 #include"BackstageWindow.h"
 
-const unsigned int SHADOW_WIDTH = 1024, SHADOW_HEIGHT = 1024;
+const unsigned int SHADOW_WIDTH = 2048, SHADOW_HEIGHT = 2048;
 
 BackstageWindow::BackstageWindow(int m_width, int m_height, int w_Width, int w_Height) :mBackstageWidth(m_width), mBackstageHeight(m_height), mWindowWidth(w_Width), mWindowHeight(w_Height)
 {
 	mFovy = 45.0f;
 	mRatio = mBackstageWidth / static_cast<float>(mBackstageHeight);
 	mAngle = 0;
-	mLightProjection = glm::ortho(-30.0f, 30.0f, -30.0f, 30.0f, -80.0f, 80.0f);
+	mLightProjection = glm::ortho(-30.0f, 30.0f, -30.0f, 30.0f, -100.0f, 300.0f);
 
 	mCurrentGizmoOperation = ImGuizmo::TRANSLATE;
 	mCurrentGizmoMode = ImGuizmo::LOCAL;
@@ -16,29 +16,35 @@ BackstageWindow::BackstageWindow(int m_width, int m_height, int w_Width, int w_H
 	setupBuffer();
 }
 
+BackstageWindow::~BackstageWindow() {
+
+}
+
 void BackstageWindow::setupPickingShader() {
 	mPickingShaderProgram = new ShaderProgram();
 	mPickingShaderProgram->initFromFiles("Shader/picking.vert", "Shader/picking.frag");
 
-	mPickingShaderProgram->addAttribute("coord3d");
-
-	mPickingShaderProgram->addUniform("MVP");
-	mPickingShaderProgram->addUniform("gModelIndex");
-	mPickingShaderProgram->addUniform("gDrawIndex");
+	mPickingShaderProgram->addUniformGroup("picking");
 
 	mOutlineShaderProgram = new ShaderProgram();
 	mOutlineShaderProgram->initFromFiles("Shader/picking.vert", "Shader/Outline.frag");
 
-	mOutlineShaderProgram->addAttribute("coord3d");
-
 	mOutlineShaderProgram->addUniform("MVP");
-	mOutlineShaderProgram->addUniform("gModelIndex");
-	mOutlineShaderProgram->addUniform("gDrawIndex");
 
 	mShadowShaderProgram = new ShaderProgram();
 	mShadowShaderProgram->initFromFiles("Shader/shadowMap.vert", "Shader/shadowMap.frag");
-	mShadowShaderProgram->addUniform("lightSpaceMatrix");
-	mShadowShaderProgram->addUniform("Model");
+
+	mShadowShaderProgram->addUniformGroup("shadowMap");
+
+	mRTShadowShaderProgram = new ShaderProgram();
+	mRTShadowShaderProgram->initFromFiles("Shader/RTshadowMap.vert","Shader/RTshadowMap.frag");
+
+	mRTShadowShaderProgram->addUniformGroup("RTshadowMap");
+	for (unsigned int i = 0; i < 100; i++)
+	{
+		std::string name = "gBones[" + std::to_string(i) + "]";
+		mRTShadowShaderProgram->addUniform(name.c_str());
+	}
 
 }
 
@@ -80,13 +86,16 @@ void BackstageWindow::DrawBackstageWindow(int width, int height, int selectedObj
 		mAngle = 0;
 	else
 		mAngle += 0.01;
-	float radius = 20;
+	float radius = 40;
 	float x = glm::sin(mAngle) * radius;
 	float z = glm::cos(mAngle) * radius;
-	mHierachy->activeOBJList[0]->setPosition(x, 10, z);
+	//mHierachy->activeOBJList[0]->setPosition(x, 10, z);
+	mHierachy->activeOBJList[0]->setPosition(40, 10, 40);
+	//mHierachy->activeOBJList[0]->setRotation(0, -x, 0);
 
-	mHierachy->activeOBJList[2]->setPosition(0, -3, 0);
-	mHierachy->activeOBJList[2]->setScale(100, 1, 100);
+
+	mHierachy->activeOBJList[2]->setPosition(0, -4.5, 0);
+	mHierachy->activeOBJList[2]->setScale(100, 3, 100);
 
 	glm::mat4 model;
 	mLightView = glm::lookAt(mHierachy->activeOBJList[0]->getPositon(), glm::vec3(0, 0, 0),
@@ -97,8 +106,10 @@ void BackstageWindow::DrawBackstageWindow(int width, int height, int selectedObj
 
 	pickingPhase();
 
-	generateShadowMap(mLightSpace, ((Light*)mHierachy->activeOBJList[0])->shadow);
+	Animation* anim = new Animation();
+	anim->mAnimationTime = deltaTime;
 
+	
 	if (selectedObjID > 0) {
 		guizmoPhase(selectedObjID);
 		outlinePhase(selectedObjID);
@@ -107,10 +118,9 @@ void BackstageWindow::DrawBackstageWindow(int width, int height, int selectedObj
 	//draw Grid
 	mGrid->draw(origin, mViewMat, mProjectionMat);
 
-	Animation* anim = new Animation();
-	anim->mAnimationTime = deltaTime;
-
 	renderPhase(((Light*)mHierachy->activeOBJList[0])->shadow, anim, deltaTime);
+
+	generateShadowMap(mLightSpace, ((Light*)mHierachy->activeOBJList[0])->shadow, anim);
 
 }
 
@@ -239,16 +249,54 @@ void BackstageWindow::outlinePhase(int selectedObjID) {
 
 }
 
+void BackstageWindow::generateShadowMap(glm::mat4 lightSpace, Shadow* shadow, Animation* animation) {
+
+	glViewport(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT);
+	glBindFramebuffer(GL_FRAMEBUFFER, mShadowfbo);
+	glClear(GL_DEPTH_BUFFER_BIT);
+	glActiveTexture(GL_TEXTURE0);
+
+	glCullFace(GL_FRONT);
+	for (int i = 1; i < mHierachy->objectNum; i++) {
+		if (!mHierachy->activeOBJList[i]->isAnim) {
+			mShadowShaderProgram->use();
+			glUniformMatrix4fv(mShadowShaderProgram->uniform("Model"), 1, GL_FALSE, glm::value_ptr(mModelViewArray[i]));
+			glUniformMatrix4fv(mShadowShaderProgram->uniform("lightSpaceMatrix"), 1, GL_FALSE, glm::value_ptr(lightSpace));
+
+			mHierachy->activeOBJList[i]->RenderPicking();
+			mShadowShaderProgram->disable();
+		}
+		else {
+			mRTShadowShaderProgram->use();
+			glUniformMatrix4fv(mRTShadowShaderProgram->uniform("Model"), 1, GL_FALSE, glm::value_ptr(mModelViewArray[i]));
+			glUniformMatrix4fv(mRTShadowShaderProgram->uniform("lightSpaceMatrix"), 1, GL_FALSE, glm::value_ptr(lightSpace));
+
+			mHierachy->activeOBJList[i]->RenderRTShadow(mRTShadowShaderProgram);
+			mRTShadowShaderProgram->disable();
+		}
+		
+	}
+	glCullFace(GL_BACK);
+
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+	//SetViewport(mWindowWidth, mWindowHeight);
+
+}
 
 void BackstageWindow::renderPhase(Shadow* shadow, Animation* animation, float deltaTime) {
 
 	glm::mat4 origin = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, 0.0f));
+
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, shadow->mShadowGLuint);
+
 	mHierachy->drawList(mModelViewArray, mViewMat, mProjectionMat, origin, mCam.Position, glm::vec3(0, 30, 0), mLightSpace, shadow, animation);
 }
 
 void BackstageWindow::CreateBuiltInOBJ(int builtInType) {
 	mHierachy->createOBJ(builtInType);
-	if (builtInType == 4) {
+	if (builtInType == 5) {
 		initializeShadowMap();
 		((Light*)mHierachy->activeOBJList[0])->shadow->mShadowGLuint = mShadowMap;
 	}
@@ -274,7 +322,6 @@ void BackstageWindow::SetViewport(int width, int height) {
 	glEnable(GL_SCISSOR_TEST);
 	glClearColor(0.5f, 0.5f, 0.5f, 0);		//background color
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);		//clear up color and depth buffer
-	glEnable(GL_CLIP_DISTANCE0);
 	glEnable(GL_DEPTH_TEST);			//test whether an object is in front of other object?
 
 	glViewport(mBackstageXPos, mBackstageYPos, mBackstageWidth, mBackstageHeight);
@@ -288,60 +335,34 @@ void BackstageWindow::setupBuffer() {
 	mCam = camera(glm::vec3(0.0f, 30.0f, 30.0f));
 	mHierachy = new HierarchyWindow();
 	mGrid = new Grid();
-	CreateBuiltInOBJ(4);
+	CreateBuiltInOBJ(5);
 	CreateBuiltInOBJ(1);
 	CreateBuiltInOBJ(0);
 
 	generateOutlineMap();
 }
 
-void BackstageWindow::generateShadowMap(glm::mat4 lightSpace, Shadow* shadow) {
 
-	glViewport(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT);
-	glBindFramebuffer(GL_FRAMEBUFFER, mShadowfbo);
-	glClear(GL_DEPTH_BUFFER_BIT);
-	glActiveTexture(GL_TEXTURE0);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);		//clear up color and depth b
-
-	glCullFace(GL_FRONT);
-	mShadowShaderProgram->use();
-	for (int i = 1; i < mHierachy->objectNum; i++) {
-		glUniformMatrix4fv(mShadowShaderProgram->uniform("Model"), 1, GL_FALSE, glm::value_ptr(mModelViewArray[i]));
-		glUniformMatrix4fv(mShadowShaderProgram->uniform("lightSpaceMatrix"), 1, GL_FALSE, glm::value_ptr(lightSpace));
-
-		mHierachy->activeOBJList[i]->RenderPicking();
-	}
-	mShadowShaderProgram->disable();
-	glCullFace(GL_BACK);
-
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-	SetViewport(mWindowWidth, mWindowHeight);
-
-}
 
 bool BackstageWindow::initializeShadowMap() {
 	glGenFramebuffers(1, &mShadowfbo);
-	glBindFramebuffer(GL_FRAMEBUFFER, mShadowfbo);
-
+	
 	glGenTextures(1, &mShadowMap);
 	glBindTexture(GL_TEXTURE_2D, mShadowMap);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, SHADOW_WIDTH, SHADOW_HEIGHT, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+	float borderColor[] = { 1.0, 1.0, 1.0, 1.0 };
+	glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);
 
-
+	glBindFramebuffer(GL_FRAMEBUFFER, mShadowfbo);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, mShadowMap, 0);
 
 	glDrawBuffer(GL_NONE);
 	glReadBuffer(GL_NONE);
-	//Always check that our framebuffer is ok
-	if (glCheckFramebufferStatus((GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE))
-		return false;
 
-	glBindTexture(GL_TEXTURE_2D, 0);
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 	return true;

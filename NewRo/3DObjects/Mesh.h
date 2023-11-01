@@ -12,6 +12,9 @@
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
 
+
+#include"../OpenFBX/ofbx.h"
+
 //#include "Light.h"
 
 #define NUM_BONES_PER_VERTEX 4
@@ -41,6 +44,10 @@ struct BoneInfo {
 
 	BoneInfo(aiMatrix4x4 tp1) {
 		offset = glm::transpose(glm::make_mat4(&tp1.a1));
+	}
+
+	BoneInfo(const ofbx::Matrix tp1) {
+		offset = glm::transpose(glm::make_mat4(tp1.m));
 	}
 };
 

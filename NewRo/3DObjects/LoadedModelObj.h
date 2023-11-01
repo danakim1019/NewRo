@@ -49,6 +49,7 @@ public:
 
 	/*Model Rendering*/
 	virtual void RenderPicking() override;
+	virtual void RenderRTShadow(ShaderProgram* shader) override;
 	virtual void RenderModel(glm::mat4& model, glm::mat4& view, glm::mat4& projection, glm::mat4& location,
 		glm::vec3 camPosition, glm::vec3 lightPosition, glm::mat4& lightSpace, Shadow* shadow, Animation* animation) override;
 
@@ -93,6 +94,7 @@ private:
 	unsigned int textureFromFile(const char* path, const std::string& directory, bool gamma = false);
 
 	/*Animations*/
+	Animation* animation;
 	void loadBones(aiNode* node, const aiScene* scene);
 	void loadMeshBones(aiMesh* mesh, std::vector<VertexBoneData>& vertexBoneData);
 	void loadAnimations(const aiScene* scene, std::string boneName, std::map<std::string, std::map<std::string, const aiNodeAnim*>>& animations);

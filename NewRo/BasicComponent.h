@@ -9,6 +9,7 @@
 #include<math.h>
 
 #include <string>
+#include"Loader.h"
 
 #include<glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -111,9 +112,11 @@ public:
 	virtual void RenderModel(glm::mat4& model, glm::mat4& view, glm::mat4& projection, glm::mat4& location, 
 		glm::vec3 camPosition, glm::vec3 lightPosition, glm::mat4& lightSpace,Shadow* shadowType, Animation* animation) {}
 	virtual void RenderPicking(){}
+	virtual void RenderRTShadow(ShaderProgram* shader) {}
 
 	std::string mName;
 	unsigned int mID = 0;
+	bool isAnim = false;
 	std::string mObjectType;
 	std::string mShaderType;
 

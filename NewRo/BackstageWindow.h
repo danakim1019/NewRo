@@ -73,7 +73,7 @@ public:
 
 	
 	BackstageWindow(int m_width, int m_height, int windowWidth, int windowHeight);
-	~BackstageWindow() {}
+	~BackstageWindow();
 
 	void SetWindowSize(int width, int height, int xPos, int yPos, int m_windowWidth, int m_windowHeight);
 	void SetViewport(int width, int height);
@@ -85,36 +85,20 @@ public:
 	void CreateBuiltInOBJ(int builtInType);
 
 	//Getter Setter
-	unsigned int getObjectNum() {
-		return mHierachy->objectNum;
-	}
-
-	std::string getObjectName(unsigned int id) {
-		return mHierachy->activeOBJList[id-1]->mName;
-	}
-
-	unsigned int getObjectID(unsigned int id) {
-		return mHierachy->activeOBJList[id-1]->mID;
-	}
-
-	OBJect* getObject(unsigned int id) {
-		return mHierachy->activeOBJList[id-1];
-	}
+	unsigned int getObjectNum() {return mHierachy->objectNum;}
+	std::string getObjectName(unsigned int id) {return mHierachy->activeOBJList[id-1]->mName;	}
+	unsigned int getObjectID(unsigned int id) {return mHierachy->activeOBJList[id-1]->mID;	}
+	OBJect* getObject(unsigned int id) {	return mHierachy->activeOBJList[id-1];	}
+	Shadow* getShadow(int lightOBJID) { return ((Light*)mHierachy->activeOBJList[lightOBJID])->shadow; }
 
 	void setObjectName(char* name,unsigned int id) {
 		mHierachy->activeOBJList[id-1]->mName = name;
-	}
-
-	Shadow* getShadow(int lightOBJID) {
-		return ((Light*)mHierachy->activeOBJList[lightOBJID])->shadow;
 	}
 
 	void setShadow(bool isShadow, int shadowType) {
 		((Light*)mHierachy->activeOBJList[0])->shadow->bIsShadow = isShadow;
 		((Light*)mHierachy->activeOBJList[0])->shadow->mShadowType = shadowType;
 	}
-
-
 
 protected:
 	HierarchyWindow* mHierachy;
@@ -141,6 +125,7 @@ private:
 
 	//Shadow
 	ShaderProgram* mShadowShaderProgram;
+	ShaderProgram* mRTShadowShaderProgram;
 	GLuint mShadowfbo;
 	GLuint mShadowMap;
 
@@ -164,7 +149,7 @@ private:
 	void setupBuffer();
 
 	// Note : Order of generate shadowmap function restrictly. Please check before use
-	void generateShadowMap(glm::mat4 lightSpace, Shadow* shadow);
+	void generateShadowMap(glm::mat4 lightSpace, Shadow* shadow, Animation* animation);
 	bool generateOutlineMap();
 
 	// Change when windowsizecallback called

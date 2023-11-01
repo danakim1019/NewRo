@@ -64,7 +64,7 @@
 class Core : public GUIInterface
 {
 public:
-	// Our state
+	// GUI Interface state
 	bool bShowDemoWindow = true;
 	bool bShowAnotherWindow = false;
 	bool bShowMenubarWindow = true;
@@ -82,6 +82,8 @@ public:
 		bShowProjectWindow = true;
 		bShowBackstageWindow = true;
 	}
+
+	~Core(){}
 
 	void GUIRender(float deltaTime) {
 		ShowMenuBarOverlay(&bShowMenubarWindow);
@@ -123,7 +125,7 @@ int main(int, char**)
 	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);            // 3.0+ only
 
 	// Create window with graphics context
-	window = glfwCreateWindow(windowWidth, windowHeight, "NewRo Engine", NULL, NULL);
+	window = glfwCreateWindow(st_windowWidth, st_windowHeight, "NewRo Engine", NULL, NULL);
 	GLFWimage images[1];
 	images[0].pixels = stbi_load("icon.png", &images[0].width, &images[0].height, 0, 4);
 	glfwSetWindowIcon(window, 1, images);
@@ -164,19 +166,19 @@ int main(int, char**)
 
 	ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
 
-	ImVec2 backstageSize = ImVec2(windowWidth - hierachyWidth - inspectorWidth, screenHeight - ((ImGui::GetStyle().FramePadding.y * 2) + 18));
-	win = new BackstageWindow(backstageSize.x, backstageSize.y, windowWidth, windowHeight);
-	screenWidth = windowWidth - inspectorWidth - hierachyWidth;
-	screenHeight = windowHeight - projectWindowHeight;
-	win->SetWindowSize(screenWidth, screenHeight - ((ImGui::GetStyle().FramePadding.y * 2) + 18), hierachyWidth, projectWindowHeight, windowWidth, windowHeight);
+	ImVec2 backstageSize = ImVec2(st_windowWidth - st_hierachyWidth - st_inspectorWidth, st_screenHeight - ((ImGui::GetStyle().FramePadding.y * 2) + 18));
+	backStageWin = new BackstageWindow(backstageSize.x, backstageSize.y, st_windowWidth, st_windowHeight);
+	st_screenWidth = st_windowWidth - st_inspectorWidth - st_hierachyWidth;
+	st_screenHeight = st_windowHeight - st_projectWindowHeight;
+	backStageWin->SetWindowSize(st_screenWidth, st_screenHeight - ((ImGui::GetStyle().FramePadding.y * 2) + 18), st_hierachyWidth, st_projectWindowHeight, st_windowWidth, st_windowHeight);
 
-	_window_start_time = glfwGetTime();
+	st_window_start_time = glfwGetTime();
 	// Main loop
 	while (!glfwWindowShouldClose(window))
 	{
-		_delta_time = glfwGetTime() - _frame_start_time;
-		_frame_start_time = glfwGetTime();
-		_animation_time = (glfwGetTime() - _window_start_time) / 50.0f;
+		st_delta_time = glfwGetTime() - st_frame_start_time;
+		st_frame_start_time = glfwGetTime();
+		st_animation_time = (glfwGetTime() - st_window_start_time) / 50.0f;
 		// Poll and handle events (inputs, window resize, etc.)
 		// You can read the io.WantCaptureMouse, io.WantCaptureKeyboard flags to tell if dear imgui wants to use your inputs.
 		// - When io.WantCaptureMouse is true, do not dispatch mouse input data to your main application, or clear/overwrite your copy of the mouse data.
@@ -190,7 +192,7 @@ int main(int, char**)
 		ImGui::NewFrame();
 
 
-		core.GUIRender(_animation_time);
+		core.GUIRender(st_animation_time);
 
 		// Rendering
 		ImGui::Render();
@@ -209,6 +211,8 @@ int main(int, char**)
 
 	glfwDestroyWindow(window);
 	glfwTerminate();
+
+	delete backStageWin;
 
 	return 0;
 }
