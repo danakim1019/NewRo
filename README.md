@@ -2,7 +2,9 @@
 ![](Video/NewRo.gif)
 
 ### **NewRo is working on 💻!**
-### **Only OpenGL 3.0 but update later**
+### **Only OpenGL 3.0**
+
+### 💡My recent goal is "CMAKE".💡
 
 ----------------------------------------------------------
 ## **Shaodw**
@@ -10,9 +12,17 @@
 
 Shadow works only directional light now.
 
-PCF applied in my project and acne remain.
+PCF ans VSM applied in my project.
 
 Spot light and acne remove later topic.
+
+----------------------------------------------------------
+## **Animation**
+![](Video/Animation.gif)
+
+Load .fbx Animation with Assimp Library.
+
+Some Mixamo animations don't work.
 
 ----------------------------------------------------------
 ## **Material**

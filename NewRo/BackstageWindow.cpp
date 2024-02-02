@@ -7,7 +7,8 @@ BackstageWindow::BackstageWindow(int m_width, int m_height, int w_Width, int w_H
 	mFovy = 45.0f;
 	mRatio = mBackstageWidth / static_cast<float>(mBackstageHeight);
 	mAngle = 0;
-	mLightProjection = glm::ortho(-30.0f, 30.0f, -30.0f, 30.0f, -100.0f, 300.0f);
+	//mLightProjection = glm::ortho(-200.0f, 200.0f, -200.0f, 200.0f, -100.0f, 300.0f);
+	mLightProjection = glm::ortho(-200.0f, 200.0f, -10.0f, 100.0f, -100.0f, 300.0f);
 
 	mCurrentGizmoOperation = ImGuizmo::TRANSLATE;
 	mCurrentGizmoMode = ImGuizmo::LOCAL;
@@ -90,9 +91,8 @@ void BackstageWindow::DrawBackstageWindow(int width, int height, int selectedObj
 	float x = glm::sin(mAngle) * radius;
 	float z = glm::cos(mAngle) * radius;
 	//mHierachy->activeOBJList[0]->setPosition(x, 10, z);
-	mHierachy->activeOBJList[0]->setPosition(40, 10, 40);
+	//mHierachy->activeOBJList[0]->setPosition(40, 10, 40);
 	//mHierachy->activeOBJList[0]->setRotation(0, -x, 0);
-
 
 	mHierachy->activeOBJList[2]->setPosition(0, -4.5, 0);
 	mHierachy->activeOBJList[2]->setScale(100, 3, 100);
@@ -256,7 +256,9 @@ void BackstageWindow::generateShadowMap(glm::mat4 lightSpace, Shadow* shadow, An
 	glClear(GL_DEPTH_BUFFER_BIT);
 	glActiveTexture(GL_TEXTURE0);
 
+
 	glCullFace(GL_FRONT);
+
 	for (int i = 1; i < mHierachy->objectNum; i++) {
 		if (!mHierachy->activeOBJList[i]->isAnim) {
 			mShadowShaderProgram->use();
@@ -276,6 +278,7 @@ void BackstageWindow::generateShadowMap(glm::mat4 lightSpace, Shadow* shadow, An
 		}
 		
 	}
+
 	glCullFace(GL_BACK);
 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -291,7 +294,9 @@ void BackstageWindow::renderPhase(Shadow* shadow, Animation* animation, float de
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, shadow->mShadowGLuint);
 
+	
 	mHierachy->drawList(mModelViewArray, mViewMat, mProjectionMat, origin, mCam.Position, glm::vec3(0, 30, 0), mLightSpace, shadow, animation);
+
 }
 
 void BackstageWindow::CreateBuiltInOBJ(int builtInType) {

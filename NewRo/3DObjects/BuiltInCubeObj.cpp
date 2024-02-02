@@ -152,6 +152,7 @@ void BuiltInCube::generateVertices() {
 
 void BuiltInCube::generateQuadNormals(int pA, int pB, int pC,int pD) {
 
+
 	glm::vec3 vecAB = mVertexPositions[pB] - mVertexPositions[pA];
 	glm::vec3 vecAC = mVertexPositions[pC] - mVertexPositions[pA];
 	glm::vec3 normalV = glm::cross(vecAB, vecAC);
@@ -162,6 +163,7 @@ void BuiltInCube::generateQuadNormals(int pA, int pB, int pC,int pD) {
 	//glm::vec3 vecAC = mVertexPositions[pC] - mVertexPositions[pA];
 	glm::vec3 vecAD = mVertexPositions[pD] - mVertexPositions[pA];
 	glm::vec3 normalV2 = glm::cross(vecAC, vecAD);
+	//glm::vec3 normalV2 = glm::cross(vecAD, vecAC);
 	normalV2 = glm::normalize(normalV2);
 
 	for (int i = 0; i < 3; i++) mVertexNormals.push_back(normalV2);
@@ -177,7 +179,7 @@ void BuiltInCube::generateIndices() {
 	mVertexIndices.push_back(3);
 	mVertexIndices.push_back(0);
 
-	generateQuadNormals(0,1,2,3);
+	generateQuadNormals(0,1,2,3); // 0 0 1
 
 	mVertexIndices.push_back(1); 
 	mVertexIndices.push_back(5);
@@ -187,7 +189,7 @@ void BuiltInCube::generateIndices() {
 	mVertexIndices.push_back(2);
 	mVertexIndices.push_back(1);
 
-	generateQuadNormals(1,5,6,2);
+	generateQuadNormals(1,5,6,2); // 1 0 0
 
 	mVertexIndices.push_back(7); 
 	mVertexIndices.push_back(6);
@@ -197,7 +199,7 @@ void BuiltInCube::generateIndices() {
 	mVertexIndices.push_back(4);
 	mVertexIndices.push_back(7);
 
-	generateQuadNormals(7,6,5,4);
+	generateQuadNormals(7,6,5,4); // 0 0 -1
 
 	mVertexIndices.push_back(4); 
 	mVertexIndices.push_back(0);
@@ -207,7 +209,7 @@ void BuiltInCube::generateIndices() {
 	mVertexIndices.push_back(7);
 	mVertexIndices.push_back(4);
 
-	generateQuadNormals(4,0,3,7);
+	generateQuadNormals(4,0,3,7); // -1 0 0
 
 	mVertexIndices.push_back(4); 
 	mVertexIndices.push_back(5);
@@ -217,7 +219,7 @@ void BuiltInCube::generateIndices() {
 	mVertexIndices.push_back(0);
 	mVertexIndices.push_back(4);
 
-	generateQuadNormals(4,5,1,0);
+	generateQuadNormals(4,5,1,0); // 0 -1 0
 
 
 	mVertexIndices.push_back(3);  
@@ -228,6 +230,6 @@ void BuiltInCube::generateIndices() {
 	mVertexIndices.push_back(7);
 	mVertexIndices.push_back(3);
 
-	generateQuadNormals(3,2,6,7);
+	generateQuadNormals(3,2,6,7); // 0 1 0
 
 }

@@ -21,6 +21,8 @@ struct MaterialInfo {
 };
 uniform MaterialInfo Material;
 
+uniform vec3 camPosition;
+
 uniform bool hasColor;
 uniform bool isShadow;
 uniform sampler2D shadowMap;
@@ -34,8 +36,7 @@ uniform sampler2D texture_specular1;
 out vec4 FragColors;
 
 
-float ShadowCalculation(vec4 fragPosLightSpace){
-	vec3 projCoords = fragPosLightSpace.xyz/fragPosLightSpace.w;
+float ShadowCalculation(vec4 fragPosLightSpace,vec3 projCoords,vec3 lightDir,vec3 normal){
 	vec2 textureSize = textureSize(shadowMap,0);
 
 	projCoords = projCoords * 0.5 + 0.5;
@@ -44,9 +45,8 @@ float ShadowCalculation(vec4 fragPosLightSpace){
 
 	float currentDepth = projCoords.z;
 
-	vec3 normal = normalize(Normal);
-	vec3 lightdir = normalize(Light.Position.xyz - Position);
-	float bias = 1/textureSize.x;
+	float bias = 0.005;
+	//float bias = max(0.05 * (1.0 - dot(Normal, lightdir)), 0.005); 
 	float shadow = currentDepth>closestDepth+bias?1.0:0.0;
 	if(projCoords.z>1.0||projCoords.x<0||projCoords.y<0||1<projCoords.x||1<projCoords.y)
 			shadow=0.0;
@@ -55,25 +55,17 @@ float ShadowCalculation(vec4 fragPosLightSpace){
 }
 
 float InterpolatedCompare(sampler2D depths, vec2 uv, float currentDepth, float bias){
-	vec2 textureSize = textureSize(shadowMap,0);
+
 	float closestDepth = texture(shadowMap,uv).r;
 
-	vec3 normal = normalize(Normal);
-	vec3 lightdir = normalize(Light.Position.xyz-Position);
-
-	float shadow = currentDepth>closestDepth+bias?1.0:0.0;
-	if(currentDepth>1.0||uv.x<0||uv.y<0||1<uv.x||1<uv.y)
-		shadow=0.0;
-
-	return shadow;
+	return currentDepth>closestDepth+bias?1.0:0.0;
 }
 
 
-float ShadowCalculationInterpolated(vec4 fragPosLightSpace){
-	vec2 size =textureSize(shadowMap,0);;
+float ShadowCalculationInterpolated(vec4 fragPosLightSpace,vec3 projCoords){
+	vec2 size =textureSize(shadowMap,0);
 	vec2 texelSize = vec2(1.0,1.0)/size;
 
-	vec3 projCoords = fragPosLightSpace.xyz/fragPosLightSpace.w;
 	projCoords = projCoords*0.5+0.5;
 	vec2 uv = projCoords.xy;
 	vec2 f = fract(uv*size+0.5);
@@ -92,18 +84,19 @@ float ShadowCalculationInterpolated(vec4 fragPosLightSpace){
 	return c;
 }
 
-float ShadowCalculationPCF(vec4 fragPosLightSpace){
+float ShadowCalculationPCF(vec4 fragPosLightSpace,vec3 projCoords,vec3 lightDir){
 	vec2 size = textureSize(shadowMap,0);
 	vec2 texelSize =  vec2(1.0,1.0)/size;
 
-	vec3 projCoords = fragPosLightSpace.xyz/fragPosLightSpace.w;
 	projCoords = projCoords*0.5+0.5;
 	vec2 uv = projCoords.xy;
 	float currentDepth = projCoords.z;
 	float result = 0.0;
 
 	vec2 textureSize = textureSize(shadowMap,0);
-	float bias = 2.0/textureSize.x;
+	float bias = 1.0/textureSize.x;
+
+	bias = max(bias * (1.0 - dot(Normal, lightDir)), 0.005); 
 
 	for(int x=-2;x<=2;x++)
 	{
@@ -117,7 +110,7 @@ float ShadowCalculationPCF(vec4 fragPosLightSpace){
 	return result/25.0;
 }
 
-float InterpolatedComparePCF(sampler2D depths, vec2 uv, float currentDepth){
+float InterpolatedComparePCF(sampler2D depths, vec2 uv, float currentDepth,vec3 lightDir){
 	vec2 size = textureSize(shadowMap,0);
 	vec2 texelSize = vec2(1.0,1.0)/size;
 
@@ -125,6 +118,8 @@ float InterpolatedComparePCF(sampler2D depths, vec2 uv, float currentDepth){
 
 	vec2 textureSize = textureSize(shadowMap,0);
 	float bias = 2.0/textureSize.x;
+
+	bias = max(bias * (1.0 - dot(Normal, lightDir)), 0.005); 
 
 	float lb = InterpolatedCompare(depths, uv+texelSize*vec2(0.0,0.0),currentDepth,bias);
 	float lt = InterpolatedCompare(depths, uv+texelSize*vec2(0.0,1.0),currentDepth,bias);
@@ -136,11 +131,10 @@ float InterpolatedComparePCF(sampler2D depths, vec2 uv, float currentDepth){
 	return c;
 }
 
-float ShadowCalculationInterPCF(vec4 fragPosLightSpace){
+float ShadowCalculationInterPCF(vec4 fragPosLightSpace,vec3 projCoords,vec3 lightDir){
 	vec2 size = textureSize(shadowMap,0);
 	vec2 texelSize = vec2(1.0,1.0)/size;
 
-	vec3 projCoords = fragPosLightSpace.xyz/fragPosLightSpace.w;
 	projCoords = projCoords*0.5+0.5;
 	vec2 uv = projCoords.xy;
 	float currentDepth = projCoords.z;
@@ -151,134 +145,87 @@ float ShadowCalculationInterPCF(vec4 fragPosLightSpace){
 		for(int y=-1;y<=1;y++)
 		{
 			vec2 off = vec2(x,y)/size;
-			result += InterpolatedComparePCF(shadowMap,uv+off,currentDepth);
+			result += InterpolatedComparePCF(shadowMap,uv+off,currentDepth,lightDir);
 		}
 	}
 
 	return result/9.0;
 }
 
-float ShadowCalculationVSM(vec4 fragPosLightSpace){
-	float shadow =0.0;
-	vec3 projCoords = fragPosLightSpace.xyz / fragPosLightSpace.w;
+float ShadowCalculationVSM(vec4 fragPosLightSpace,vec3 projCoords){
+
+	float p_max =0.0;
 	projCoords = projCoords*0.5+0.5;
-	vec2 uv = projCoords.xy;
 	float currentDepth = projCoords.z;
 
-	vec2 moments = texture(shadowMap,uv).xy;
+	vec2 moments = texture(shadowMap,projCoords.xy).rg;
 
 	if(projCoords.z<=moments.x)
 			return 1.0;
-	float variance = max(moments.y-moments.x*moments.x,0.00002);
-	float d = moments.x-currentDepth;
-	shadow=variance/(variance+d*d);
+	float variance = max(moments.y-(moments.x*moments.x),0.002);
 
-	if(currentDepth>1.0||uv.x<0||uv.y<0||1<uv.x||1<uv.y){
-		shadow=1.0;
-	}
+	float d =  projCoords.z - moments.x;
+	p_max=variance/(variance+d*d);
 
-   return shadow;
-}
-
-float ShadowCalculationVSMAnti(vec4 fragPosLightSpace){
-   float shadow =0.0;
-   vec3 projCoords = fragPosLightSpace.xyz / fragPosLightSpace.w;
-   projCoords = projCoords*0.5+0.5;
-   vec2 uv = projCoords.xy;
-   float currentDepth = projCoords.z;
-
-   for(float x=-2.0;x<=2.0;x+=1.0){
-		for(float y=-2.0;y<=2.0;y+=1.0){
-			vec2 tmp = uv+vec2(x,y);
-			vec2 moments = texture(shadowMap,tmp).xy;
-
-			if(projCoords.z<=moments.x)
-				return 1.0;
-			float variance = max(moments.y-moments.x*moments.x,0.00002);
-			float d = moments.x-currentDepth;
-			shadow+=variance/(variance+d*d);
-		}
-   }
-
-   if(currentDepth>1.0||uv.x<0||uv.y<0||1<uv.x||1<uv.y){
-		shadow=1.0;
-		return shadow;
-   }
-
-   return (shadow/25.0);
+   return p_max;
 }
 
 void main()
 {
+	vec3 normal = normalize(Normal);
 	vec3 ambient = Material.Ka * Light.Intensity;
-	vec3 V = normalize(-Position.xyz);
-	vec3 L = normalize(Light.Position.xyz-Position);
-	vec3 R = normalize(reflect(-L,Normal));
-	vec3 H = normalize(V+L);
-	vec3 diffuse = Light.Intensity * Material.Kd * max(dot(L,Normal),0);
+	vec3 V = normalize(camPosition-Position);
+	vec3 lightDir = normalize(Light.Position.xyz - Position);
+	vec3 L = normalize(-Light.Position.xyz-FragOut);
+	vec3 R = normalize(reflect(-lightDir,normal));
+	vec3 H = normalize(V+lightDir);
+	vec3 diffuse = Light.Intensity * Material.Kd * max(dot(lightDir,normal),0);
 	vec3 spec=vec3(0,0,0);
-	if(dot(L,Normal)>0){
-		spec= Light.Intensity * Material.Ks* pow(max(dot(H,Normal),0.0),Material.Shiness);
+	if(dot(lightDir,normal)>0){
+		spec= Light.Intensity * Material.Ks* pow(max(dot(H,normal),0.0),Material.Shiness);
 	}
 	 //change vertex position : 모든 light 계산은 camera좌표계에서 이루어짐
-	vec4 texColor;
+	vec4 texColor=vec4(1);
 	if(hasColor){
 		texColor= texture(texture_diffuse1,Color);
 		//texColor+=texture(texture_normal1,Color);
 		//texColor+=texture(texture_specular1,Color).rgba;
 	}
 
+	vec3 projCoords = FragPosLightSpace.xyz / FragPosLightSpace.w;
+
 	if(isShadow){
 		float shadow;
-		if(shadowType==0){			//shadow
-			shadow = ShadowCalculation(FragPosLightSpace);
-			if(hasColor)
-				FragColors = vec4((ambient*(1.0-shadow))+diffuse+spec,1.0)*texColor;
-			else
-				FragColors = vec4((ambient*(1.0-shadow))+diffuse+spec,1.0);
+		if(shadowType>=0&&shadowType<=3)
+		{
+			if(shadowType==0){			//shadow
+				shadow = ShadowCalculation(FragPosLightSpace,projCoords,lightDir,Normal);
+			}
+			else if(shadowType==1){		//Interpolated
+				shadow=ShadowCalculationInterpolated(FragPosLightSpace,projCoords);
+			}
+			else if(shadowType==2){		//PCF
+				shadow=ShadowCalculationPCF(FragPosLightSpace,projCoords,lightDir);
+			}
+			else if(shadowType==3){		//InterPCF
+				shadow = ShadowCalculationInterPCF(FragPosLightSpace,projCoords,lightDir);
+			}
+			FragColors = vec4((ambient*(1-shadow))+diffuse+spec,1.0)*texColor;
 		}
-		else if(shadowType==1){		//Interpolated
-			shadow=ShadowCalculationInterpolated(FragPosLightSpace);
-			if(hasColor)
-				FragColors = vec4((ambient*(1.0-shadow))+diffuse+spec,1.0)*texColor;
-			else
-				FragColors = vec4((ambient*(1.0-shadow))+diffuse+spec,1.0);
-		}
-		else if(shadowType==2){		//PCF
-			shadow=ShadowCalculationPCF(FragPosLightSpace);
-			if(hasColor)
-				FragColors = vec4((ambient*(1.0-shadow))+diffuse+spec,1.0)*texColor;
-			else
-				FragColors = vec4((ambient*(1.0-shadow))+diffuse+spec,1.0);
-		}
-		else if(shadowType==3){		//InterPCF
-			shadow = ShadowCalculationInterPCF(FragPosLightSpace);
-			if(hasColor)
-				FragColors = vec4((ambient*(1.0-shadow))+diffuse+spec,1.0)*texColor;
-			else
-				FragColors = vec4((ambient*(1.0-shadow))+diffuse+spec,1.0);
-		}
-		else if(shadowType==4){		//VSM
-			shadow = ShadowCalculationVSM(FragPosLightSpace);
-			if(hasColor)
-				FragColors = vec4((ambient*shadow)+diffuse+spec,1.0)*texColor;
-			else
-				FragColors = vec4((ambient*shadow)+diffuse+spec,1.0);
-		}
-		else if(shadowType==5){
-			//VSMAnti only
-			shadow = ShadowCalculationVSMAnti(FragPosLightSpace);
-			vec3 finalShadow = vec3(shadow);
-			if(hasColor)
-				FragColors = vec4((ambient*shadow)+diffuse+spec,1.0)*texColor;
-			else
-				FragColors = vec4((ambient*shadow)+diffuse+spec,1.0);
+		else{
+			float pMax=1.0;
+			if(shadowType==4){		//VSM
+				pMax = ShadowCalculationVSM(FragPosLightSpace,projCoords);
+				shadow = ShadowCalculationPCF(FragPosLightSpace,projCoords,lightDir);
+			}
+			else if(shadowType==5){		//VSMAnti only
+				pMax = ShadowCalculationVSM(FragPosLightSpace,projCoords);
+				shadow = ShadowCalculationInterPCF(FragPosLightSpace,projCoords,lightDir);
+			}
+			FragColors = vec4(ambient*(1-shadow)+diffuse+spec,1.0)*pMax*texColor;
 		}
 	}
 	else{
-		if(hasColor)
 			FragColors = vec4(ambient+diffuse+spec,1.0)*texColor;
-		else
-			FragColors = vec4(ambient+diffuse+spec,1.0);
 	}
 }

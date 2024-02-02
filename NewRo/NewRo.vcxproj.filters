@@ -28,9 +28,6 @@
     <Filter Include="소스 파일\Component">
       <UniqueIdentifier>{611baad5-3fe2-4334-ac9e-5220ed598aca}</UniqueIdentifier>
     </Filter>
-    <Filter Include="헤더 파일\OpenFBX">
-      <UniqueIdentifier>{b4002d41-1d50-4fb4-a328-7b94f70a3527}</UniqueIdentifier>
-    </Filter>
     <Filter Include="소스 파일\Math">
       <UniqueIdentifier>{7e5c4660-86f6-4d84-a689-0ba40f9b6d4b}</UniqueIdentifier>
     </Filter>
@@ -92,18 +89,6 @@
     </ClCompile>
     <ClCompile Include="ImGUI\ImGuizmo.cpp">
       <Filter>헤더 파일\ImGUI</Filter>
-    </ClCompile>
-    <ClCompile Include="3DObjects\miniz.c">
-      <Filter>소스 파일\3DObjects</Filter>
-    </ClCompile>
-    <ClCompile Include="3DObjects\FBX_importer.cpp">
-      <Filter>소스 파일\3DObjects</Filter>
-    </ClCompile>
-    <ClCompile Include="OpenFBX\ofbx.cpp">
-      <Filter>헤더 파일\OpenFBX</Filter>
-    </ClCompile>
-    <ClCompile Include="OpenFBX\libdeflate.c">
-      <Filter>헤더 파일\OpenFBX</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -196,18 +181,6 @@
     </ClInclude>
     <ClInclude Include="3DObjects\Skeleton.h">
       <Filter>소스 파일\3DObjects</Filter>
-    </ClInclude>
-    <ClInclude Include="3DObjects\miniz.h">
-      <Filter>소스 파일\3DObjects</Filter>
-    </ClInclude>
-    <ClInclude Include="3DObjects\FBX_importer.h">
-      <Filter>소스 파일\3DObjects</Filter>
-    </ClInclude>
-    <ClInclude Include="OpenFBX\ofbx.h">
-      <Filter>헤더 파일\OpenFBX</Filter>
-    </ClInclude>
-    <ClInclude Include="OpenFBX\libdeflate.h">
-      <Filter>헤더 파일\OpenFBX</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -435,8 +435,8 @@ public:
 		,"Light.Position","Light.La","Light.Ld","Light.Ls"
 		,"Material.Ka","Material.Kd","Material.Ks","Material.Shiness" };
 
-	std::string ShadowUniform[16] = { "ModelViewMatrix","NormalMatrix","ModelMatrix","MVP","lightSpaceMatrix"
-	,"shadowMap","shadowType","isShadow","hasColor"
+	std::string ShadowUniform[17] = { "ModelViewMatrix","NormalMatrix","ModelMatrix","MVP","lightSpaceMatrix"
+	,"shadowMap","shadowType","isShadow","hasColor","camPosition"
 	,"Light.Position","Light.Intensity"
 	,"Material.Ka","Material.Kd","Material.Ks","Material.Shiness"
 	,"texture_diffuse1"};

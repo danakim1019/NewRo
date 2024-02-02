@@ -50,6 +50,7 @@ void BuiltInSphere::setup() {
 	}
 	else if (mShaderType == "Shadow") {
 		mShaderProgram->initFromFiles("Shader/shadow.vert", "Shader/shadow.frag");
+		//mShaderProgram->initFromFiles("Shader/shadowNT.vert", "Shader/shadowNT.frag");
 	}
 
 	mShaderProgram->addAttribute("VertexPosition");
@@ -134,6 +135,8 @@ void BuiltInSphere::RenderModel(glm::mat4& model, glm::mat4& view, glm::mat4& pr
 
 		glUniform4fv(mShaderProgram->uniform("Light.Position"), 1, glm::value_ptr(view * glm::vec4(lightPosition, 1.0)));
 		glUniform3fv(mShaderProgram->uniform("Light.Intensity"), 1, glm::value_ptr(glm::vec3(1, 1, 1)));
+
+		glUniform3fv(mShaderProgram->uniform("camPosition"), 1, glm::value_ptr(camPosition));
 
 		glUniformMatrix4fv(mShaderProgram->uniform("lightSpaceMatrix"), 1, GL_FALSE, glm::value_ptr(lightSpace));
 
