@@ -90,6 +90,9 @@
     <ClCompile Include="ImGUI\ImGuizmo.cpp">
       <Filter>헤더 파일\ImGUI</Filter>
     </ClCompile>
+    <ClCompile Include="Skybox.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ImGUI\imconfig.h">
@@ -182,12 +185,15 @@
     <ClInclude Include="3DObjects\Skeleton.h">
       <Filter>소스 파일\3DObjects</Filter>
     </ClInclude>
+    <ClInclude Include="SKybox.h">
+      <Filter>소스 파일</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="Shader\black.frag">
+    <None Include="Shader\line.frag">
       <Filter>소스 파일\Shader</Filter>
     </None>
-    <None Include="Shader\black.vert">
+    <None Include="Shader\line.vert">
       <Filter>소스 파일\Shader</Filter>
     </None>
     <None Include="Shader\Phong.frag">
@@ -245,6 +251,18 @@
       <Filter>소스 파일\Shader</Filter>
     </None>
     <None Include="Shader\RTshadowMap.frag">
+      <Filter>소스 파일\Shader</Filter>
+    </None>
+    <None Include="Shader\cubeMap.vert">
+      <Filter>소스 파일\Shader</Filter>
+    </None>
+    <None Include="Shader\cubeMap.frag">
+      <Filter>소스 파일\Shader</Filter>
+    </None>
+    <None Include="Shader\skybox.frag">
+      <Filter>소스 파일\Shader</Filter>
+    </None>
+    <None Include="Shader\skybox.vert">
       <Filter>소스 파일\Shader</Filter>
     </None>
   </ItemGroup>

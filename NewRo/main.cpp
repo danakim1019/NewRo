@@ -45,9 +45,7 @@
 #include "ImGUI/imgui_impl_glfw.h"
 #include "ImGUI/imgui_impl_opengl3.h"
 
-#include <stdio.h>
-
-#include"3DObjects/stb_image.h"
+#include "BasicComponent.h"
 
 //#include"BackstageWindow.h"
 #include"Camera.h"

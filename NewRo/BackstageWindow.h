@@ -166,6 +166,10 @@ private:
 	glm::mat4 mProjectionMat;
 	glm::mat4 mModelMat;
 
+	//Skybox
+	Skybox* mSkybox;
+
+	//Grid
 	Grid* mGrid;
 
 	// Basic Objects for test
@@ -174,6 +178,8 @@ private:
 	BuiltInSphere* mSphere;
 
 	float mAngle;
+
+	glm::mat4 origin;
 };
 
 #endif

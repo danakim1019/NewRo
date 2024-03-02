@@ -33,7 +33,6 @@ void BuiltInCube::setup()
 
 	mShaderProgram->addUniformGroup(mShaderType);
 
-
 	//create vao
 	glGenVertexArrays(1, &vaoHandle);
 	glBindVertexArray(vaoHandle);

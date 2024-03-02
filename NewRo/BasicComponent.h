@@ -3,22 +3,17 @@
 
 //Component list
 
-#include<iostream>
-
-#include<vector>
-#include<math.h>
-
-#include <string>
 #include"Loader.h"
 
-#include<glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/matrix_inverse.hpp>
-#include <glm/gtc/type_ptr.hpp>
-#include <glm/mat4x4.hpp>
-
 #include"Component/Material.h"
-#include"ImGUI/imgui_impl_opengl3_loader.h"
+
+#include <assimp/types.h>
+#include <assimp/Importer.hpp>
+#include <assimp/scene.h>
+#include <assimp/postprocess.h>
+
+//#define STB_IMAGE_IMPLEMENTATION
+#include"3DObjects/stb_image.h"
 
 class Shadow {
 public:

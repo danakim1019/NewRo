@@ -112,14 +112,14 @@
       <SDLCheck>false</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>C:\Graphics\Tools\gl3w\include;C:\Graphics\Tools\glm;C:\Graphics\Tools\glfw\glfw-3.2.1.bin.WIN64\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Graphics\Tools\Assimp\include;C:\Graphics\Tools\gl3w\include;C:\Graphics\Tools\glm;C:\Graphics\Tools\glfw\glfw-3.2.1.bin.WIN64\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>C:\Graphics\Tools\gl3w\lib;C:\Graphics\Tools\glfw\glfw-3.2.1.bin.WIN64\lib-vc2015;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>glfw3.lib;gl3w.lib;opengl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>C:\Graphics\Tools\Assimp\lib;C:\Graphics\Tools\gl3w\lib;C:\Graphics\Tools\glfw\glfw-3.2.1.bin.WIN64\lib-vc2015;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>glfw3.lib;gl3w.lib;opengl32.lib;assimp.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <IgnoreSpecificDefaultLibraries>msvcrt.lib</IgnoreSpecificDefaultLibraries>
     </Link>
   </ItemDefinitionGroup>
@@ -161,6 +161,7 @@
     <ClCompile Include="ImGUI\imgui_tables.cpp" />
     <ClCompile Include="ImGUI\imgui_widgets.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="Skybox.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="3DObjects\BuiltInCubeObj.h" />
@@ -195,12 +196,15 @@
     <ClInclude Include="Lights\Light.h" />
     <ClInclude Include="Loader.h" />
     <ClInclude Include="ModelView.h" />
+    <ClInclude Include="SKybox.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Shader\animationModel.frag" />
     <None Include="Shader\animationModel.vert" />
-    <None Include="Shader\black.frag" />
-    <None Include="Shader\black.vert" />
+    <None Include="Shader\line.frag" />
+    <None Include="Shader\line.vert" />
+    <None Include="Shader\cubeMap.frag" />
+    <None Include="Shader\cubeMap.vert" />
     <None Include="Shader\Diffuse.frag" />
     <None Include="Shader\Diffuse.vert" />
     <None Include="Shader\modelTexture.frag" />
@@ -218,6 +222,8 @@
     <None Include="Shader\shadowMap.vert" />
     <None Include="Shader\shadowNT.frag" />
     <None Include="Shader\shadowNT.vert" />
+    <None Include="Shader\skybox.frag" />
+    <None Include="Shader\skybox.vert" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

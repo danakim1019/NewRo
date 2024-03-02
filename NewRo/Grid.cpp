@@ -28,7 +28,7 @@ void Grid::setup() {
 	m_shaderProgram = new ShaderProgram();
 
 	//load shaders
-	m_shaderProgram->initFromFiles("Shader/black.vert", "Shader/black.frag");
+	m_shaderProgram->initFromFiles("Shader/line.vert", "Shader/line.frag");
 
 	//create vao
 	glGenVertexArrays(1, &vaoHandle);

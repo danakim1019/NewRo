@@ -5,6 +5,7 @@
 #include"3DObjects/BuiltInSphereObj.h"
 #include"3DObjects/BuiltInCubeObj.h"
 #include"3DObjects/LoadedModelObj.h"
+#include "SKybox.h"
 //#include"3DObjects/FBX_importer.h"
 #include"Lights/Light.h"
 

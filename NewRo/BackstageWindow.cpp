@@ -4,6 +4,8 @@ const unsigned int SHADOW_WIDTH = 2048, SHADOW_HEIGHT = 2048;
 
 BackstageWindow::BackstageWindow(int m_width, int m_height, int w_Width, int w_Height) :mBackstageWidth(m_width), mBackstageHeight(m_height), mWindowWidth(w_Width), mWindowHeight(w_Height)
 {
+	origin = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, 0.0f));
+
 	mFovy = 45.0f;
 	mRatio = mBackstageWidth / static_cast<float>(mBackstageHeight);
 	mAngle = 0;
@@ -76,8 +78,14 @@ int BackstageWindow::SelectObject(int cx, int cy, int selectedObjIndex) {
 }
 
 void BackstageWindow::DrawBackstageWindow(int width, int height, int selectedObjID, float deltaTime) {
+	
+	glClearColor(0.0f, 0.0f, 0.0f, 0);		//background color
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);		//clear up color and depth buffer
 
-	SetViewport(width, height);
+	glEnable(GL_SCISSOR_TEST);
+	glClearColor(0.5f, 0.5f, 0.5f, 0);		//background color
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);		//clear up color and depth buffer
+	glEnable(GL_DEPTH_TEST);			//test whether an object is in front of other object?
 
 	mViewMat = mCam.GetViewMatrix();
 	mProjectionMat = glm::perspective(glm::radians(mFovy), mRatio, 0.1f, 1000.0f);
@@ -95,7 +103,7 @@ void BackstageWindow::DrawBackstageWindow(int width, int height, int selectedObj
 	//mHierachy->activeOBJList[0]->setRotation(0, -x, 0);
 
 	mHierachy->activeOBJList[2]->setPosition(0, -4.5, 0);
-	mHierachy->activeOBJList[2]->setScale(100, 3, 100);
+	mHierachy->activeOBJList[2]->setScale(10, 3, 10);
 
 	glm::mat4 model;
 	mLightView = glm::lookAt(mHierachy->activeOBJList[0]->getPositon(), glm::vec3(0, 0, 0),
@@ -115,6 +123,9 @@ void BackstageWindow::DrawBackstageWindow(int width, int height, int selectedObj
 		outlinePhase(selectedObjID);
 	}
 
+	//draw skybox
+	mSkybox->RenderModel(origin, mViewMat, mProjectionMat);
+
 	//draw Grid
 	mGrid->draw(origin, mViewMat, mProjectionMat);
 
@@ -122,6 +133,7 @@ void BackstageWindow::DrawBackstageWindow(int width, int height, int selectedObj
 
 	generateShadowMap(mLightSpace, ((Light*)mHierachy->activeOBJList[0])->shadow, anim);
 
+	SetViewport(width, height);
 }
 
 void BackstageWindow::pickingPhase() {
@@ -289,7 +301,6 @@ void BackstageWindow::generateShadowMap(glm::mat4 lightSpace, Shadow* shadow, An
 
 void BackstageWindow::renderPhase(Shadow* shadow, Animation* animation, float deltaTime) {
 
-	glm::mat4 origin = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, 0.0f));
 
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, shadow->mShadowGLuint);
@@ -321,14 +332,6 @@ void BackstageWindow::SetWindowSize(int width, int height, int xPos, int yPos, i
 
 void BackstageWindow::SetViewport(int width, int height) {
 
-	glClearColor(0.0f, 0.0f, 0.0f, 0);		//background color
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);		//clear up color and depth buffer
-
-	glEnable(GL_SCISSOR_TEST);
-	glClearColor(0.5f, 0.5f, 0.5f, 0);		//background color
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);		//clear up color and depth buffer
-	glEnable(GL_DEPTH_TEST);			//test whether an object is in front of other object?
-
 	glViewport(mBackstageXPos, mBackstageYPos, mBackstageWidth, mBackstageHeight);
 	glScissor(mBackstageXPos, mBackstageYPos, mBackstageWidth, mBackstageHeight);
 
@@ -340,6 +343,7 @@ void BackstageWindow::setupBuffer() {
 	mCam = camera(glm::vec3(0.0f, 30.0f, 30.0f));
 	mHierachy = new HierarchyWindow();
 	mGrid = new Grid();
+	mSkybox = new Skybox();
 	CreateBuiltInOBJ(5);
 	CreateBuiltInOBJ(1);
 	CreateBuiltInOBJ(0);

@@ -42,9 +42,13 @@
 
 
 #include <iostream>
+#include <stdio.h>
+#include<vector>
+#include<math.h>
 #include <fstream>
 #include <sstream>
 #include <map>
+#include <string>
 
 #include"ImGUI/imgui_impl_opengl3_loader.h"
 #include <GLFW/glfw3.h> // Will drag system OpenGL headers

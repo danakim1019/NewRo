@@ -1,16 +1,6 @@
 #pragma once
 
 #include"../BasicComponent.h"
-#include "../Loader.h"
-
-#include <assimp/types.h>
-#include <vector>
-#include <string>
-#include <sstream>
-
-#include <assimp/Importer.hpp>
-#include <assimp/scene.h>
-#include <assimp/postprocess.h>
 
 //#include "Light.h"
 

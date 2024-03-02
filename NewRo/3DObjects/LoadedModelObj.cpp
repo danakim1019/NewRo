@@ -1,8 +1,5 @@
-#define STB_IMAGE_IMPLEMENTATION
-#include"stb_image.h"
 
 #include "LoadedModelObj.h"
-#include"meshoptimizer.h"
 
 using namespace std;
 
@@ -36,110 +33,6 @@ size_t lod_index_offsets[lod_count] = {};
 size_t lod_index_counts[lod_count] = {};
 
 std::vector<VertexData> verticesNew;
-
-void packMesh(std::vector<PackedVertexOct>& pv, const std::vector<VertexData>& v) {
-	for (size_t i = 0; i < v.size(); i++) {
-		const VertexData& vi = v[i];
-		PackedVertexOct& pvi = pv[i];
-
-		pvi.px = meshopt_quantizeHalf(vi.px);
-		pvi.py = meshopt_quantizeHalf(vi.py);
-		pvi.pz = meshopt_quantizeHalf(vi.pz);
-
-		float nsum = fabsf(vi.nx) + fabsf(vi.ny) + fabsf(vi.nz);
-		float nx = vi.nx / nsum;
-		float ny = vi.ny / nsum;
-		float nz = vi.nz;
-
-		float nu = nz >= 0 ? nx : (1 - fabsf(ny)) * (nx >= 0 ? 1 : -1);
-		float nv = nz >= 0 ? ny : (1 - fabsf(nx)) * (ny >= 0 ? 1 : -1);
-
-		pvi.nu = char(meshopt_quantizeSnorm(nu, 8));
-		pvi.nv = char(meshopt_quantizeSnorm(nv, 8));
-
-		pvi.tx = meshopt_quantizeHalf(vi.tx);
-		pvi.ty = meshopt_quantizeHalf(vi.ty);
-
-	}
-}
-
-void simplifyComplete(const MeshData& mesh, std::vector<unsigned int>lods[], std::vector<unsigned int>& indices) {
-	lods[0] = mesh.indices;
-	for (size_t i = 1; i < lod_count; i++) {
-		std::vector<unsigned int>& lod = lods[i];
-
-		float threshold = powf(0.4f, float(i));
-		size_t target_index_count = size_t(mesh.indices.size() * threshold) / 3 * 3;
-		float target_error = 1e-2f;
-
-		const std::vector<unsigned int>& source = lods[i - 1];
-
-		if (source.size() < target_index_count)
-			target_index_count = source.size();
-
-		lod.resize(source.size());
-		size_t reduce = meshopt_simplify(&lod[0], &source[0], source.size(), &mesh.vertices[0].px, mesh.vertices.size(), sizeof(VertexData), target_index_count, target_error);
-
-		lod.resize(reduce);
-	}
-
-	for (size_t i = 0; i < lod_count; i++) {
-		std::vector<unsigned int>& lod = lods[i];
-
-		meshopt_optimizeVertexCache(&lod[0], &lod[0], lod.size(), mesh.vertices.size());
-		meshopt_optimizeOverdraw(&lod[0], &lod[0], lod.size(), &mesh.vertices[0].px, mesh.vertices.size(), sizeof(VertexData), 1.0f);
-	}
-
-	size_t total_index_count = 0;
-
-	for (int i = 2 - 1; i >= 0; --i) {
-		lod_index_offsets[i] = total_index_count;
-		lod_index_counts[i] = lods[i].size();
-
-		total_index_count += lods[i].size();
-	}
-
-	indices.resize(total_index_count);
-
-	for (size_t i = 0; i < 2; i++) {
-		memcpy(&indices[lod_index_offsets[i]], &lods[i][0], lods[i].size() * sizeof(lods[i][0]));
-	}
-
-	std::vector <VertexData> vertices = (mesh.vertices);
-
-	meshopt_optimizeVertexFetch(&vertices[0], &indices[0], indices.size(), &vertices[0], vertices.size(), sizeof(VertexData));
-
-	printf("%-9s: %d triangles => %d LOD levels down to %d triangle \n", "SimplifyC", int(lod_index_counts[0]) / 3, int(lod_count), int(lod_index_counts[lod_count - 1]) / 3);
-
-	{
-		const size_t kCacheSize = 16;
-		meshopt_VertexCacheStatistics vcs0 = meshopt_analyzeVertexCache(&indices[lod_index_offsets[0]], lod_index_counts[0], vertices.size(), kCacheSize, 0, 0);
-		meshopt_VertexFetchStatistics vfs0 = meshopt_analyzeVertexFetch(&indices[lod_index_offsets[0]], lod_index_counts[0], vertices.size(), sizeof(VertexData));
-		meshopt_VertexCacheStatistics vcsN = meshopt_analyzeVertexCache(&indices[lod_index_offsets[lod_count - 1]], lod_index_counts[lod_count - 1], vertices.size(), kCacheSize, 0, 0);
-		meshopt_VertexFetchStatistics vfsN = meshopt_analyzeVertexFetch(&indices[lod_index_offsets[lod_count - 1]], lod_index_counts[lod_count - 1], vertices.size(), sizeof(VertexData));
-
-		typedef PackedVertexOct PV;
-
-		std::vector<PV> pv(vertices.size());
-		packMesh(pv, vertices);
-
-		std::vector<unsigned char> vbuf(meshopt_encodeVertexBufferBound(vertices.size(), sizeof(PV)));
-		vbuf.resize(meshopt_encodeVertexBuffer(&vbuf[0], vbuf.size(), &pv[0], vertices.size(), sizeof(PV)));
-
-		std::vector<unsigned char> ibuf(meshopt_encodeIndexBufferBound(indices.size(), vertices.size()));
-		ibuf.resize(meshopt_encodeIndexBuffer(&ibuf[0], ibuf.size(), &indices[0], indices.size()));
-
-		printf(" % -9s ACMR %f..%f Overfetch %f...%f Codec VB %.1f bits/vertex IB %.1f bits/triangle\n",
-			"",
-			vcs0.acmr, vcsN.acmr, vfs0.overfetch, vfsN.overfetch,
-			double(vbuf.size()) / double(vertices.size()) * 8,
-			double(ibuf.size()) / double(indices.size() / 3) * 8);
-
-	}
-
-	verticesNew = vertices;
-
-}
 
 /*  Functions   */
 // constructor, expects a filepath to a 3D model.
@@ -323,35 +216,6 @@ Mesh LoadedModelObj::processMesh(aiMesh* mesh, const aiScene* scene)
 		std::vector<Texture> heightMaps = loadMaterialTextures(material, aiTextureType_AMBIENT, "texture_height");
 		textures.insert(textures.end(), heightMaps.begin(), heightMaps.end());
 	}
-
-	////////for simplification////////
-	/*MeshData data;
-	for (int i = 0; i < mesh->mNumVertices; i++) {
-		VertexData v;
-		v.px = mesh->mVertices[i].x;
-		v.py = mesh->mVertices[i].y;
-		v.pz = mesh->mVertices[i].z;
-
-		v.nx = mesh->mVertices[i].x;
-		v.ny = mesh->mVertices[i].y;
-		v.nz = mesh->mVertices[i].z;
-
-		v.tx = 0;
-		v.ty = 0;
-
-		data.vertices.push_back(v);
-
-	}
-	for (int i = 0; i < mesh->mNumFaces; i++) {
-		data.indices.push_back(mesh->mFaces[i].mIndices[0]);
-		data.indices.push_back(mesh->mFaces[i].mIndices[1]);
-		data.indices.push_back(mesh->mFaces[i].mIndices[2]);
-	}
-
-	std::vector<unsigned int> lods[5];
-	std::vector<unsigned int> indicesCombined;
-	simplifyComplete(data, lods, indicesCombined);*/
-
 
 	// retreive bone information
 	loadMeshBones(mesh, mBones);
